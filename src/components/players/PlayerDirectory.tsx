@@ -119,6 +119,7 @@ export const PlayerDirectory: React.FC = () => {
         <PlayerProfileModal
           player={viewingPlayer}
           onEdit={(p) => { setEditingPlayer(p); setShowAddModal(true); }}
+          onDelete={(id) => deletePlayer(id)}
           onClose={() => setViewingPlayer(null)}
         />
       )}

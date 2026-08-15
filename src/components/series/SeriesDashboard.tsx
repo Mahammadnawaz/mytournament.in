@@ -608,7 +608,7 @@ const CreateSeriesModal: React.FC<{
 
   const [name, setName] = useState('Super Cricket Tri-Series 2026');
   const [format, setFormat] = useState('3-Match T20 Series');
-  const [totalMatches, setTotalMatches] = useState(3);
+  const [totalMatches, setTotalMatches] = useState<number | string>(3);
   const [teamA, setTeamA] = useState('Royal Titans');
   const [teamB, setTeamB] = useState('Super Strikers');
 
@@ -620,7 +620,7 @@ const CreateSeriesModal: React.FC<{
       id: `series-${Date.now()}`,
       name: name.trim(),
       format: format.trim(),
-      totalMatches: Number(totalMatches),
+      totalMatches: Math.max(1, Number(totalMatches) || 3),
       teamA: teamA.trim(),
       teamB: teamB.trim(),
       matchIds: [],
@@ -676,13 +676,14 @@ const CreateSeriesModal: React.FC<{
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Total Matches</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Total Matches *</label>
               <input
                 type="number"
                 min="1"
-                max="20"
+                max="50"
                 value={totalMatches}
-                onChange={(e) => setTotalMatches(Number(e.target.value))}
+                onChange={(e) => setTotalMatches(e.target.value)}
+                placeholder="e.g. 3, 5"
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs font-bold outline-none"
               />
             </div>

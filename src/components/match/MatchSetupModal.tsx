@@ -25,7 +25,7 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   // Step 1 State
   const [matchName, setMatchName] = useState(initialMatchName || 'Premier T20 Match');
   const [venue, setVenue] = useState('Lords Cricket Ground');
-  const [totalOvers, setTotalOvers] = useState(5);
+  const [totalOvers, setTotalOvers] = useState<number | string>(5);
 
   const [teamAName, setTeamAName] = useState(initialTeamA || 'Royal Titans');
   const [teamBName, setTeamBName] = useState(initialTeamB || 'Super Strikers');
@@ -154,7 +154,7 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
       name: matchName || 'Live Cricket Match',
       venue: venue || 'Stadium Arena',
       date: new Date().toISOString().split('T')[0],
-      totalOvers: Math.max(1, Number(totalOvers)),
+      totalOvers: Math.max(1, Number(totalOvers) || 5),
       teamA: {
         name: teamAName.trim(),
         playerIds: selectedTeamAPlayers,
@@ -237,13 +237,14 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Total Overs Limit</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Total Overs Limit *</label>
                 <input
                   type="number"
                   min="1"
-                  max="50"
+                  max="100"
                   value={totalOvers}
-                  onChange={(e) => setTotalOvers(Number(e.target.value))}
+                  onChange={(e) => setTotalOvers(e.target.value)}
+                  placeholder="e.g. 5, 20, 50"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono font-bold outline-none"
                 />
               </div>

@@ -33,18 +33,23 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, onSelect, onEdit
     <div className="group relative bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-950/30 transition duration-300 flex flex-col justify-between">
       
       {/* Action Buttons Top Right */}
-      <div className="absolute top-4 right-4 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition duration-200 z-10">
+      <div className="absolute top-4 right-4 flex items-center space-x-1 sm:opacity-0 sm:group-hover:opacity-100 transition duration-200 z-10">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(player); }}
-          className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
           title="Edit Player Profile"
         >
           <Edit2 className="w-3.5 h-3.5" />
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(player.id); }}
-          className="p-1.5 rounded-md bg-red-950/50 hover:bg-red-900/80 text-red-300 transition"
-          title="Delete Player Profile"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm(`Are you sure you want to remove ${player.name} from the roster?`)) {
+              onDelete(player.id);
+            }
+          }}
+          className="p-1.5 rounded-lg bg-red-950/70 hover:bg-red-900 text-red-300 border border-red-800/50 transition"
+          title="Remove Player Profile"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>

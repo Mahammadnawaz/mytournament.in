@@ -1,14 +1,15 @@
 import React from 'react';
 import type { Player } from '../../types/cricket';
-import { X, Globe, Camera, Flame, Shield } from 'lucide-react';
+import { X, Globe, Camera, Flame, Shield, Trash2 } from 'lucide-react';
 
 interface PlayerProfileModalProps {
   player: Player;
   onEdit?: (player: Player) => void;
+  onDelete?: (id: string) => void;
   onClose: () => void;
 }
 
-export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({ player, onEdit, onClose }) => {
+export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({ player, onEdit, onDelete, onClose }) => {
   const { stats } = player;
 
   // Batting calculations
@@ -26,7 +27,29 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({ player, 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         
-        {/* Close Button */}
+        {/* Close & Remove Buttons Header */}
+        <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Player Career Profile</span>
+          <div className="flex items-center space-x-2 pr-10">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to remove ${player.name} from the roster?`)) {
+                    onDelete(player.id);
+                    onClose();
+                  }
+                }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 text-red-300 border border-red-800/50 text-xs font-extrabold transition active:scale-95"
+                title="Remove Player Profile"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Remove Profile</span>
+              </button>
+            )}
+          </div>
+        </div>
+
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
