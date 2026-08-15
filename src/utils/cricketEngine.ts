@@ -326,9 +326,14 @@ export function calculateSeriesMVP(
   series: TournamentSeries,
   allMatches: Match[]
 ): { leaderboard: SeriesPlayerMVP[]; potS?: { playerId: string; points: number; summary: string } } {
-  const seriesMatches = allMatches.filter(
-    m => (series.matchIds?.includes(m.id) || m.seriesId === series.id) && m.status === 'completed'
-  );
+  const seriesMatches = allMatches.filter(m => {
+    if (series.matchIds?.includes(m.id)) return true;
+    if (m.seriesId === series.id) return true;
+    return (
+      (m.teamA.name === series.teamA && m.teamB.name === series.teamB) ||
+      (m.teamA.name === series.teamB && m.teamB.name === series.teamA)
+    );
+  });
 
   const mvpMap = new Map<string, SeriesPlayerMVP>();
 

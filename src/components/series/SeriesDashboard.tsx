@@ -39,7 +39,14 @@ export const SeriesDashboard: React.FC = () => {
 
   // Calculate Series matches & win counts
   const seriesMatches = selectedSeries
-    ? matches.filter(m => (selectedSeries.matchIds?.includes(m.id) || m.seriesId === selectedSeries.id) && m.status === 'completed')
+    ? matches.filter(m => {
+        if (selectedSeries.matchIds?.includes(m.id)) return true;
+        if (m.seriesId === selectedSeries.id) return true;
+        return (
+          (m.teamA.name === selectedSeries.teamA && m.teamB.name === selectedSeries.teamB) ||
+          (m.teamA.name === selectedSeries.teamB && m.teamB.name === selectedSeries.teamA)
+        ) && m.status === 'completed';
+      })
     : [];
 
   let teamAWins = 0;
@@ -351,48 +358,63 @@ export const SeriesDashboard: React.FC = () => {
 
           </div>
 
-          {/* ── PLAYER OF THE SERIES — shown ONLY after series is completed ── */}
-          {isSeriesCompleted && (
-            <div className="relative overflow-hidden bg-gradient-to-br from-amber-950/60 via-slate-900 to-yellow-950/40 border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-              {/* Background glow */}
-              <div className="absolute -top-10 -right-10 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          {/* ── PLAYER OF THE SERIES / CURRENT MVP LEADER CARD ── */}
+          {(isSeriesCompleted || leaderboard.length > 0) && potSPlayer && (
+            <div className="relative overflow-hidden bg-gradient-to-br from-amber-950/70 via-slate-900 to-yellow-950/50 border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
+              {/* Background ambient glow */}
+              <div className="absolute -top-10 -right-10 w-56 h-56 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none" />
 
               <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                {/* Trophy icon */}
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 flex items-center justify-center shadow-xl shadow-amber-500/30 flex-shrink-0">
-                  <Trophy className="w-9 h-9" />
+                {/* Trophy / Star Avatar */}
+                <div className="relative">
+                  {potSPlayer.avatarUrl ? (
+                    <img
+                      src={potSPlayer.avatarUrl}
+                      alt={potSPlayer.name}
+                      className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl shadow-amber-500/20"
+                    />
+                  ) : (
+                    <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 flex items-center justify-center shadow-xl shadow-amber-500/30 flex-shrink-0">
+                      <Trophy className="w-9 h-9" />
+                    </div>
+                  )}
+                  <div className="absolute -bottom-2 -right-2 p-1.5 rounded-xl bg-amber-500 text-slate-950 font-black shadow-lg">
+                    <Trophy className="w-4 h-4" />
+                  </div>
                 </div>
 
                 {/* Player info */}
                 <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 block mb-1">
-                    🏏 Player of the Series
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-amber-400 flex items-center space-x-1.5 mb-1">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>{isSeriesCompleted ? '🏆 Official Player of the Series' : '⭐ Current Series MVP Leader'}</span>
                   </span>
                   <h3 className="text-2xl sm:text-3xl font-black text-white truncate">
-                    {potSPlayer?.name || 'Series MVP'}
+                    {potSPlayer.name}
                   </h3>
-                  {(selectedSeries.playerOfSeriesSummary || potS?.summary) && (
-                    <p className="text-sm text-slate-300 font-medium mt-1">
-                      {selectedSeries.playerOfSeriesSummary || potS?.summary}
+                  {(selectedSeries.playerOfSeriesSummary || potS?.summary || (leaderboard[0] && `${leaderboard[0].runs} Runs • ${leaderboard[0].wickets} Wkts (${leaderboard[0].mvpPoints} MVP Pts)`)) && (
+                    <p className="text-sm text-slate-300 font-semibold mt-1">
+                      {selectedSeries.playerOfSeriesSummary || potS?.summary || `${leaderboard[0].runs} Runs • ${leaderboard[0].wickets} Wickets (${leaderboard[0].mvpPoints} MVP Points)`}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-2">
-                    {potSPlayer?.role && (
+                  <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                    {potSPlayer.role && (
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                         {potSPlayer.role}
                       </span>
                     )}
-                    {potSPlayer?.country && (
-                      <span className="text-[11px] text-slate-400 font-medium">{potSPlayer.country}</span>
+                    {potSPlayer.country && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                        {potSPlayer.country}
+                      </span>
+                    )}
+                    {leaderboard[0] && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                        Rank #1 • {leaderboard[0].mvpPoints} PTS
+                      </span>
                     )}
                   </div>
-                </div>
-
-                {/* MVP Points badge */}
-                <div className="flex-shrink-0 text-center bg-amber-500/15 border border-amber-500/30 rounded-2xl px-5 py-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block mb-1">Total MVP Pts</span>
-                  <span className="text-4xl font-black text-amber-400 font-mono leading-none">{potS?.points || 0}</span>
                 </div>
               </div>
             </div>
