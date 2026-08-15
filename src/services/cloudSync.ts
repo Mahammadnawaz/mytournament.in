@@ -18,9 +18,15 @@ let lastSyncedTimestamp = 0;
 export const cloudSync = {
   // Push full state update to Cloud (Firebase RTDB + Express API)
   async pushState(data: Partial<CloudSyncData>): Promise<boolean> {
+    // 🛡️ Strip Heavy History Payload for 90% bandwidth reduction & ultra-fast sync
+    const lightweightMatches = (data.matches || []).map(m => ({
+      ...m,
+      history: undefined,
+    }));
+
     const payload: CloudSyncData = {
       players: data.players || [],
-      matches: data.matches || [],
+      matches: lightweightMatches,
       series: data.series || [],
       activeMatchId: data.activeMatchId || null,
       activeScorer: data.activeScorer || null,

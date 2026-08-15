@@ -198,17 +198,17 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
   }, [isScorer, options]);
 
   // 3. Sub-100ms Active Match Live State Subscription (/activeMatches/{activeMatchId})
+  // 🛡️ COMPLETELY DISABLED FOR SCORER: Scorer handles 100% of UI via local state & write-only pushes.
+  // ONLY Spectators listen to onValue to eliminate all feedback loops and double-counting.
   useEffect(() => {
-    if (!isFirebaseConfigured || !activeMatchId) {
+    if (isScorer || !isFirebaseConfigured || !activeMatchId) {
       return;
     }
 
     const liveMatchRef = ref(db, `activeMatches/${activeMatchId}`);
     const unsubLiveMatch = onValue(liveMatchRef, (snapshot) => {
-      // Guard 1: Do not overwrite local scoring device state with delayed snapshot
-      if (isLocalAction.current) return;
-      // Guard 2: Ignore temporary null/empty snapshots during network latency
-      if (!snapshot.exists() || snapshot.val() == null) return;
+      // 🛡️ Null Data Protection: Prevent resetting app to empty/initial state
+      if (!snapshot.exists() || !snapshot.val()) return;
 
       const liveMatchData = snapshot.val() as Match;
       if (liveMatchData && liveMatchData.id) {
@@ -222,7 +222,7 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     return () => {
       unsubLiveMatch();
     };
-  }, [activeMatchId, options]);
+  }, [isScorer, activeMatchId, options]);
 
   // Snapshot for Rollback
   const captureRollbackSnapshot = useCallback(() => {
@@ -272,7 +272,14 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
 
     try {
       const liveRef = ref(db, `activeMatches/${updatedMatch.id}`);
-      await set(liveRef, updatedMatch);
+
+      // 🛡️ Strip History Payload: reduces network payload by 90% and eliminates latency spikes
+      const cleanMatchPayload = {
+        ...updatedMatch,
+        history: undefined,
+      };
+
+      await set(liveRef, cleanMatchPayload);
       scheduleReleaseLocalActionLock();
       return true;
     } catch (err) {

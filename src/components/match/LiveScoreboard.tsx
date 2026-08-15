@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { Trophy, Activity, CloudRain } from 'lucide-react';
+import { Trophy, Activity, CloudRain, ShieldAlert } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchPOTMModal from './MatchPOTMModal';
 import DLSModal from './DLSModal';
+import EndMatchModal from './EndMatchModal';
 import { calculateDLSParScore } from '../../utils/dlsEngine';
 
 export const LiveScoreboard: React.FC = () => {
-  const { activeMatch, activeInnings, setActiveTab } = useCricket();
+  const { activeMatch, activeInnings, setActiveTab, isScorer } = useCricket();
 
   const [showPOTM, setShowPOTM] = useState(false);
   const [showDLSModal, setShowDLSModal] = useState(false);
+  const [showEndMatchModal, setShowEndMatchModal] = useState(false);
 
   // Auto-show POTM modal ONCE right when match flips to 'completed'
   useEffect(() => {
@@ -128,7 +130,18 @@ export const LiveScoreboard: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {isScorer && activeMatch.status === 'live' && (
+              <button
+                onClick={() => setShowEndMatchModal(true)}
+                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] transition active:scale-95 shadow-sm"
+                title="Conclude match early or call off due to rain/draw"
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>End Match / Call Off</span>
+              </button>
+            )}
+
             <button
               onClick={() => setShowDLSModal(true)}
               className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-[11px] transition"
@@ -249,6 +262,9 @@ export const LiveScoreboard: React.FC = () => {
 
       {/* DLS Manager Modal */}
       {showDLSModal && <DLSModal onClose={() => setShowDLSModal(false)} />}
+
+      {/* End Match / Call Off Modal */}
+      {showEndMatchModal && <EndMatchModal onClose={() => setShowEndMatchModal(false)} />}
     </>
   );
 };

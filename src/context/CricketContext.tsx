@@ -211,44 +211,49 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Ignore
     }
 
-    // 1. Initial snapshot pull
-    cloudSync.pullLatest().then(data => {
-      if (data && !isLocalAction.current) {
-        if (data.players?.length) setPlayers(data.players);
-        if (data.matches?.length) setMatches(data.matches);
-        if (data.series?.length) setSeriesList(data.series);
-        if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
-        if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
-      }
-    });
-
-    // 2. Real-time subscription (Firebase WebSockets + fast polling)
-    const unsubscribe = cloudSync.subscribe((syncData) => {
-      // Guard 1: Ignore echo snapshots resulting from our own local writes
-      if (isLocalAction.current) return;
-      // Guard 2: Ignore empty/null snapshots to prevent resets
-      if (!syncData || !syncData.matches || syncData.matches.length === 0) return;
-
-      if (syncData.players?.length) setPlayers(syncData.players);
-      if (syncData.matches?.length) setMatches(syncData.matches);
-      if (syncData.series?.length) setSeriesList(syncData.series);
-      if (syncData.activeScorer !== undefined) setActiveScorer(syncData.activeScorer);
-
-      if (syncData.activeMatchId) {
-        setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
-      } else {
-        const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
-        if (liveMatch) {
-          setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
+    // 1. Initial snapshot pull (Only if not already populated)
+    if (!isScorer) {
+      cloudSync.pullLatest().then(data => {
+        if (data) {
+          if (data.players?.length) setPlayers(data.players);
+          if (data.matches?.length) setMatches(data.matches);
+          if (data.series?.length) setSeriesList(data.series);
+          if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
+          if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
         }
-      }
-    });
+      });
+    }
+
+    // 2. Real-time subscription: ONLY FOR SPECTATORS / VIEWERS
+    // The Scorer NEVER listens to incoming subscription events during scoring.
+    // Local state handles 100% of UI updates on the Scorer device.
+    let unsubscribe = () => {};
+    if (!isScorer) {
+      unsubscribe = cloudSync.subscribe((syncData) => {
+        // 🛡️ Null Data Protection: Ignore empty/null snapshots
+        if (!syncData || !syncData.matches || syncData.matches.length === 0) return;
+
+        if (syncData.players?.length) setPlayers(syncData.players);
+        if (syncData.matches?.length) setMatches(syncData.matches);
+        if (syncData.series?.length) setSeriesList(syncData.series);
+        if (syncData.activeScorer !== undefined) setActiveScorer(syncData.activeScorer);
+
+        if (syncData.activeMatchId) {
+          setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
+        } else {
+          const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
+          if (liveMatch) {
+            setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
+          }
+        }
+      });
+    }
 
     return () => {
       unsubscribe();
       if (channel) channel.close();
     };
-  }, []);
+  }, [isScorer]);
 
   // Persistence & Database Sync Effects
   useEffect(() => {
