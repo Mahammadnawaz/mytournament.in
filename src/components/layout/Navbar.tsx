@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export const Navbar: React.FC = () => {
-  const { activeMatch, activeTab, setActiveTab, theme, setTheme } = useCricket();
+  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole } = useCricket();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -56,6 +56,46 @@ export const Navbar: React.FC = () => {
             {/* Quick Actions & Theme Picker */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               
+              {/* Role Mode Selector (Scorer vs Spectator) */}
+              <div className="flex items-center bg-slate-950/80 border border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+                <button
+                  onClick={() => setUserRole('scorer')}
+                  className={`px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                    isScorer
+                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Scorer Mode: Authorized to score balls and manage match"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+                  <span>Scorer</span>
+                </button>
+                <button
+                  onClick={() => setUserRole('spectator')}
+                  className={`px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                    isSpectator
+                      ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Spectator Mode: Read-only live broadcast stream"
+                >
+                  <span>Spectator</span>
+                </button>
+              </div>
+
+              {/* Online Cloud Sync Status */}
+              <div
+                className={`hidden lg:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
+                  isOnline
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                }`}
+                title={isOnline ? 'Realtime Cloud Sync Active (<100ms)' : 'Offline mode: saving locally'}
+              >
+                <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                <span>{isOnline ? 'LIVE SYNC' : 'OFFLINE'}</span>
+              </div>
+
               {/* Theme Selector Dropdown */}
               <div className="relative">
                 <button
@@ -93,13 +133,15 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              <button
-                onClick={() => setShowSetupModal(true)}
-                className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm transition shadow-md shadow-emerald-500/20 active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">New Match</span>
-              </button>
+              {isScorer && (
+                <button
+                  onClick={() => setShowSetupModal(true)}
+                  className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm transition shadow-md shadow-emerald-500/20 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">New Match</span>
+                </button>
+              )}
 
               <button
                 onClick={() => window.location.reload()}
@@ -107,7 +149,7 @@ export const Navbar: React.FC = () => {
                 className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs flex items-center space-x-1.5 border border-slate-700/80 active:scale-95"
               >
                 <RotateCw className="w-4 h-4 text-emerald-400" />
-                <span className="hidden md:inline font-semibold">Refresh Page</span>
+                <span className="hidden md:inline font-semibold">Refresh</span>
               </button>
 
             </div>

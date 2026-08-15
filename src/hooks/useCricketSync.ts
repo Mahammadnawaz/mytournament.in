@@ -1,0 +1,422 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ref, onValue, set, update } from 'firebase/database';
+import { db, isFirebaseConfigured, subscribeConnectionStatus } from '../config/firebase';
+import type { Player, Match, TournamentSeries } from '../types/cricket';
+import { INITIAL_PLAYERS, INITIAL_MATCHES, INITIAL_SERIES } from '../utils/initialData';
+import { aggregateMatchStatsToPlayers, calculateMatchPOTM } from '../utils/cricketEngine';
+
+export type UserRole = 'scorer' | 'spectator';
+
+export interface UseCricketSyncOptions {
+  initialRole?: UserRole;
+  onSyncError?: (error: Error) => void;
+}
+
+export interface UseCricketSyncReturn {
+  // State
+  players: Player[];
+  matches: Match[];
+  seriesList: TournamentSeries[];
+  activeMatch: Match | null;
+  activeMatchId: string | null;
+  userRole: UserRole;
+  isScorer: boolean;
+  isSpectator: boolean;
+  isOnline: boolean;
+  isSyncing: boolean;
+
+  // Actions / Mutations (Guarded for Scorers)
+  setUserRole: (role: UserRole) => void;
+  syncActiveMatchState: (match: Match) => Promise<boolean>;
+  syncNewMatchCreated: (match: Match) => Promise<boolean>;
+  syncPlayerAdded: (player: Player) => Promise<boolean>;
+  syncPlayerUpdated: (player: Player) => Promise<boolean>;
+  syncPlayerDeleted: (playerId: string) => Promise<boolean>;
+  syncSeriesUpdated: (series: TournamentSeries) => Promise<boolean>;
+  finishMatchAndBatchAggregateStats: (completedMatch: Match) => Promise<boolean>;
+  setActiveMatchId: (matchId: string | null) => Promise<void>;
+  rollbackOptimisticUpdate: () => void;
+}
+
+const STORAGE_PLAYERS_KEY = 'cricpulse_firebase_players_backup';
+const STORAGE_MATCHES_KEY = 'cricpulse_firebase_matches_backup';
+const STORAGE_ACTIVE_MATCH_KEY = 'cricpulse_firebase_active_match_backup';
+const STORAGE_ROLE_KEY = 'cricpulse_user_role';
+
+export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketSyncReturn => {
+  // Determine initial role from URL query param (?role=spectator or ?role=scorer) or localStorage
+  const [userRole, setUserRoleState] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlRole = params.get('role');
+      if (urlRole === 'spectator' || urlRole === 'scorer') {
+        return urlRole as UserRole;
+      }
+      const savedRole = localStorage.getItem(STORAGE_ROLE_KEY) as UserRole;
+      if (savedRole === 'spectator' || savedRole === 'scorer') {
+        return savedRole;
+      }
+    }
+    return options.initialRole || 'scorer';
+  });
+
+  const isScorer = userRole === 'scorer';
+  const isSpectator = userRole === 'spectator';
+
+  // Core Data States initialized with LocalStorage Cache / Seed Fallbacks
+  const [players, setPlayers] = useState<Player[]>(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_PLAYERS_KEY);
+      return cached ? JSON.parse(cached) : INITIAL_PLAYERS;
+    } catch {
+      return INITIAL_PLAYERS;
+    }
+  });
+
+  const [matches, setMatches] = useState<Match[]>(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_MATCHES_KEY);
+      return cached ? JSON.parse(cached) : INITIAL_MATCHES;
+    } catch {
+      return INITIAL_MATCHES;
+    }
+  });
+
+  const [seriesList, setSeriesList] = useState<TournamentSeries[]>(INITIAL_SERIES);
+  const [activeMatchId, setActiveMatchIdState] = useState<string | null>(null);
+  const [activeMatch, setActiveMatch] = useState<Match | null>(null);
+
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // Rollback Backup Ref for Optimistic UI Updates
+  const rollbackSnapshotRef = useRef<{
+    players: Player[];
+    matches: Match[];
+    activeMatch: Match | null;
+  }>({
+    players: INITIAL_PLAYERS,
+    matches: INITIAL_MATCHES,
+    activeMatch: null,
+  });
+
+  // Role Setter with URL Reflection
+  const setUserRole = useCallback((newRole: UserRole) => {
+    setUserRoleState(newRole);
+    localStorage.setItem(STORAGE_ROLE_KEY, newRole);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', newRole);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
+  // 1. Connection Health Listener
+  useEffect(() => {
+    const unsubConnection = subscribeConnectionStatus((connected) => {
+      setIsOnline(connected);
+    });
+
+    const handleBrowserOnline = () => setIsOnline(true);
+    const handleBrowserOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleBrowserOnline);
+    window.addEventListener('offline', handleBrowserOffline);
+
+    return () => {
+      unsubConnection();
+      window.removeEventListener('online', handleBrowserOnline);
+      window.removeEventListener('offline', handleBrowserOffline);
+    };
+  }, []);
+
+  // 2. Real-Time Subscriptions (/players, /matches, /activeMatches, /meta)
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      // If Firebase credentials are not yet configured, use local sync mode
+      return;
+    }
+
+    setIsSyncing(true);
+
+    // /players subscription (Lifetime career stats sync)
+    const playersRef = ref(db, 'players');
+    const unsubPlayers = onValue(playersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        const playersList: Player[] = Object.values(val);
+        setPlayers(playersList);
+        localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(playersList));
+      } else if (isScorer) {
+        // Initialize empty cloud database with seed players if first time
+        const initialMap: Record<string, Player> = {};
+        INITIAL_PLAYERS.forEach(p => { initialMap[p.id] = p; });
+        set(playersRef, initialMap);
+      }
+      setIsSyncing(false);
+    }, (error) => {
+      options.onSyncError?.(error);
+      setIsSyncing(false);
+    });
+
+    // /matches subscription (Archived completed matches)
+    const matchesRef = ref(db, 'matches');
+    const unsubMatches = onValue(matchesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        const matchesList: Match[] = Object.values(val);
+        setMatches(matchesList);
+        localStorage.setItem(STORAGE_MATCHES_KEY, JSON.stringify(matchesList));
+      }
+    });
+
+    // /meta/currentActiveMatchId subscription (Global active match pointer)
+    const activeMetaRef = ref(db, 'meta/currentActiveMatchId');
+    const unsubActiveMeta = onValue(activeMetaRef, (snapshot) => {
+      const matchId = snapshot.val() as string | null;
+      setActiveMatchIdState(matchId);
+    });
+
+    return () => {
+      unsubPlayers();
+      unsubMatches();
+      unsubActiveMeta();
+    };
+  }, [isScorer, options]);
+
+  // 3. Sub-100ms Active Match Live State Subscription (/activeMatches/{activeMatchId})
+  useEffect(() => {
+    if (!isFirebaseConfigured || !activeMatchId) {
+      return;
+    }
+
+    const liveMatchRef = ref(db, `activeMatches/${activeMatchId}`);
+    const unsubLiveMatch = onValue(liveMatchRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const liveMatchData = snapshot.val() as Match;
+        setActiveMatch(liveMatchData);
+        localStorage.setItem(STORAGE_ACTIVE_MATCH_KEY, JSON.stringify(liveMatchData));
+      } else {
+        // Match might have been completed or moved to /matches archive
+        setActiveMatch(null);
+      }
+    }, (error) => {
+      options.onSyncError?.(error);
+    });
+
+    return () => {
+      unsubLiveMatch();
+    };
+  }, [activeMatchId, options]);
+
+  // Snapshot for Rollback
+  const captureRollbackSnapshot = useCallback(() => {
+    rollbackSnapshotRef.current = {
+      players,
+      matches,
+      activeMatch,
+    };
+  }, [players, matches, activeMatch]);
+
+  const rollbackOptimisticUpdate = useCallback(() => {
+    const snap = rollbackSnapshotRef.current;
+    setPlayers(snap.players);
+    setMatches(snap.matches);
+    setActiveMatch(snap.activeMatch);
+  }, []);
+
+  // 4. Scorer Mutations with Optimistic Updates and Automatic Cloud Sync
+
+  // Sync active live match ball-by-ball score to /activeMatches/{matchId}
+  const syncActiveMatchState = useCallback(async (updatedMatch: Match): Promise<boolean> => {
+    if (!isScorer) {
+      console.warn('Unauthorized: Spectator mode is read-only.');
+      return false;
+    }
+
+    captureRollbackSnapshot();
+
+    // Optimistic local update
+    setActiveMatch(updatedMatch);
+    localStorage.setItem(STORAGE_ACTIVE_MATCH_KEY, JSON.stringify(updatedMatch));
+
+    if (!isFirebaseConfigured) return true;
+
+    try {
+      const liveRef = ref(db, `activeMatches/${updatedMatch.id}`);
+      await set(liveRef, updatedMatch);
+      return true;
+    } catch (err) {
+      console.error('Firebase active match sync error, rolling back:', err);
+      rollbackOptimisticUpdate();
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+
+  // Create & Register New Match in /activeMatches & /meta/currentActiveMatchId
+  const syncNewMatchCreated = useCallback(async (newMatch: Match): Promise<boolean> => {
+    if (!isScorer) return false;
+    captureRollbackSnapshot();
+
+    setActiveMatchIdState(newMatch.id);
+    setActiveMatch(newMatch);
+
+    if (!isFirebaseConfigured) return true;
+
+    try {
+      const updates: Record<string, any> = {};
+      updates[`activeMatches/${newMatch.id}`] = newMatch;
+      updates['meta/currentActiveMatchId'] = newMatch.id;
+      await update(ref(db), updates);
+      return true;
+    } catch (err) {
+      rollbackOptimisticUpdate();
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+
+  // Atomically Batch-Update Career Stats on Match Finish and Move to /matches Archive
+  const finishMatchAndBatchAggregateStats = useCallback(async (completedMatch: Match): Promise<boolean> => {
+    if (!isScorer) return false;
+    captureRollbackSnapshot();
+
+    const finalizedMatch: Match = {
+      ...completedMatch,
+      status: 'completed',
+    };
+
+    // Calculate POTM
+    const potm = calculateMatchPOTM(finalizedMatch);
+    if (potm) finalizedMatch.potmInfo = potm;
+
+    // Aggregate lifetime career stats to player roster
+    const updatedPlayers = aggregateMatchStatsToPlayers(players, finalizedMatch);
+
+    // Optimistic UI updates
+    setPlayers(updatedPlayers);
+    setMatches(prev => [finalizedMatch, ...prev.filter(m => m.id !== finalizedMatch.id)]);
+    setActiveMatch(finalizedMatch);
+
+    if (!isFirebaseConfigured) return true;
+
+    try {
+      const updates: Record<string, any> = {};
+      
+      // 1. Move to /matches archive
+      updates[`matches/${finalizedMatch.id}`] = finalizedMatch;
+
+      // 2. Remove from /activeMatches
+      updates[`activeMatches/${finalizedMatch.id}`] = null;
+
+      // 3. Clear active pointer
+      updates['meta/currentActiveMatchId'] = null;
+
+      // 4. Atomically batch-update all players' career lifetime profiles in /players
+      updatedPlayers.forEach((player) => {
+        updates[`players/${player.id}`] = player;
+      });
+
+      await update(ref(db), updates);
+      return true;
+    } catch (err) {
+      console.error('Batch finish match sync failed, rolling back:', err);
+      rollbackOptimisticUpdate();
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, players, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+
+  // Player Roster Mutations (/players/{playerId})
+  const syncPlayerAdded = useCallback(async (newPlayer: Player): Promise<boolean> => {
+    if (!isScorer) return false;
+    setPlayers(prev => [newPlayer, ...prev]);
+
+    if (!isFirebaseConfigured) return true;
+    try {
+      await set(ref(db, `players/${newPlayer.id}`), newPlayer);
+      return true;
+    } catch (err) {
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, options]);
+
+  const syncPlayerUpdated = useCallback(async (updatedPlayer: Player): Promise<boolean> => {
+    if (!isScorer) return false;
+    setPlayers(prev => prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
+
+    if (!isFirebaseConfigured) return true;
+    try {
+      await set(ref(db, `players/${updatedPlayer.id}`), updatedPlayer);
+      return true;
+    } catch (err) {
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, options]);
+
+  const syncPlayerDeleted = useCallback(async (playerId: string): Promise<boolean> => {
+    if (!isScorer) return false;
+    setPlayers(prev => prev.filter(p => p.id !== playerId));
+
+    if (!isFirebaseConfigured) return true;
+    try {
+      await set(ref(db, `players/${playerId}`), null);
+      return true;
+    } catch (err) {
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, options]);
+
+  const syncSeriesUpdated = useCallback(async (series: TournamentSeries): Promise<boolean> => {
+    if (!isScorer) return false;
+    setSeriesList(prev => prev.map(s => s.id === series.id ? series : s));
+
+    if (!isFirebaseConfigured) return true;
+    try {
+      await set(ref(db, `series/${series.id}`), series);
+      return true;
+    } catch (err) {
+      options.onSyncError?.(err as Error);
+      return false;
+    }
+  }, [isScorer, options]);
+
+  const setActiveMatchId = useCallback(async (matchId: string | null) => {
+    setActiveMatchIdState(matchId);
+    if (!isFirebaseConfigured || !isScorer) return;
+    try {
+      await set(ref(db, 'meta/currentActiveMatchId'), matchId);
+    } catch (err) {
+      options.onSyncError?.(err as Error);
+    }
+  }, [isScorer, options]);
+
+  return {
+    players,
+    matches,
+    seriesList,
+    activeMatch,
+    activeMatchId,
+    userRole,
+    isScorer,
+    isSpectator,
+    isOnline,
+    isSyncing,
+    setUserRole,
+    syncActiveMatchState,
+    syncNewMatchCreated,
+    syncPlayerAdded,
+    syncPlayerUpdated,
+    syncPlayerDeleted,
+    syncSeriesUpdated,
+    finishMatchAndBatchAggregateStats,
+    setActiveMatchId,
+    rollbackOptimisticUpdate,
+  };
+};
+
+export default useCricketSync;

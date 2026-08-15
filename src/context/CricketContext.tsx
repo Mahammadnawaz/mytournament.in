@@ -7,6 +7,8 @@ import { api } from '../services/api';
 
 export type ThemeMode = 'testcricket' | 'county' | 'lords' | 'oceaniablue' | 'daylight';
 
+export type UserRole = 'scorer' | 'spectator';
+
 interface CricketContextType {
   players: Player[];
   matches: Match[];
@@ -17,6 +19,11 @@ interface CricketContextType {
   setActiveTab: (tab: 'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series') => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  userRole: UserRole;
+  isScorer: boolean;
+  isSpectator: boolean;
+  isOnline: boolean;
+  setUserRole: (role: UserRole) => void;
   addPlayer: (player: Omit<Player, 'id' | 'stats'>) => void;
   updatePlayer: (player: Player) => void;
   deletePlayer: (id: string) => void;
@@ -66,6 +73,47 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('scoring');
+
+  const [userRole, setUserRoleState] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlRole = params.get('role');
+      if (urlRole === 'spectator' || urlRole === 'scorer') {
+        return urlRole as UserRole;
+      }
+      const savedRole = localStorage.getItem('cricpulse_user_role') as UserRole;
+      if (savedRole === 'spectator' || savedRole === 'scorer') {
+        return savedRole;
+      }
+    }
+    return 'scorer';
+  });
+
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
+
+  const isScorer = userRole === 'scorer';
+  const isSpectator = userRole === 'spectator';
+
+  const setUserRole = (newRole: UserRole) => {
+    setUserRoleState(newRole);
+    localStorage.setItem('cricpulse_user_role', newRole);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', newRole);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
@@ -580,6 +628,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setActiveTab,
         theme,
         setTheme,
+        userRole,
+        isScorer,
+        isSpectator,
+        isOnline,
+        setUserRole,
         addPlayer,
         updatePlayer,
         deletePlayer,
