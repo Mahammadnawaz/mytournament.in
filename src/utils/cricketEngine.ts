@@ -121,7 +121,9 @@ export function processBall(
   let needNextBatsman = false;
   if (isWicket && wicketInfo) {
     state.wickets += 1;
-    bowlerStats.wickets += 1;
+    if (wicketInfo.type !== 'run-out' && wicketInfo.type !== 'retired-hurt') {
+      bowlerStats.wickets += 1;
+    }
 
     const dismissedId = wicketInfo.dismissedPlayerId || currentStrikerId;
     if (state.batsmenStats[dismissedId]) {

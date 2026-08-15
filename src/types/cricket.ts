@@ -57,6 +57,7 @@ export interface WicketDetails {
   dismissedPlayerId: string;
   bowlerId: string;
   fielderId?: string;
+  runsCompleted?: number;
   description?: string;
 }
 

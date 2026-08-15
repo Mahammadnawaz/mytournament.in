@@ -128,14 +128,14 @@ export const MatchAnalytics: React.FC = () => {
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#14b8a6'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-black text-white flex items-center space-x-3">
-              <BarChart3 className="w-7 h-7 text-emerald-400" />
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center space-x-2.5">
+              <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 flex-shrink-0" />
               <span>Performance Analytics & Ground Zones</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">
@@ -143,12 +143,12 @@ export const MatchAnalytics: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-950 p-2 rounded-2xl border border-slate-800">
-            <span className="text-xs text-slate-400 font-semibold pl-2">Filter Player:</span>
+          <div className="flex items-center space-x-2 bg-slate-950 p-2 rounded-2xl border border-slate-800 self-stretch sm:self-auto">
+            <span className="text-xs text-slate-400 font-semibold pl-2 flex-shrink-0">Filter:</span>
             <select
               value={selectedPlayerId}
               onChange={(e) => setSelectedPlayerId(e.target.value)}
-              className="bg-slate-900 border border-slate-800 text-slate-100 text-xs font-bold px-3 py-1.5 rounded-xl outline-none"
+              className="bg-slate-900 border border-slate-800 text-slate-100 text-xs font-bold px-3 py-1.5 rounded-xl outline-none w-full"
             >
               <option value="all">All Players (Team Shot Zones)</option>
               {players.map(p => (
@@ -160,25 +160,25 @@ export const MatchAnalytics: React.FC = () => {
       </div>
 
       {/* WAGON WHEEL & GROUND SCORING ZONE ANALYTICS */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-5">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block">
               SHOT DIRECTION ANALYTICS
             </span>
-            <h3 className="text-xl font-black text-white flex items-center space-x-2 mt-0.5">
+            <h3 className="text-lg sm:text-xl font-black text-white flex items-center space-x-2 mt-0.5">
               <Target className="w-5 h-5 text-emerald-400" />
               <span>Ground Scoring Zones</span>
             </h3>
           </div>
 
           {wagonWheelData.strongestZone && (
-            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 rounded-2xl px-4 py-2 flex items-center space-x-3">
-              <Sparkles className="w-5 h-5 text-amber-400" />
+            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 rounded-2xl px-3.5 py-2 flex items-center space-x-2.5 self-start md:self-auto">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 flex-shrink-0" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Strongest Scoring Zone</span>
-                <span className="text-sm font-black text-emerald-400">
+                <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Strongest Scoring Zone</span>
+                <span className="text-xs sm:text-sm font-black text-emerald-400">
                   {wagonWheelData.strongestZone.zone} ({wagonWheelData.strongestZone.runs} Runs • {wagonWheelData.strongestZone.percentage}%)
                 </span>
               </div>
@@ -188,7 +188,7 @@ export const MatchAnalytics: React.FC = () => {
 
         {/* Off-side vs Leg-side Ratio Bar */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs font-bold">
+          <div className="flex justify-between text-[11px] sm:text-xs font-bold">
             <span className="text-cyan-400">← OFF-SIDE: {wagonWheelData.offSideRuns} Runs ({wagonWheelData.offSidePct}%)</span>
             <span className="text-amber-400">LEG-SIDE: {wagonWheelData.legSideRuns} Runs ({wagonWheelData.legSidePct}%) →</span>
           </div>
@@ -199,15 +199,15 @@ export const MatchAnalytics: React.FC = () => {
         </div>
 
         {/* Wagon Wheel Chart Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-center">
           
           {/* Bar Chart by Ground Zone */}
-          <div className="h-64 w-full">
+          <div className="h-56 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={wagonWheelData.chartList}>
+              <BarChart data={wagonWheelData.chartList} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="zone" stroke="#64748b" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="zone" stroke="#64748b" tick={{ fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={45} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
                 <Tooltip content={<CustomBarTooltip />} />
                 <Bar dataKey="runs" fill="#10b981" radius={[6, 6, 0, 0]}>
                   {wagonWheelData.chartList.map((_entry, index) => (
@@ -218,27 +218,27 @@ export const MatchAnalytics: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Breakdown Leaderboard Cards */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Breakdown Leaderboard Cards (Responsive 1-col on small screens, 2-col on sm+) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {wagonWheelData.chartList.map((z, idx) => (
               <div
                 key={z.zone}
-                className="bg-slate-950/90 border border-slate-800 p-3 rounded-2xl flex items-center justify-between shadow-md"
+                className="bg-slate-950/90 border border-slate-800 p-2.5 sm:p-3 rounded-2xl flex items-center justify-between shadow-md"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 min-w-0">
                   <span
                     className="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-white/20"
                     style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                   />
-                  <div>
-                    <h5 className="text-xs font-black text-white">{z.zone}</h5>
+                  <div className="min-w-0">
+                    <h5 className="text-xs font-black text-white truncate">{z.zone}</h5>
                     <span className="text-[11px] text-amber-400 font-black font-mono block mt-0.5">
                       {z.boundaries} Boundaries
                     </span>
                   </div>
                 </div>
-                <div className="text-right font-mono">
-                  <span className="text-sm font-black text-emerald-400 block">{z.runs} Runs</span>
+                <div className="text-right font-mono flex-shrink-0 pl-2">
+                  <span className="text-xs sm:text-sm font-black text-emerald-400 block">{z.runs} Runs</span>
                   <span className="text-[11px] text-slate-300 font-extrabold block">{z.percentage}%</span>
                 </div>
               </div>
@@ -251,18 +251,18 @@ export const MatchAnalytics: React.FC = () => {
 
       {/* Over-by-Over Manhattan Bar Chart (if active match data present) */}
       {overGraphData.length > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
           <div className="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
-            <TrendingUp className="w-5 h-5" />
-            <h3>Innings 1 Over-by-Over Run Progression (Manhattan Graph)</h3>
+            <TrendingUp className="w-5 h-5 flex-shrink-0" />
+            <h3 className="text-xs sm:text-sm font-extrabold text-white">Innings 1 Over-by-Over Run Progression (Manhattan Graph)</h3>
           </div>
 
-          <div className="h-64 w-full pt-2">
+          <div className="h-56 sm:h-64 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={overGraphData}>
+              <BarChart data={overGraphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="over" stroke="#64748b" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="over" stroke="#64748b" tick={{ fontSize: 11 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomBarTooltip />} />
                 <Bar dataKey="runs" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -272,19 +272,19 @@ export const MatchAnalytics: React.FC = () => {
       )}
 
       {/* Leaderboard Grids */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         
         {/* Top Run Scorers */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2 text-amber-400 font-extrabold text-base">
-              <Flame className="w-5 h-5" />
+            <div className="flex items-center space-x-2 text-amber-400 font-extrabold text-sm sm:text-base">
+              <Flame className="w-5 h-5 flex-shrink-0" />
               <span>Top Run Scorers</span>
             </div>
-            <span className="text-xs text-slate-400 font-medium">Career Totals</span>
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium">Career Totals</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {sortedBatsmen.slice(0, 5).map((player, index) => {
               const batDismissals = player.stats.inningsBatted - player.stats.notOuts;
               const batAvg = batDismissals > 0 ? (player.stats.totalRuns / batDismissals).toFixed(1) : player.stats.totalRuns;
@@ -293,29 +293,29 @@ export const MatchAnalytics: React.FC = () => {
               return (
                 <div
                   key={player.id}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-amber-500/40 transition"
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-amber-500/40 transition"
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-xs ${
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center font-extrabold text-xs flex-shrink-0 ${
                       index === 0 ? 'bg-amber-500 text-slate-950' :
                       index === 1 ? 'bg-slate-300 text-slate-950' :
                       index === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'
                     }`}>
                       #{index + 1}
                     </span>
-                    <div>
-                      <h4 className="font-bold text-slate-100 text-sm">{player.name}</h4>
-                      <p className="text-xs text-slate-400">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-slate-100 text-xs sm:text-sm truncate">{player.name}</h4>
+                      <p className="text-[11px] text-slate-400">
                         Avg: <strong className="text-emerald-400">{batAvg}</strong> • SR: <strong className="text-amber-400">{sr}</strong>
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="text-xl font-black text-amber-400 font-mono">
+                  <div className="text-right flex-shrink-0 pl-2">
+                    <span className="text-lg sm:text-xl font-black text-amber-400 font-mono block leading-tight">
                       {player.stats.totalRuns}
                     </span>
-                    <span className="text-xs font-black text-amber-400 block font-mono">
+                    <span className="text-[10px] sm:text-xs font-black text-amber-400 block font-mono">
                       {player.stats.fours}x4 • {player.stats.sixes}x6
                     </span>
                   </div>
@@ -326,16 +326,16 @@ export const MatchAnalytics: React.FC = () => {
         </div>
 
         {/* Top Wicket Takers */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2 text-emerald-400 font-extrabold text-base">
-              <Shield className="w-5 h-5" />
+            <div className="flex items-center space-x-2 text-emerald-400 font-extrabold text-sm sm:text-base">
+              <Shield className="w-5 h-5 flex-shrink-0" />
               <span>Top Wicket Takers</span>
             </div>
-            <span className="text-xs text-slate-400 font-medium">Career Totals</span>
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium">Career Totals</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {sortedBowlers.slice(0, 5).map((player, index) => {
               const totalOvers = player.stats.oversBowled + (player.stats.ballsBowled % 6) / 6;
               const econ = totalOvers > 0 ? (player.stats.runsConceded / totalOvers).toFixed(2) : '0.00';
@@ -343,29 +343,29 @@ export const MatchAnalytics: React.FC = () => {
               return (
                 <div
                   key={player.id}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 transition"
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 transition"
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-xs ${
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center font-extrabold text-xs flex-shrink-0 ${
                       index === 0 ? 'bg-emerald-500 text-slate-950' :
                       index === 1 ? 'bg-slate-300 text-slate-950' :
                       index === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'
                     }`}>
                       #{index + 1}
                     </span>
-                    <div>
-                      <h4 className="font-bold text-slate-100 text-sm">{player.name}</h4>
-                      <p className="text-xs text-slate-400">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-slate-100 text-xs sm:text-sm truncate">{player.name}</h4>
+                      <p className="text-[11px] text-slate-400">
                         Econ: <strong className="text-emerald-400">{econ}</strong> • Best: <strong className="text-slate-200">{player.stats.bestBowlingWickets > 0 ? `${player.stats.bestBowlingWickets}/${player.stats.bestBowlingRuns}` : 'N/A'}</strong>
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="text-xl font-black text-emerald-400 font-mono">
+                  <div className="text-right flex-shrink-0 pl-2">
+                    <span className="text-lg sm:text-xl font-black text-emerald-400 font-mono block leading-tight">
                       {player.stats.wicketsTaken}
                     </span>
-                    <span className="text-xs text-slate-400 block font-mono">
+                    <span className="text-[10px] sm:text-xs text-slate-400 block font-mono">
                       Wickets
                     </span>
                   </div>

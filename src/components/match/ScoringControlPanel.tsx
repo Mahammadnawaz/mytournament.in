@@ -118,9 +118,10 @@ export const ScoringControlPanel: React.FC = () => {
   };
 
   const handleWicketConfirm = (wicketInfo: WicketDetails, nextBatsmanId: string) => {
-    triggerEventAlert('wicket', '⚡ WICKET DOWN! OUT!', `${wicketInfo.type.toUpperCase()}`);
+    const runsScored = wicketInfo.runsCompleted || 0;
+    triggerEventAlert('wicket', '⚡ WICKET DOWN! OUT!', `${wicketInfo.type.toUpperCase()}${runsScored > 0 ? ` (+${runsScored} runs)` : ''}`);
     const result = scoreBall({
-      runsScored: 0,
+      runsScored,
       extraType: 'none',
       extraRuns: 0,
       isWicket: true,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import { Trophy, Activity, CloudRain } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -11,17 +11,16 @@ export const LiveScoreboard: React.FC = () => {
 
   const [showPOTM, setShowPOTM] = useState(false);
   const [showDLSModal, setShowDLSModal] = useState(false);
-  const shownForMatchRef = useRef<string | null>(null);
 
-  // Auto-show POTM modal when match flips to 'completed'
+  // Auto-show POTM modal ONCE right when match flips to 'completed'
   useEffect(() => {
     if (
       activeMatch?.status === 'completed' &&
       activeMatch.potmInfo &&
-      shownForMatchRef.current !== activeMatch.id
+      !sessionStorage.getItem(`potm_shown_${activeMatch.id}`)
     ) {
-      shownForMatchRef.current = activeMatch.id;
-      const timer = setTimeout(() => setShowPOTM(true), 800);
+      sessionStorage.setItem(`potm_shown_${activeMatch.id}`, 'true');
+      const timer = setTimeout(() => setShowPOTM(true), 600);
       return () => clearTimeout(timer);
     }
   }, [activeMatch?.status, activeMatch?.id, activeMatch?.potmInfo]);

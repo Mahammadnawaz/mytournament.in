@@ -185,18 +185,46 @@ export const SeriesDashboard: React.FC = () => {
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-xl sm:text-3xl font-black text-white">
                   {selectedSeries.name}
                 </h3>
-                <div className="flex items-center justify-center sm:justify-start flex-wrap gap-2 sm:gap-3 mt-2">
-                  <span className="text-base sm:text-2xl font-extrabold text-emerald-400 truncate max-w-[120px] sm:max-w-none">{selectedSeries.teamA}</span>
-                  <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono flex-shrink-0">{teamAWins} - {teamBWins}</span>
-                  <span className="text-base sm:text-2xl font-extrabold text-blue-400 truncate max-w-[120px] sm:max-w-none">{selectedSeries.teamB}</span>
+
+                {/* Mobile-Perfect Head-to-Head Banner */}
+                <div className="flex items-center justify-between gap-2 mt-3 bg-slate-950/80 p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-inner">
+                  {/* Team A */}
+                  <div className="flex-1 text-left min-w-0">
+                    <span className="text-sm sm:text-xl font-black text-emerald-400 truncate block">
+                      {selectedSeries.teamA}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-slate-400 font-extrabold block">
+                      {teamAWins} {teamAWins === 1 ? 'Win' : 'Wins'}
+                    </span>
+                  </div>
+
+                  {/* Head-to-Head Score Badge */}
+                  <div className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex-shrink-0 shadow-sm">
+                    <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono tracking-wider">
+                      {teamAWins} - {teamBWins}
+                    </span>
+                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
+                      {tiesCount > 0 ? `(${tiesCount} ${tiesCount === 1 ? 'Tie' : 'Ties'})` : 'Series Score'}
+                    </span>
+                  </div>
+
+                  {/* Team B */}
+                  <div className="flex-1 text-right min-w-0">
+                    <span className="text-sm sm:text-xl font-black text-blue-400 truncate block">
+                      {selectedSeries.teamB}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-slate-400 font-extrabold block">
+                      {teamBWins} {teamBWins === 1 ? 'Win' : 'Wins'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+              <div className="flex flex-wrap items-center gap-2 self-start md:self-auto pt-1 md:pt-0">
                 {/* HIDE START NEXT MATCH BUTTON WHEN SERIES IS COMPLETED */}
                 {!isSeriesCompleted && (
                   <button
@@ -331,10 +359,10 @@ export const SeriesDashboard: React.FC = () => {
 
               {/* Win Bar */}
               <div className="space-y-2">
-                <div className="flex justify-between text-[11px] sm:text-xs font-bold">
-                  <span className="text-emerald-400 truncate max-w-[90px] sm:max-w-none">{selectedSeries.teamA}</span>
-                  <span className="text-slate-500 text-[10px] sm:text-[11px]">WINS</span>
-                  <span className="text-blue-400 truncate max-w-[90px] sm:max-w-none text-right">{selectedSeries.teamB}</span>
+                <div className="flex justify-between items-center text-[11px] sm:text-xs font-black">
+                  <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{selectedSeries.teamA}</span>
+                  <span className="text-slate-400 font-extrabold text-[10px] uppercase tracking-widest px-2 flex-shrink-0">HEAD TO HEAD WINS</span>
+                  <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{selectedSeries.teamB}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-lg sm:text-2xl font-black text-emerald-400 font-mono w-5 sm:w-6 text-right">{h2hA.wins}</span>

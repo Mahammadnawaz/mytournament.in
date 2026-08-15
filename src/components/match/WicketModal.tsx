@@ -13,6 +13,7 @@ export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) 
 
   const [dismissalType, setDismissalType] = useState<DismissalType>('bowled');
   const [fielderId, setFielderId] = useState<string>('');
+  const [runsCompleted, setRunsCompleted] = useState<number>(0);
   
   if (!activeMatch || !activeInnings) return null;
 
@@ -52,6 +53,7 @@ export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) 
         dismissedPlayerId,
         bowlerId: currentBowlerId,
         fielderId: fielderId || undefined,
+        runsCompleted: dismissalType === 'run-out' ? runsCompleted : 0,
       },
       nextBatsmanId
     );
@@ -162,6 +164,32 @@ export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) 
                   <option key={f.id} value={f.id}>{f.name} ({f.role})</option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* Runs Completed Before Run Out (for Run Out dismissal) */}
+          {dismissalType === 'run-out' && (
+            <div>
+              <label className="block text-[11px] font-extrabold text-amber-400 mb-1 flex items-center space-x-1">
+                <Flame className="w-3.5 h-3.5" />
+                <span>Runs Completed Before Run Out *</span>
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[0, 1, 2, 3].map((r) => (
+                  <button
+                    key={`runout-run-${r}`}
+                    type="button"
+                    onClick={() => setRunsCompleted(r)}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-black transition border ${
+                      runsCompleted === r
+                        ? 'bg-amber-500 text-slate-950 border-white shadow'
+                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    {r} {r === 1 ? 'Run' : 'Runs'}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
