@@ -1,0 +1,427 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #f5f3ee;
+  --bg-card: #ffffff;
+  --border-card: #fca5a5;
+  --text-main: #0f172a;
+  --text-muted: #991b1b;
+  --accent-primary: #dc2626;
+}
+
+/* 🔴 Test Match Whites Theme */
+html.theme-testcricket, :root {
+  --bg-primary: #f5f3ee;
+  --bg-card: #ffffff;
+  --border-card: #fca5a5;
+  --text-main: #0f172a;
+  --text-muted: #991b1b;
+  --accent-primary: #dc2626;
+}
+
+/* 🌾 County Championship Cream & Gold Theme */
+html.theme-county {
+  --bg-primary: #fdfbf7;
+  --bg-card: #ffffff;
+  --border-card: #fcd34d;
+  --text-main: #1c1917;
+  --text-muted: #b45309;
+  --accent-primary: #d97706;
+}
+
+/* 🌿 Lord's Pavilion Cream & Green Theme */
+html.theme-lords {
+  --bg-primary: #f4f7f4;
+  --bg-card: #ffffff;
+  --border-card: #86efac;
+  --text-main: #052e16;
+  --text-muted: #166534;
+  --accent-primary: #15803d;
+}
+
+/* 🌊 Oceania ODI Blue Theme */
+html.theme-oceaniablue {
+  --bg-primary: #031021;
+  --bg-card: #081e38;
+  --border-card: #0369a1;
+  --text-main: #f0f9ff;
+  --text-muted: #38bdf8;
+  --accent-primary: #0284c7;
+}
+
+/* ☀️ Daylight Mode */
+html.theme-daylight {
+  --bg-primary: #f1f5f9;
+  --bg-card: #ffffff;
+  --border-card: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --accent-primary: #0284c7;
+}
+
+/* ==========================================================================
+   UNIVERSAL HIGH-CONTRAST FONT VISIBILITY OVERRIDES FOR LIGHT THEMES
+   ========================================================================== */
+html.theme-testcricket,
+html.theme-county,
+html.theme-lords,
+html.theme-daylight {
+  body {
+    background-color: var(--bg-primary) !important;
+    color: #0f172a !important;
+  }
+
+  /* Force 100% font visibility for all titles, headings, cards & analytics */
+  h1, h2, h3, h4, h5, h6,
+  p, span, div, td, th, label, button,
+  .text-white,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300 {
+    color: #0f172a !important;
+  }
+
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600 {
+    color: #334155 !important;
+  }
+
+  /* Accent Color High-Contrast Overrides for White Themes */
+  .text-emerald-400,
+  .text-emerald-500 {
+    color: #047857 !important; /* Crisp Dark Emerald Green */
+  }
+
+  .text-amber-400,
+  .text-amber-300,
+  .text-amber-500 {
+    color: #b45309 !important; /* Crisp Dark Amber Gold */
+  }
+
+  .text-cyan-400,
+  .text-cyan-300,
+  .text-cyan-500 {
+    color: #0e7490 !important; /* Crisp Dark Cyan */
+  }
+
+  .text-blue-400,
+  .text-blue-500 {
+    color: #1d4ed8 !important; /* Crisp Dark Blue */
+  }
+
+  .text-purple-400,
+  .text-purple-500 {
+    color: #6b21a8 !important; /* Crisp Dark Purple */
+  }
+
+  .text-red-400,
+  .text-red-500 {
+    color: #b91c1c !important; /* Crisp Dark Crimson Red */
+  }
+
+  /* Inputs, Selects & Dropdowns in White Themes */
+  input, select, textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Override gradient transparent text so header titles are 100% readable */
+  .bg-clip-text {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: initial !important;
+    color: #0f172a !important;
+  }
+
+  /* Current Run Rate (CRR) & Target Section High Contrast Visibility */
+  .theme-runrate-panel {
+    background-color: #f8fafc !important;
+    border-color: var(--border-card) !important;
+    color: #0f172a !important;
+  }
+
+  .theme-crr-label,
+  .theme-target-label,
+  .theme-rrr-label {
+    color: #1e293b !important;
+  }
+
+  .theme-crr-value {
+    color: #b91c1c !important; /* Bold Crimson Red for Run Rate */
+  }
+
+  .theme-target-value,
+  .theme-rrr-value {
+    color: #b45309 !important; /* Bold Amber Gold for Target & RRR */
+  }
+
+  .theme-innings-subtext {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .theme-runs-needed-badge {
+    background-color: #fef3c7 !important;
+    border-color: #fde047 !important;
+    color: #92400e !important;
+
+    span {
+      color: #92400e !important;
+    }
+  }
+
+  /* Card and Panel background overrides */
+  .bg-slate-900,
+  .bg-slate-900\/90,
+  .bg-slate-900\/80,
+  .bg-slate-900\/60,
+  .card-pro {
+    background-color: #ffffff !important;
+    border-color: var(--border-card) !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .bg-slate-950,
+  .bg-slate-950\/80,
+  .bg-slate-950\/60,
+  .bg-slate-950\/95,
+  .bg-slate-950\/90 {
+    background-color: #f8fafc !important;
+    border-color: var(--border-card) !important;
+    color: #0f172a !important;
+  }
+
+  .bg-slate-800,
+  .bg-slate-800\/80,
+  .bg-slate-800\/60 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  header {
+    background-color: #ffffff !important;
+    border-color: var(--border-card) !important;
+  }
+
+  table th {
+    color: #334155 !important;
+    background-color: #f8fafc !important;
+  }
+
+  table td {
+    color: #0f172a !important;
+  }
+
+  .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+  .border-slate-800,
+  .border-slate-800\/80 {
+    border-color: #e2e8f0 !important;
+  }
+}
+
+/* ==========================================================================
+   ENTIRE WEB PAGE THEME COLOR SCHEME STYLING OVERRIDES FOR ALL THEMES
+   ========================================================================== */
+
+/* 🔴 Test Match Whites Specific Theme Styling */
+html.theme-testcricket {
+  .bg-emerald-500,
+  .bg-emerald-600 {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+  }
+
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/20 {
+    background-color: rgba(220, 38, 38, 0.12) !important;
+    border-color: rgba(220, 38, 38, 0.3) !important;
+    color: #991b1b !important;
+  }
+
+  .border-emerald-400,
+  .border-emerald-500 {
+    border-color: #ef4444 !important;
+  }
+
+  .text-emerald-400 {
+    color: #b91c1c !important;
+  }
+
+  .border-b-2.border-emerald-400 {
+    border-color: #dc2626 !important;
+    color: #dc2626 !important;
+  }
+}
+
+/* 🌾 County Championship Theme Styling */
+html.theme-county {
+  .bg-emerald-500,
+  .bg-emerald-600 {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+  }
+
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/20 {
+    background-color: rgba(217, 119, 6, 0.15) !important;
+    border-color: rgba(217, 119, 6, 0.3) !important;
+    color: #b45309 !important;
+  }
+
+  .border-emerald-400,
+  .border-emerald-500 {
+    border-color: #f59e0b !important;
+  }
+
+  .text-emerald-400 {
+    color: #b45309 !important;
+  }
+}
+
+/* 🌿 Lord's Pavilion Theme Styling */
+html.theme-lords {
+  .bg-emerald-500,
+  .bg-emerald-600 {
+    background-color: #15803d !important;
+    color: #ffffff !important;
+  }
+
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/20 {
+    background-color: rgba(21, 128, 61, 0.15) !important;
+    border-color: rgba(21, 128, 61, 0.3) !important;
+    color: #166534 !important;
+  }
+
+  .border-emerald-400,
+  .border-emerald-500 {
+    border-color: #22c55e !important;
+  }
+
+  .text-emerald-400 {
+    color: #15803d !important;
+  }
+}
+
+/* 🌊 Oceania ODI Blue Theme Styling */
+html.theme-oceaniablue {
+  .bg-emerald-500,
+  .bg-emerald-600 {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+  }
+
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/20 {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    color: #38bdf8 !important;
+  }
+
+  .border-emerald-400,
+  .border-emerald-500 {
+    border-color: #38bdf8 !important;
+  }
+
+  .text-emerald-400 {
+    color: #38bdf8 !important;
+  }
+}
+
+/* Recharts Tooltip Text Color Guarantee across All Themes */
+.recharts-tooltip-wrapper,
+.recharts-default-tooltip {
+  z-index: 1000 !important;
+
+  p, span, div {
+    color: inherit !important;
+  }
+}
+
+/* Constant Emerald Green Styling for 1, 2, 3 Run Buttons across ALL themes */
+.run-btn-green {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border-color: #34d399 !important;
+}
+.run-btn-green:hover {
+  background-color: #10b981 !important;
+}
+.run-btn-green span {
+  color: #ffffff !important;
+}
+
+/* Default Body Layout Settings */
+body {
+  background-color: var(--bg-primary) !important;
+  background-image: radial-gradient(ellipse 80% 80% at 50% -20%, rgba(220, 38, 38, 0.08), rgba(255, 255, 255, 0)) !important;
+  color: var(--text-main) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* Professional Card Styling */
+.card-pro {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  border-radius: 1.5rem;
+}
+
+/* Dynamic theme background helper utility classes */
+.theme-bg-main {
+  background-color: var(--bg-primary) !important;
+}
+
+.theme-bg-card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-card) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(245, 243, 238, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(220, 38, 38, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(220, 38, 38, 0.6);
+}
+
+/* Glassmorphism Effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+}
+
+/* Live Broadcast Glowing Pulse */
+@keyframes broadcastPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+.animate-broadcast-pulse {
+  animation: broadcastPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
