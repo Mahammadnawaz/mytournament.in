@@ -139,6 +139,7 @@ export const api = {
     matches: Match[];
     series: TournamentSeries[];
     activeMatchId: string | null;
+    activeScorer: { deviceId: string; deviceName: string; acquiredAt: number; lastActive: number } | null;
     timestamp: number;
   } | null> {
     try {
@@ -148,6 +149,50 @@ export const api = {
       // Backend offline or unreachable
     }
     return null;
+  },
+
+  async acquireScorerLock(deviceId: string, deviceName?: string): Promise<{
+    success: boolean;
+    isLocked?: boolean;
+    activeScorer?: { deviceId: string; deviceName: string };
+    message?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/scorer/acquire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, deviceName }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true }; // Fallback offline mode
+    }
+  },
+
+  async releaseScorerLock(deviceId: string, force?: boolean): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/scorer/release`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, force }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  async heartbeatScorerLock(deviceId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/scorer/heartbeat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   },
 
   async setActiveMatchId(activeMatchId: string | null): Promise<boolean> {

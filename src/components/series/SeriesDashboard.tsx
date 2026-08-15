@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { TournamentSeries } from '../../types/cricket';
 import { calculateSeriesMVP } from '../../utils/cricketEngine';
-import { Trophy, Plus, Award, Check, X, Star, Calendar, Swords, Play, Table } from 'lucide-react';
+import { Trophy, Plus, Award, Check, X, Star, Calendar, Swords, Play, Table, Activity } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchSetupModal from '../match/MatchSetupModal';
 
 export const SeriesDashboard: React.FC = () => {
-  const { seriesList, matches, players, completeSeries } = useCricket();
+  const { seriesList, matches, players, completeSeries, setActiveTab, setActiveMatchId, isScorer } = useCricket();
 
   const [selectedSeriesId, setSelectedSeriesId] = useState<string>(seriesList[0]?.id || '');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -20,6 +20,15 @@ export const SeriesDashboard: React.FC = () => {
   } | null>(null);
 
   const selectedSeries = seriesList.find(s => s.id === selectedSeriesId) || seriesList[0];
+
+  // Check if there is an active live match for this series
+  const liveSeriesMatch = matches.find(
+    m => m.status === 'live' && (selectedSeries?.matchIds?.includes(m.id) || m.seriesId === selectedSeries?.id || (m.teamA.name === selectedSeries?.teamA && m.teamB.name === selectedSeries?.teamB))
+  ) || (selectedSeries?.status === 'ongoing' ? matches.find(m => m.status === 'live') : null);
+
+  const liveInnings = liveSeriesMatch
+    ? (liveSeriesMatch.currentInnings === 1 ? liveSeriesMatch.innings1 : liveSeriesMatch.innings2)
+    : null;
 
   // Calculate Series MVP table and Player of Series
   const { leaderboard, potS } = selectedSeries
@@ -141,13 +150,15 @@ export const SeriesDashboard: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95 self-start md:self-auto"
-        >
-          <Plus className="w-5 h-5" />
-          <span>New Series / Tournament</span>
-        </button>
+        {isScorer && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center space-x-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95 self-start md:self-auto"
+          >
+            <Plus className="w-5 h-5" />
+            <span>New Series / Tournament</span>
+          </button>
+        )}
       </div>
 
       {/* Series Selector Pills with Status Badges */}
@@ -183,6 +194,79 @@ export const SeriesDashboard: React.FC = () => {
       {selectedSeries ? (
         <div className="space-y-6">
           
+          {/* LIVE MATCH IN PROGRESS STREAM CARD FOR THIS SERIES */}
+          {liveSeriesMatch && liveInnings && (
+            <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-fade-in">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <span className="text-xs font-black text-red-400 uppercase tracking-wider">
+                    LIVE MATCH STREAMING NOW
+                  </span>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs font-bold text-slate-300">
+                    {liveSeriesMatch.name}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setActiveMatchId(liveSeriesMatch.id);
+                    setActiveTab('scoring');
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg shadow-emerald-500/25 active:scale-95"
+                >
+                  <Activity className="w-4 h-4" />
+                  <span>Watch Live Broadcast Scoreboard →</span>
+                </button>
+              </div>
+
+              {/* Live Match Score Overview */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                <div className="sm:col-span-7 space-y-1">
+                  <span className="text-xs text-emerald-400 font-extrabold uppercase">Currently Batting</span>
+                  <h4 className="text-xl sm:text-2xl font-black text-white">
+                    {liveInnings.battingTeam}
+                  </h4>
+                  <div className="flex items-baseline space-x-3">
+                    <span className="text-4xl sm:text-5xl font-black text-white font-mono">
+                      {liveInnings.totalRuns}/{liveInnings.wickets}
+                    </span>
+                    <span className="text-slate-400 text-base font-bold font-mono">
+                      ({liveInnings.overs}.{liveInnings.balls} / {liveSeriesMatch.dlsRevisedOvers || liveSeriesMatch.totalOvers} ov)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-5 bg-slate-950/80 border border-slate-800 p-3.5 rounded-2xl space-y-2 text-xs">
+                  {/* Batter on strike */}
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span className="font-bold flex items-center space-x-1">
+                      <span>🏏 {players.find(p => p.id === liveInnings.strikerId)?.name || 'Striker'}</span>
+                      <span className="text-emerald-400 text-[10px]">*</span>
+                    </span>
+                    <span className="font-mono font-black text-white">
+                      {liveInnings.batsmenStats[liveInnings.strikerId]?.runs || 0} ({liveInnings.batsmenStats[liveInnings.strikerId]?.balls || 0}b)
+                    </span>
+                  </div>
+
+                  {/* Bowler */}
+                  <div className="flex justify-between items-center text-slate-400 border-t border-slate-800/80 pt-1.5">
+                    <span className="font-medium">
+                      ⚾ {players.find(p => p.id === liveInnings.currentBowlerId)?.name || 'Bowler'}
+                    </span>
+                    <span className="font-mono font-bold text-slate-300">
+                      {liveInnings.bowlerStats[liveInnings.currentBowlerId]?.wickets || 0}/{liveInnings.bowlerStats[liveInnings.currentBowlerId]?.runsConceded || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Active Series Scorecard Banner */}
           <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
             
@@ -236,8 +320,8 @@ export const SeriesDashboard: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start md:self-auto pt-1 md:pt-0">
-                {/* HIDE START NEXT MATCH BUTTON WHEN SERIES IS COMPLETED */}
-                {!isSeriesCompleted && (
+                {/* HIDE START NEXT MATCH BUTTON WHEN SERIES IS COMPLETED OR USER IS SPECTATOR */}
+                {isScorer && !isSeriesCompleted && (
                   <button
                     onClick={handleStartNextSeriesMatch}
                     className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20 active:scale-95"
@@ -247,14 +331,16 @@ export const SeriesDashboard: React.FC = () => {
                   </button>
                 )}
 
-                {!isSeriesCompleted ? (
+                {isScorer && !isSeriesCompleted && (
                   <button
                     onClick={handleCompleteSeriesTrigger}
                     className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition"
                   >
                     Declare Complete
                   </button>
-                ) : (
+                )}
+
+                {isSeriesCompleted && (
                   <div className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-xs">
                     🏆 Series Completed
                   </div>

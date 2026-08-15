@@ -425,3 +425,81 @@ h1, h2, h3, h4, h5, h6 {
 .animate-broadcast-pulse {
   animation: broadcastPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Animated Duck Walking Right (for Right-hand Batsman Duck Dismissal) */
+@keyframes duckWalkRight {
+  0% {
+    left: -10%;
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(0px) rotate(-3deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(5deg);
+  }
+  100% {
+    left: 105%;
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+/* Animated Duck Walking Left (for Left-hand Batsman Duck Dismissal) */
+@keyframes duckWalkLeft {
+  0% {
+    right: -10%;
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(0px) rotate(3deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(-5deg);
+  }
+  100% {
+    right: 105%;
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.animate-duck-walk-right {
+  animation: duckWalkRight 6s linear forwards;
+}
+
+.animate-duck-walk-left {
+  animation: duckWalkLeft 6s linear forwards;
+}
+
+/* Floating On-Screen Score Number Pop & Fade (2.2s auto disappear) */
+@keyframes scorePopFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1.15) translateY(0px);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85) translateY(-20px);
+  }
+}
+
+.animate-score-pop-fade {
+  animation: scorePopFade 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

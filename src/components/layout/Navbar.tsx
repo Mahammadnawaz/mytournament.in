@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { ThemeMode } from '../../context/CricketContext';
-import { Trophy, Plus, RotateCw, Activity, Users, FileText, BarChart3, History, Palette, Medal } from 'lucide-react';
+import { Trophy, Plus, RotateCw, Activity, Users, FileText, BarChart3, History, Palette, Medal, Lock } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import MatchSetupModal from '../match/MatchSetupModal';
 
@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export const Navbar: React.FC = () => {
-  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole } = useCricket();
+  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer, releaseScorerLock } = useCricket();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -56,20 +56,45 @@ export const Navbar: React.FC = () => {
             {/* Quick Actions & Role Switcher */}
             <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
               
-              {/* Role Mode Selector (Scorer vs Spectator) */}
+              {/* Role Mode Selector (Scorer vs Spectator) with Exclusive Lock */}
               <div className="flex items-center bg-slate-950/90 border border-slate-800 rounded-xl p-0.5 text-[11px] sm:text-xs font-black">
                 <button
-                  onClick={() => setUserRole('scorer')}
+                  onClick={() => {
+                    if (activeScorer && !isScorer) {
+                      const confirmTakeover = window.confirm(
+                        `🔒 Scorer controls are currently locked by ${activeScorer.deviceName || 'another device'}.\n\nOnly 1 active scorer is permitted at a time. Would you like to force release the lock and take over scoring?`
+                      );
+                      if (confirmTakeover) {
+                        releaseScorerLock(true);
+                        setUserRole('scorer');
+                      }
+                      return;
+                    }
+                    setUserRole('scorer');
+                  }}
                   className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${
                     isScorer
                       ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                      : activeScorer && !isScorer
+                      ? 'text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="Scorer Mode: Authorized to record deliveries and manage match"
+                  title={
+                    isScorer 
+                      ? 'Scorer Mode (You hold active scoring lock)' 
+                      : activeScorer 
+                      ? `Locked by ${activeScorer.deviceName}` 
+                      : 'Switch to Scorer Mode'
+                  }
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                  <span>Scorer</span>
+                  {activeScorer && !isScorer ? (
+                    <Lock className="w-3 h-3 text-amber-400" />
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                  )}
+                  <span>{activeScorer && !isScorer ? 'Locked' : 'Scorer'}</span>
                 </button>
+
                 <button
                   onClick={() => setUserRole('spectator')}
                   className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${

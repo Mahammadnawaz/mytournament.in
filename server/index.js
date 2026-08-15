@@ -14,7 +14,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const DATA_DIR = path.join(__dirname, 'data');
+const IS_VERCEL = !!process.env.VERCEL;
+const DATA_DIR = IS_VERCEL ? '/tmp' : path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 // Ensure data folder exists
@@ -167,6 +168,7 @@ app.post('/api/matches', (req, res) => {
   const db = readDb();
   const newMatch = { ...req.body, id: req.body.id || `match-${Date.now()}` };
   db.matches = [newMatch, ...(db.matches || []).filter(m => m.id !== newMatch.id)];
+  db.activeMatchId = newMatch.id;
   writeDb(db);
   res.status(201).json(newMatch);
 });
@@ -181,8 +183,11 @@ app.put('/api/matches/:id', (req, res) => {
     const newMatch = { ...req.body, id };
     db.matches = [newMatch, ...(db.matches || [])];
   }
+  if (req.body.status === 'live' || !db.activeMatchId) {
+    db.activeMatchId = id;
+  }
   writeDb(db);
-  res.json({ success: true });
+  res.json({ success: true, activeMatchId: db.activeMatchId });
 });
 
 // --- SERIES ENDPOINTS ---
@@ -213,6 +218,66 @@ app.put('/api/series/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// --- EXCLUSIVE SCORER LOCK SYSTEM ---
+app.post('/api/scorer/acquire', (req, res) => {
+  const db = readDb();
+  const { deviceId, deviceName } = req.body;
+
+  if (!deviceId) {
+    return res.status(400).json({ success: false, message: 'deviceId is required' });
+  }
+
+  const now = Date.now();
+  const currentScorer = db.activeScorer;
+
+  // If another device holds the lock and it hasn't expired (10 mins inactivity timeout)
+  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt)) < 10 * 60 * 1000) {
+    return res.json({
+      success: false,
+      isLocked: true,
+      activeScorer: currentScorer,
+      message: `Scorer controls are currently locked by ${currentScorer.deviceName || 'another device'}. You cannot take over scoring until they release the role or switch to spectator.`,
+    });
+  }
+
+  // Grant or refresh scorer lock
+  db.activeScorer = {
+    deviceId,
+    deviceName: deviceName || 'Primary Scorer Device',
+    acquiredAt: currentScorer?.deviceId === deviceId ? currentScorer.acquiredAt : now,
+    lastActive: now,
+  };
+
+  writeDb(db);
+  res.json({ success: true, activeScorer: db.activeScorer });
+});
+
+app.post('/api/scorer/release', (req, res) => {
+  const db = readDb();
+  const { deviceId, force } = req.body;
+
+  if (force || (db.activeScorer && db.activeScorer.deviceId === deviceId)) {
+    db.activeScorer = null;
+    writeDb(db);
+    return res.json({ success: true, message: 'Scorer lock released successfully' });
+  }
+
+  res.json({ success: false, message: 'Not authorized to release lock or lock not held' });
+});
+
+app.post('/api/scorer/heartbeat', (req, res) => {
+  const db = readDb();
+  const { deviceId } = req.body;
+
+  if (db.activeScorer && db.activeScorer.deviceId === deviceId) {
+    db.activeScorer.lastActive = Date.now();
+    writeDb(db);
+    return res.json({ success: true });
+  }
+
+  res.json({ success: false });
+});
+
 // --- REALTIME MULTI-DEVICE SYNC ENDPOINT ---
 app.get('/api/sync', (req, res) => {
   const db = readDb();
@@ -228,6 +293,7 @@ app.get('/api/sync', (req, res) => {
     matches: db.matches || [],
     series: db.series || [],
     activeMatchId: activeId || null,
+    activeScorer: db.activeScorer || null,
     timestamp: Date.now(),
   });
 });
@@ -255,6 +321,10 @@ if (fs.existsSync(DIST_DIR)) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🏏 CricPulse Express Backend Server running on http://0.0.0.0:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🏏 CricPulse Express Backend Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+export default app;

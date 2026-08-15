@@ -31,20 +31,7 @@ export const ScoringControlPanel: React.FC = () => {
   }
 
   if (isSpectator) {
-    return (
-      <div className="bg-gradient-to-r from-sky-950/80 via-slate-900 to-indigo-950/80 border border-sky-500/30 rounded-2xl p-6 shadow-xl text-center space-y-3">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs font-black border border-sky-500/30 uppercase tracking-wider">
-          <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-          <span>Live Spectator Broadcast Feed</span>
-        </div>
-        <h3 className="text-lg sm:text-xl font-extrabold text-white">
-          Real-Time Match Stream Active
-        </h3>
-        <p className="text-xs text-slate-300 max-w-md mx-auto">
-          You are viewing the live match in <strong className="text-sky-300">Spectator (Read-Only)</strong> mode. Ball-by-ball scores, wagon wheels, and commentary update automatically in real-time as the official scorer records each delivery.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   const triggerEventAlert = (type: 'four' | 'six' | 'wicket' | 'over', title: string, subtitle: string) => {

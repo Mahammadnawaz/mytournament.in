@@ -23,7 +23,9 @@ interface CricketContextType {
   isScorer: boolean;
   isSpectator: boolean;
   isOnline: boolean;
+  activeScorer: { deviceId: string; deviceName: string } | null;
   setUserRole: (role: UserRole) => void;
+  releaseScorerLock: (force?: boolean) => void;
   addPlayer: (player: Omit<Player, 'id' | 'stats'>) => void;
   updatePlayer: (player: Player) => void;
   deletePlayer: (id: string) => void;
@@ -74,6 +76,19 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('scoring');
 
+  const [deviceId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cricpulse_device_id');
+      if (saved) return saved;
+      const generated = 'dev-' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('cricpulse_device_id', generated);
+      return generated;
+    }
+    return 'dev-default';
+  });
+
+  const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string } | null>(null);
+
   const [userRole, setUserRoleState] = useState<UserRole>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -91,17 +106,46 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
 
-  const isScorer = userRole === 'scorer';
-  const isSpectator = userRole === 'spectator';
+  const isScorer = userRole === 'scorer' && (!activeScorer || activeScorer.deviceId === deviceId);
+  const isSpectator = !isScorer;
 
-  const setUserRole = (newRole: UserRole) => {
+  const setUserRole = async (newRole: UserRole) => {
+    if (newRole === 'scorer') {
+      const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
+      const lockRes = await api.acquireScorerLock(deviceId, devName);
+      if (!lockRes.success && lockRes.isLocked) {
+        alert(lockRes.message || '⚠️ Scorer controls are locked by another device. Only one official scorer is allowed at a time.');
+        setUserRoleState('spectator');
+        localStorage.setItem('cricpulse_user_role', 'spectator');
+        return;
+      }
+      if (lockRes.activeScorer) {
+        setActiveScorer(lockRes.activeScorer);
+      }
+    } else {
+      await api.releaseScorerLock(deviceId);
+      setActiveScorer(null);
+    }
+
     setUserRoleState(newRole);
     localStorage.setItem('cricpulse_user_role', newRole);
+    broadcastSync();
+
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.set('role', newRole);
       window.history.replaceState({}, '', url.toString());
     }
+  };
+
+  const releaseScorerLock = async (force?: boolean) => {
+    await api.releaseScorerLock(deviceId, force);
+    setActiveScorer(null);
+    if (force) {
+      setUserRoleState('spectator');
+      localStorage.setItem('cricpulse_user_role', 'spectator');
+    }
+    broadcastSync();
   };
 
   useEffect(() => {
@@ -175,6 +219,10 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (syncData.series && syncData.series.length > 0) {
           setSeriesList(syncData.series);
+        }
+
+        if (syncData.activeScorer !== undefined) {
+          setActiveScorer(syncData.activeScorer);
         }
 
         // Automatically sync active/live match across all devices
@@ -617,7 +665,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isScorer,
         isSpectator,
         isOnline,
+        activeScorer,
         setUserRole,
+        releaseScorerLock,
         addPlayer,
         updatePlayer,
         deletePlayer,
