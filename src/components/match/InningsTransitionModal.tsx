@@ -3,9 +3,9 @@ import { useCricket } from '../../context/CricketContext';
 import { ArrowRight } from 'lucide-react';
 
 export const InningsTransitionModal: React.FC = () => {
-  const { players, activeMatch, startSecondInnings } = useCricket();
+  const { players, activeMatch, startSecondInnings, isScorer } = useCricket();
 
-  if (!activeMatch || !activeMatch.innings1) return null;
+  if (!isScorer || !activeMatch || !activeMatch.innings1) return null;
 
   const innings1 = activeMatch.innings1;
   const target = innings1.totalRuns + 1;

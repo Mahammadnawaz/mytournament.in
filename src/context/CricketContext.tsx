@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { Player, Match, InningsState, TournamentSeries } from '../types/cricket';
 import { INITIAL_PLAYERS, INITIAL_MATCHES, INITIAL_SERIES } from '../utils/initialData';
 import { processBall, aggregateMatchStatsToPlayers, calculateMatchPOTM, calculateSeriesMVP } from '../utils/cricketEngine';
@@ -191,6 +191,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Update Lock Guard to prevent delayed Firebase/Cloud echoes from overwriting local state
+  const isLocalAction = useRef<boolean>(false);
+
+  const releaseLocalActionLock = (delayMs = 800) => {
+    setTimeout(() => {
+      isLocalAction.current = false;
+    }, delayMs);
+  };
+
   // Realtime Multi-Device Sync Hook (Firebase WebSockets + Fallback Polling)
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
@@ -204,7 +213,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // 1. Initial snapshot pull
     cloudSync.pullLatest().then(data => {
-      if (data) {
+      if (data && !isLocalAction.current) {
         if (data.players?.length) setPlayers(data.players);
         if (data.matches?.length) setMatches(data.matches);
         if (data.series?.length) setSeriesList(data.series);
@@ -215,6 +224,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // 2. Real-time subscription (Firebase WebSockets + fast polling)
     const unsubscribe = cloudSync.subscribe((syncData) => {
+      // Guard 1: Ignore echo snapshots resulting from our own local writes
+      if (isLocalAction.current) return;
+      // Guard 2: Ignore empty/null snapshots to prevent resets
+      if (!syncData || !syncData.matches || syncData.matches.length === 0) return;
+
       if (syncData.players?.length) setPlayers(syncData.players);
       if (syncData.matches?.length) setMatches(syncData.matches);
       if (syncData.series?.length) setSeriesList(syncData.series);
@@ -404,17 +418,22 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }));
     }
 
+    isLocalAction.current = true;
     setMatches(prev => [newMatch, ...prev]);
     api.addMatch(newMatch);
     api.setActiveMatchId(newMatch.id);
     setActiveMatchId(newMatch.id);
     broadcastSync();
+    releaseLocalActionLock(800);
     setActiveTab('scoring');
   };
 
   // Live Scorekeeper Engine Action
   const scoreBall = (params: ScoreBallParams) => {
     if (!activeMatch || !activeInnings || activeMatch.status !== 'live') return;
+
+    // Step 1: Set Local Action Flag before executing local dispatch and sync
+    isLocalAction.current = true;
 
     const engineResult = processBall(activeInnings, params, activeMatch.totalOvers);
 
@@ -454,6 +473,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
     broadcastSync();
+    releaseLocalActionLock(800);
 
     return {
       needBowlerChange: engineResult.needBowlerChange,
@@ -464,6 +484,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const undoLastBall = () => {
     if (!activeMatch || !activeInnings || activeInnings.ballLogs.length === 0) return;
+
+    isLocalAction.current = true;
 
     const newBallLogs = [...activeInnings.ballLogs];
     newBallLogs.pop();
@@ -511,10 +533,12 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const changeBowler = (newBowlerId: string) => {
     if (!activeMatch || !activeInnings) return;
+    isLocalAction.current = true;
     const updatedMatch: Match = JSON.parse(JSON.stringify(activeMatch));
     const targetInnings = updatedMatch.currentInnings === 1 ? updatedMatch.innings1 : updatedMatch.innings2;
     if (targetInnings) {
@@ -528,10 +552,12 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const swapStriker = () => {
     if (!activeMatch || !activeInnings) return;
+    isLocalAction.current = true;
     const updatedMatch: Match = JSON.parse(JSON.stringify(activeMatch));
     const targetInnings = updatedMatch.currentInnings === 1 ? updatedMatch.innings1 : updatedMatch.innings2;
     if (targetInnings) {
@@ -542,6 +568,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const startSecondInnings = (strikerId: string, nonStrikerId: string, bowlerId: string) => {

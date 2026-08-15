@@ -89,6 +89,9 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  // Update Lock Guard to prevent delayed Firebase echoes from overwriting local state
+  const isLocalAction = useRef<boolean>(false);
+
   // Rollback Backup Ref for Optimistic UI Updates
   const rollbackSnapshotRef = useRef<{
     players: Player[];
@@ -142,16 +145,16 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     // /players subscription (Lifetime career stats sync)
     const playersRef = ref(db, 'players');
     const unsubPlayers = onValue(playersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const val = snapshot.val();
-        const playersList: Player[] = Object.values(val);
+      // Guard 1: Ignore delayed echo from local action write
+      if (isLocalAction.current) return;
+      // Guard 2: Prevent resetting to empty if snapshot is null
+      if (!snapshot.exists() || snapshot.val() == null) return;
+
+      const val = snapshot.val();
+      const playersList: Player[] = Object.values(val);
+      if (playersList.length > 0) {
         setPlayers(playersList);
         localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(playersList));
-      } else if (isScorer) {
-        // Initialize empty cloud database with seed players if first time
-        const initialMap: Record<string, Player> = {};
-        INITIAL_PLAYERS.forEach(p => { initialMap[p.id] = p; });
-        set(playersRef, initialMap);
       }
       setIsSyncing(false);
     }, (error) => {
@@ -162,9 +165,14 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     // /matches subscription (Archived completed matches)
     const matchesRef = ref(db, 'matches');
     const unsubMatches = onValue(matchesRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const val = snapshot.val();
-        const matchesList: Match[] = Object.values(val);
+      // Guard 1: Ignore delayed echo from local action write
+      if (isLocalAction.current) return;
+      // Guard 2: Prevent resetting to empty if snapshot is null
+      if (!snapshot.exists() || snapshot.val() == null) return;
+
+      const val = snapshot.val();
+      const matchesList: Match[] = Object.values(val);
+      if (matchesList.length > 0) {
         setMatches(matchesList);
         localStorage.setItem(STORAGE_MATCHES_KEY, JSON.stringify(matchesList));
       }
@@ -173,8 +181,13 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     // /meta/currentActiveMatchId subscription (Global active match pointer)
     const activeMetaRef = ref(db, 'meta/currentActiveMatchId');
     const unsubActiveMeta = onValue(activeMetaRef, (snapshot) => {
+      if (isLocalAction.current) return;
+      if (!snapshot.exists()) return;
+
       const matchId = snapshot.val() as string | null;
-      setActiveMatchIdState(matchId);
+      if (matchId) {
+        setActiveMatchIdState(matchId);
+      }
     });
 
     return () => {
@@ -192,13 +205,15 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
 
     const liveMatchRef = ref(db, `activeMatches/${activeMatchId}`);
     const unsubLiveMatch = onValue(liveMatchRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const liveMatchData = snapshot.val() as Match;
+      // Guard 1: Do not overwrite local scoring device state with delayed snapshot
+      if (isLocalAction.current) return;
+      // Guard 2: Ignore temporary null/empty snapshots during network latency
+      if (!snapshot.exists() || snapshot.val() == null) return;
+
+      const liveMatchData = snapshot.val() as Match;
+      if (liveMatchData && liveMatchData.id) {
         setActiveMatch(liveMatchData);
         localStorage.setItem(STORAGE_ACTIVE_MATCH_KEY, JSON.stringify(liveMatchData));
-      } else {
-        // Match might have been completed or moved to /matches archive
-        setActiveMatch(null);
       }
     }, (error) => {
       options.onSyncError?.(error);
@@ -225,6 +240,13 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     setActiveMatch(snap.activeMatch);
   }, []);
 
+  // Helper to release local action lock after delay
+  const scheduleReleaseLocalActionLock = useCallback((delayMs = 800) => {
+    setTimeout(() => {
+      isLocalAction.current = false;
+    }, delayMs);
+  }, []);
+
   // 4. Scorer Mutations with Optimistic Updates and Automatic Cloud Sync
 
   // Sync active live match ball-by-ball score to /activeMatches/{matchId}
@@ -234,52 +256,67 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
       return false;
     }
 
+    // Step 1: Set Local Action Flag before executing local dispatch and Firebase push
+    isLocalAction.current = true;
+
     captureRollbackSnapshot();
 
     // Optimistic local update
     setActiveMatch(updatedMatch);
     localStorage.setItem(STORAGE_ACTIVE_MATCH_KEY, JSON.stringify(updatedMatch));
 
-    if (!isFirebaseConfigured) return true;
+    if (!isFirebaseConfigured) {
+      scheduleReleaseLocalActionLock();
+      return true;
+    }
 
     try {
       const liveRef = ref(db, `activeMatches/${updatedMatch.id}`);
       await set(liveRef, updatedMatch);
+      scheduleReleaseLocalActionLock();
       return true;
     } catch (err) {
       console.error('Firebase active match sync error, rolling back:', err);
       rollbackOptimisticUpdate();
+      scheduleReleaseLocalActionLock();
       options.onSyncError?.(err as Error);
       return false;
     }
-  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, scheduleReleaseLocalActionLock, options]);
 
   // Create & Register New Match in /activeMatches & /meta/currentActiveMatchId
   const syncNewMatchCreated = useCallback(async (newMatch: Match): Promise<boolean> => {
     if (!isScorer) return false;
+    isLocalAction.current = true;
     captureRollbackSnapshot();
 
     setActiveMatchIdState(newMatch.id);
     setActiveMatch(newMatch);
 
-    if (!isFirebaseConfigured) return true;
+    if (!isFirebaseConfigured) {
+      scheduleReleaseLocalActionLock();
+      return true;
+    }
 
     try {
       const updates: Record<string, any> = {};
       updates[`activeMatches/${newMatch.id}`] = newMatch;
       updates['meta/currentActiveMatchId'] = newMatch.id;
       await update(ref(db), updates);
+      scheduleReleaseLocalActionLock();
       return true;
     } catch (err) {
       rollbackOptimisticUpdate();
+      scheduleReleaseLocalActionLock();
       options.onSyncError?.(err as Error);
       return false;
     }
-  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+  }, [isScorer, captureRollbackSnapshot, rollbackOptimisticUpdate, scheduleReleaseLocalActionLock, options]);
 
   // Atomically Batch-Update Career Stats on Match Finish and Move to /matches Archive
   const finishMatchAndBatchAggregateStats = useCallback(async (completedMatch: Match): Promise<boolean> => {
     if (!isScorer) return false;
+    isLocalAction.current = true;
     captureRollbackSnapshot();
 
     const finalizedMatch: Match = {
@@ -299,7 +336,10 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     setMatches(prev => [finalizedMatch, ...prev.filter(m => m.id !== finalizedMatch.id)]);
     setActiveMatch(finalizedMatch);
 
-    if (!isFirebaseConfigured) return true;
+    if (!isFirebaseConfigured) {
+      scheduleReleaseLocalActionLock();
+      return true;
+    }
 
     try {
       const updates: Record<string, any> = {};
@@ -313,20 +353,21 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
       // 3. Clear active pointer
       updates['meta/currentActiveMatchId'] = null;
 
-      // 4. Atomically batch-update all players' career lifetime profiles in /players
-      updatedPlayers.forEach((player) => {
-        updates[`players/${player.id}`] = player;
+      // 4. Batch update player lifetime records
+      updatedPlayers.forEach((p) => {
+        updates[`players/${p.id}`] = p;
       });
 
       await update(ref(db), updates);
+      scheduleReleaseLocalActionLock();
       return true;
     } catch (err) {
-      console.error('Batch finish match sync failed, rolling back:', err);
       rollbackOptimisticUpdate();
+      scheduleReleaseLocalActionLock();
       options.onSyncError?.(err as Error);
       return false;
     }
-  }, [isScorer, players, captureRollbackSnapshot, rollbackOptimisticUpdate, options]);
+  }, [isScorer, players, captureRollbackSnapshot, rollbackOptimisticUpdate, scheduleReleaseLocalActionLock, options]);
 
   // Player Roster Mutations (/players/{playerId})
   const syncPlayerAdded = useCallback(async (newPlayer: Player): Promise<boolean> => {

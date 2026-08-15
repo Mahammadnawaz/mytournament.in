@@ -66,8 +66,8 @@ const MainContent: React.FC = () => {
           </>
         )}
 
-        {/* 2nd Innings Transition Modal */}
-        {needsInnings2Setup && <InningsTransitionModal />}
+        {/* 2nd Innings Transition Modal - Strictly for Scorer Only */}
+        {needsInnings2Setup && isScorer && <InningsTransitionModal />}
 
         {/* Change Bowler Modal */}
         {showBowlerModal && (

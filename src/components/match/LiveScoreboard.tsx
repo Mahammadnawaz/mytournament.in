@@ -75,6 +75,22 @@ export const LiveScoreboard: React.FC = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Innings Break Banner (Visible to Spectators & Scorers) */}
+        {activeMatch.currentInnings === 1 && activeMatch.innings1?.isCompleted && !activeMatch.innings2 && (
+          <div className="mb-6 bg-gradient-to-r from-emerald-500/15 via-teal-500/20 to-emerald-500/15 border border-emerald-500/40 rounded-2xl p-4 text-center space-y-1.5 animate-fade-in">
+            <span className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center justify-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>☕ Innings Break • Target: {activeMatch.innings1.totalRuns + 1} Runs</span>
+            </span>
+            <p className="text-sm sm:text-base font-extrabold text-white">
+              {activeMatch.innings1.bowlingTeam} needs <span className="text-emerald-400 font-mono text-lg">{activeMatch.innings1.totalRuns + 1}</span> runs in {activeMatch.totalOvers} overs to win
+            </p>
+            <p className="text-xs text-slate-400">
+              Waiting for the official scorer to start the 2nd innings chase...
+            </p>
+          </div>
+        )}
+
         {/* Match Result Banner */}
         {activeMatch.status === 'completed' && (
           <div className="mb-6 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border border-amber-500/40 rounded-2xl p-4 text-center space-y-3">
