@@ -86,7 +86,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return savedRole;
       }
     }
-    return 'scorer';
+    return 'spectator';
   });
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
@@ -146,7 +146,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Realtime Multi-Device & Cross-Tab Live Sync Hook (1.5s polling + BroadcastChannel)
+  // Realtime Multi-Device & Cross-Tab Live Sync Hook (800ms polling + BroadcastChannel)
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
     try {
@@ -166,30 +166,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (!syncData) return;
 
         if (syncData.players && syncData.players.length > 0) {
-          setPlayers(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(syncData.players)) {
-              return syncData.players;
-            }
-            return prev;
-          });
+          setPlayers(syncData.players);
         }
 
         if (syncData.matches && syncData.matches.length > 0) {
-          setMatches(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(syncData.matches)) {
-              return syncData.matches;
-            }
-            return prev;
-          });
+          setMatches(syncData.matches);
         }
 
         if (syncData.series && syncData.series.length > 0) {
-          setSeriesList(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(syncData.series)) {
-              return syncData.series;
-            }
-            return prev;
-          });
+          setSeriesList(syncData.series);
         }
 
         // Automatically sync active/live match across all devices
@@ -209,8 +194,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Run sync immediately on mount
     syncWithBackend();
 
-    // 1.5s interval ensures live score updates on other laptops/phones in real-time
-    const intervalId = setInterval(syncWithBackend, 1500);
+    // 800ms interval ensures live score updates on other laptops/phones in near real-time
+    const intervalId = setInterval(syncWithBackend, 800);
 
     return () => {
       clearInterval(intervalId);

@@ -36,43 +36,43 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
             
             {/* Logo / Title */}
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('scoring')}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-green-400 flex items-center justify-center shadow-lg shadow-emerald-950/50">
-                <Trophy className="w-6 h-6 text-slate-950 font-bold" />
+            <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer min-w-0" onClick={() => setActiveTab('scoring')}>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-green-400 flex items-center justify-center shadow-md shadow-emerald-950/50 flex-shrink-0">
+                <Trophy className="w-4 h-4 sm:w-6 sm:h-6 text-slate-950 font-bold" />
               </div>
-              <div>
-                <h1 className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-white bg-clip-text text-transparent">
-                  CricPulse Live
+              <div className="min-w-0">
+                <h1 className="font-black text-base sm:text-xl tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-white bg-clip-text text-transparent truncate">
+                  CricPulse
                 </h1>
-                <p className="text-xs text-slate-400 font-medium">Pro Scorekeeper & Player Analytics</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 font-medium hidden sm:block">Pro Live Scorekeeper & Stats</p>
               </div>
             </div>
 
-            {/* Quick Actions & Theme Picker */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Quick Actions & Role Switcher */}
+            <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
               
               {/* Role Mode Selector (Scorer vs Spectator) */}
-              <div className="flex items-center bg-slate-950/80 border border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+              <div className="flex items-center bg-slate-950/90 border border-slate-800 rounded-xl p-0.5 text-[11px] sm:text-xs font-black">
                 <button
                   onClick={() => setUserRole('scorer')}
-                  className={`px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${
                     isScorer
                       ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="Scorer Mode: Authorized to score balls and manage match"
+                  title="Scorer Mode: Authorized to record deliveries and manage match"
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
                   <span>Scorer</span>
                 </button>
                 <button
                   onClick={() => setUserRole('spectator')}
-                  className={`px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${
                     isSpectator
                       ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
                       : 'text-slate-400 hover:text-slate-200'
@@ -85,26 +85,26 @@ export const Navbar: React.FC = () => {
 
               {/* Online Cloud Sync Status */}
               <div
-                className={`hidden lg:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
+                className={`hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-xl border text-[10px] font-black ${
                   isOnline
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                     : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
                 }`}
-                title={isOnline ? 'Realtime Cloud Sync Active (<100ms)' : 'Offline mode: saving locally'}
+                title={isOnline ? 'Realtime Multi-Device Sync Active' : 'Offline mode: saving locally'}
               >
                 <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                <span>{isOnline ? 'LIVE SYNC' : 'OFFLINE'}</span>
+                <span>{isOnline ? 'LIVE' : 'OFFLINE'}</span>
               </div>
 
               {/* Theme Selector Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowThemeMenu(prev => !prev)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs flex items-center space-x-1.5 border border-slate-700/80"
+                  className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs flex items-center space-x-1 border border-slate-700/80 active:scale-95"
                   title="Change Theme Background Color"
                 >
-                  <Palette className="w-4 h-4 text-emerald-400" />
-                  <span className="hidden md:inline font-semibold capitalize">{theme}</span>
+                  <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                  <span className="hidden lg:inline font-semibold capitalize">{theme}</span>
                 </button>
 
                 {showThemeMenu && (
@@ -136,9 +136,9 @@ export const Navbar: React.FC = () => {
               {isScorer && (
                 <button
                   onClick={() => setShowSetupModal(true)}
-                  className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm transition shadow-md shadow-emerald-500/20 active:scale-95"
+                  className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm transition shadow-md shadow-emerald-500/20 active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">New Match</span>
                 </button>
               )}
@@ -146,10 +146,10 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => window.location.reload()}
                 title="Refresh page to sync latest saved database data"
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs flex items-center space-x-1.5 border border-slate-700/80 active:scale-95"
+                className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs flex items-center space-x-1 border border-slate-700/80 active:scale-95"
               >
-                <RotateCw className="w-4 h-4 text-emerald-400" />
-                <span className="hidden md:inline font-semibold">Refresh</span>
+                <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                <span className="hidden lg:inline font-semibold">Refresh</span>
               </button>
 
             </div>

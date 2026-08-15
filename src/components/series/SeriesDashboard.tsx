@@ -150,22 +150,33 @@ export const SeriesDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Series Selector Pills */}
+      {/* Series Selector Pills with Status Badges */}
       {seriesList.length > 0 && (
         <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
-          {seriesList.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedSeriesId(s.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
-                selectedSeriesId === s.id
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
-              }`}
-            >
-              {s.name} ({s.format})
-            </button>
-          ))}
+          {seriesList.map((s) => {
+            const isOngoing = s.status === 'ongoing';
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSelectedSeriesId(s.id)}
+                className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition border flex items-center space-x-2 active:scale-95 ${
+                  selectedSeriesId === s.id
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
+                    : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${isOngoing ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                <span>{s.name}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-black ${
+                  selectedSeriesId === s.id 
+                    ? 'bg-slate-950/20 text-slate-950' 
+                    : isOngoing ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {isOngoing ? 'Ongoing' : 'Completed'}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 

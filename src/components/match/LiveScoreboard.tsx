@@ -7,10 +7,14 @@ import DLSModal from './DLSModal';
 import { calculateDLSParScore } from '../../utils/dlsEngine';
 
 export const LiveScoreboard: React.FC = () => {
-  const { activeMatch, activeInnings, setActiveTab } = useCricket();
+  const { activeMatch, activeInnings, setActiveTab, seriesList } = useCricket();
 
   const [showPOTM, setShowPOTM] = useState(false);
   const [showDLSModal, setShowDLSModal] = useState(false);
+
+  const ongoingSeries = activeMatch?.seriesId 
+    ? seriesList.find(s => s.id === activeMatch.seriesId)
+    : seriesList.find(s => s.status === 'ongoing');
 
   // Auto-show POTM modal ONCE right when match flips to 'completed'
   useEffect(() => {
@@ -69,11 +73,38 @@ export const LiveScoreboard: React.FC = () => {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+      <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 shadow-2xl">
         
         {/* Background Subtle Gradient Overlay */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Ongoing Series Banner */}
+        {ongoingSeries && (
+          <div 
+            onClick={() => setActiveTab('series')}
+            className="mb-4 bg-gradient-to-r from-amber-500/15 via-slate-950 to-amber-500/10 border border-amber-500/30 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between cursor-pointer hover:border-amber-500/50 transition group active:scale-[0.99]"
+          >
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex-shrink-0">
+                <Trophy className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-black text-amber-400 tracking-wider flex items-center space-x-1.5 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span>Ongoing Tournament • {ongoingSeries.name}</span>
+                </span>
+                <span className="text-xs sm:text-sm font-black text-white truncate block">
+                  {ongoingSeries.teamA} vs {ongoingSeries.teamB} ({ongoingSeries.format})
+                </span>
+              </div>
+            </div>
+            <span className="text-xs font-black text-amber-400 group-hover:underline flex items-center space-x-1 flex-shrink-0 pl-2">
+              <span className="hidden sm:inline">Series Center</span>
+              <span>→</span>
+            </span>
+          </div>
+        )}
 
         {/* Match Result Banner */}
         {activeMatch.status === 'completed' && (
