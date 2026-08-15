@@ -4,6 +4,7 @@ import { INITIAL_PLAYERS, INITIAL_MATCHES, INITIAL_SERIES } from '../utils/initi
 import { processBall, aggregateMatchStatsToPlayers, calculateMatchPOTM, calculateSeriesMVP } from '../utils/cricketEngine';
 import type { ScoreBallParams } from '../utils/cricketEngine';
 import { api } from '../services/api';
+import { cloudSync } from '../services/cloudSync';
 
 export type ThemeMode = 'testcricket' | 'county' | 'lords' | 'oceaniablue' | 'daylight';
 
@@ -190,63 +191,47 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Realtime Multi-Device & Cross-Tab Live Sync Hook (800ms polling + BroadcastChannel)
+  // Realtime Multi-Device Sync Hook (Firebase WebSockets + Fallback Polling)
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         channel = new BroadcastChannel('cricpulse_live_sync');
-        channel.onmessage = () => {
-          syncWithBackend();
-        };
       }
     } catch {
       // Ignore
     }
 
-    async function syncWithBackend() {
-      try {
-        const syncData = await api.getSync();
-        if (!syncData) return;
-
-        if (syncData.players && syncData.players.length > 0) {
-          setPlayers(syncData.players);
-        }
-
-        if (syncData.matches && syncData.matches.length > 0) {
-          setMatches(syncData.matches);
-        }
-
-        if (syncData.series && syncData.series.length > 0) {
-          setSeriesList(syncData.series);
-        }
-
-        if (syncData.activeScorer !== undefined) {
-          setActiveScorer(syncData.activeScorer);
-        }
-
-        // Automatically sync active/live match across all devices
-        if (syncData.activeMatchId) {
-          setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
-        } else {
-          const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
-          if (liveMatch) {
-            setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
-          }
-        }
-      } catch {
-        // Backend offline or unreachable
+    // 1. Initial snapshot pull
+    cloudSync.pullLatest().then(data => {
+      if (data) {
+        if (data.players?.length) setPlayers(data.players);
+        if (data.matches?.length) setMatches(data.matches);
+        if (data.series?.length) setSeriesList(data.series);
+        if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
+        if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
       }
-    }
+    });
 
-    // Run sync immediately on mount
-    syncWithBackend();
+    // 2. Real-time subscription (Firebase WebSockets + fast polling)
+    const unsubscribe = cloudSync.subscribe((syncData) => {
+      if (syncData.players?.length) setPlayers(syncData.players);
+      if (syncData.matches?.length) setMatches(syncData.matches);
+      if (syncData.series?.length) setSeriesList(syncData.series);
+      if (syncData.activeScorer !== undefined) setActiveScorer(syncData.activeScorer);
 
-    // 800ms interval ensures live score updates on other laptops/phones in near real-time
-    const intervalId = setInterval(syncWithBackend, 800);
+      if (syncData.activeMatchId) {
+        setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
+      } else {
+        const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
+        if (liveMatch) {
+          setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
+        }
+      }
+    });
 
     return () => {
-      clearInterval(intervalId);
+      unsubscribe();
       if (channel) channel.close();
     };
   }, []);
