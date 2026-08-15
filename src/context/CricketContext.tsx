@@ -85,70 +85,89 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [theme]);
 
-  // Fetch initial data from Node.js Express REST API backend if running
+  // BroadcastChannel helper for 0ms same-browser cross-tab live sync
+  const broadcastSync = () => {
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const ch = new BroadcastChannel('cricpulse_live_sync');
+        ch.postMessage({ type: 'SYNC', timestamp: Date.now() });
+        ch.close();
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Realtime Multi-Device & Cross-Tab Live Sync Hook (1.5s polling + BroadcastChannel)
   useEffect(() => {
-    async function loadBackendData() {
-      const isOnline = await api.checkHealth();
-      if (isOnline) {
-        const [apiPlayers, apiMatches, apiSeries] = await Promise.all([
-          api.getPlayers(),
-          api.getMatches(),
-          api.getSeries(),
-        ]);
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('cricpulse_live_sync');
+        channel.onmessage = () => {
+          syncWithBackend();
+        };
+      }
+    } catch {
+      // Ignore
+    }
 
-        if (apiPlayers && apiPlayers.length > 0) {
+    async function syncWithBackend() {
+      try {
+        const syncData = await api.getSync();
+        if (!syncData) return;
+
+        if (syncData.players && syncData.players.length > 0) {
           setPlayers(prev => {
-            const mergedMap = new Map<string, Player>();
-            prev.forEach(p => mergedMap.set(p.id, p));
-            apiPlayers.forEach(p => mergedMap.set(p.id, p));
-            const merged = Array.from(mergedMap.values());
-            // Sync any local players missing on backend
-            const apiPlayerIds = new Set(apiPlayers.map(p => p.id));
-            prev.forEach(p => {
-              if (!apiPlayerIds.has(p.id)) {
-                api.addPlayer(p);
-              }
-            });
-            return merged;
+            if (JSON.stringify(prev) !== JSON.stringify(syncData.players)) {
+              return syncData.players;
+            }
+            return prev;
           });
         }
 
-        if (apiMatches && apiMatches.length > 0) {
+        if (syncData.matches && syncData.matches.length > 0) {
           setMatches(prev => {
-            const mergedMap = new Map<string, Match>();
-            prev.forEach(m => mergedMap.set(m.id, m));
-            apiMatches.forEach(m => mergedMap.set(m.id, m));
-            const merged = Array.from(mergedMap.values());
-            // Sync any local matches missing on backend
-            const apiMatchIds = new Set(apiMatches.map(m => m.id));
-            prev.forEach(m => {
-              if (!apiMatchIds.has(m.id)) {
-                api.addMatch(m);
-              }
-            });
-            return merged;
+            if (JSON.stringify(prev) !== JSON.stringify(syncData.matches)) {
+              return syncData.matches;
+            }
+            return prev;
           });
         }
 
-        if (apiSeries && apiSeries.length > 0) {
+        if (syncData.series && syncData.series.length > 0) {
           setSeriesList(prev => {
-            const mergedMap = new Map<string, TournamentSeries>();
-            prev.forEach(s => mergedMap.set(s.id, s));
-            apiSeries.forEach(s => mergedMap.set(s.id, s));
-            const merged = Array.from(mergedMap.values());
-            // Sync any local series missing on backend
-            const apiSeriesIds = new Set(apiSeries.map(s => s.id));
-            prev.forEach(s => {
-              if (!apiSeriesIds.has(s.id)) {
-                api.addSeries(s);
-              }
-            });
-            return merged;
+            if (JSON.stringify(prev) !== JSON.stringify(syncData.series)) {
+              return syncData.series;
+            }
+            return prev;
           });
         }
+
+        // Automatically sync active/live match across all devices
+        if (syncData.activeMatchId) {
+          setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
+        } else {
+          const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
+          if (liveMatch) {
+            setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
+          }
+        }
+      } catch {
+        // Backend offline or unreachable
       }
     }
-    loadBackendData();
+
+    // Run sync immediately on mount
+    syncWithBackend();
+
+    // 1.5s interval ensures live score updates on other laptops/phones in real-time
+    const intervalId = setInterval(syncWithBackend, 1500);
+
+    return () => {
+      clearInterval(intervalId);
+      if (channel) channel.close();
+    };
   }, []);
 
   // Persistence & Database Sync Effects
@@ -203,16 +222,19 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setPlayers(prev => [newPlayer, ...prev]);
     api.addPlayer(newPlayer);
+    broadcastSync();
   };
 
   const updatePlayer = (updatedPlayer: Player) => {
     setPlayers(prev => prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
     api.updatePlayer(updatedPlayer);
+    broadcastSync();
   };
 
   const deletePlayer = (id: string) => {
     setPlayers(prev => prev.filter(p => p.id !== id));
     api.deletePlayer(id);
+    broadcastSync();
   };
 
   // Tournament / Series Actions
@@ -225,6 +247,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setSeriesList(prev => [newSeries, ...prev]);
     api.addSeries(newSeries);
+    broadcastSync();
     setActiveTab('series');
   };
 
@@ -243,6 +266,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
           playerOfSeriesSummary: potS?.summary || 'Outstanding all-round series performance',
         };
         api.updateSeries(updated);
+        broadcastSync();
         return updated;
       }
       return s;
@@ -316,7 +340,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setMatches(prev => [newMatch, ...prev]);
     api.addMatch(newMatch);
+    api.setActiveMatchId(newMatch.id);
     setActiveMatchId(newMatch.id);
+    broadcastSync();
     setActiveTab('scoring');
   };
 
@@ -361,6 +387,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
 
     return {
       needBowlerChange: engineResult.needBowlerChange,
@@ -417,6 +444,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updatedMatch.status = 'live';
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
   };
 
   const changeBowler = (newBowlerId: string) => {
@@ -433,6 +461,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
   };
 
   const swapStriker = () => {
@@ -446,6 +475,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
   };
 
   const startSecondInnings = (strikerId: string, nonStrikerId: string, bowlerId: string) => {
@@ -489,6 +519,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
   };
 
   const applyDLSTarget = (revisedTarget: number, revisedOvers: number) => {
@@ -502,6 +533,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
+    broadcastSync();
   };
 
   const finishMatch = (resultMessage?: string) => {
@@ -518,6 +550,13 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
     api.updateMatch(updatedMatch);
     updatedPlayers.forEach(p => api.updatePlayer(p));
+    broadcastSync();
+  };
+
+  const handleSetActiveMatchId = (id: string | null) => {
+    setActiveMatchId(id);
+    api.setActiveMatchId(id);
+    broadcastSync();
   };
 
   const resetToDemoData = () => {
@@ -526,6 +565,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSeriesList(INITIAL_SERIES);
     setActiveMatchId(INITIAL_MATCHES[0]?.id || null);
     api.resetDemo();
+    broadcastSync();
   };
 
   return (
@@ -553,7 +593,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         startSecondInnings,
         applyDLSTarget,
         finishMatch,
-        setActiveMatchId,
+        setActiveMatchId: handleSetActiveMatchId,
         resetToDemoData,
       }}
     >

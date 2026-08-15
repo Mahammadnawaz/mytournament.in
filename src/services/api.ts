@@ -133,6 +133,36 @@ export const api = {
     }
   },
 
+  // Realtime Multi-Device Sync API
+  async getSync(): Promise<{
+    players: Player[];
+    matches: Match[];
+    series: TournamentSeries[];
+    activeMatchId: string | null;
+    timestamp: number;
+  } | null> {
+    try {
+      const res = await fetch(`${API_BASE}/sync`);
+      if (res.ok) return await res.json();
+    } catch {
+      // Backend offline or unreachable
+    }
+    return null;
+  },
+
+  async setActiveMatchId(activeMatchId: string | null): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/active-match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeMatchId }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
   async resetDemo(): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/reset-demo`, { method: 'POST' });

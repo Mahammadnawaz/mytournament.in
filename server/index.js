@@ -213,12 +213,48 @@ app.put('/api/series/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// --- REALTIME MULTI-DEVICE SYNC ENDPOINT ---
+app.get('/api/sync', (req, res) => {
+  const db = readDb();
+  // If activeMatchId is not explicitly set, find any live ongoing match
+  let activeId = db.activeMatchId;
+  if (!activeId) {
+    const liveMatch = (db.matches || []).find(m => m.status === 'live');
+    if (liveMatch) activeId = liveMatch.id;
+  }
+
+  res.json({
+    players: db.players || [],
+    matches: db.matches || [],
+    series: db.series || [],
+    activeMatchId: activeId || null,
+    timestamp: Date.now(),
+  });
+});
+
+app.post('/api/active-match', (req, res) => {
+  const db = readDb();
+  db.activeMatchId = req.body.activeMatchId || null;
+  writeDb(db);
+  res.json({ success: true, activeMatchId: db.activeMatchId });
+});
+
 // --- RESET DEMO ENDPOINT ---
 app.post('/api/reset-demo', (req, res) => {
   writeDb(INITIAL_DB);
   res.json({ success: true, message: 'Database reset to initial demo state' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🏏 CricPulse Express Backend Server running on http://localhost:${PORT}`);
+// Serve frontend static assets in production if dist/ exists
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🏏 CricPulse Express Backend Server running on http://0.0.0.0:${PORT}`);
 });
