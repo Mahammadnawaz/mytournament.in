@@ -284,7 +284,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
         <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center p-4">
           <div className="flex flex-col items-center justify-center animate-score-pop-fade">
             <div
-              className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center font-black font-mono shadow-2xl border-4 backdrop-blur-md transition-transform ${
+              className={`w-36 h-36 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center font-black font-mono shadow-2xl border-4 backdrop-blur-md transition-transform ${
                 scoreBurst.colorType === 'six'
                   ? 'bg-amber-500/95 border-amber-200 text-slate-950 shadow-amber-500/80 text-6xl sm:text-7xl animate-pulse ring-8 ring-amber-400/50 scale-110'
                   : scoreBurst.colorType === 'four'
@@ -300,9 +300,9 @@ export const LiveCelebrationOverlay: React.FC = () => {
                   : scoreBurst.colorType === 'wicket'
                   ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/90 text-5xl sm:text-6xl ring-8 ring-red-500/50 animate-pulse'
                   : scoreBurst.colorType === 'wide'
-                  ? 'bg-orange-500/95 border-orange-200 text-slate-950 shadow-orange-500/80 text-5xl sm:text-6xl ring-8 ring-orange-400/40'
+                  ? 'bg-orange-500/95 border-orange-200 text-slate-950 shadow-orange-500/80 text-4xl sm:text-5xl ring-8 ring-orange-400/40'
                   : scoreBurst.colorType === 'noball'
-                  ? 'bg-yellow-400/95 border-yellow-100 text-slate-950 shadow-yellow-500/80 text-5xl sm:text-6xl ring-8 ring-yellow-400/50 animate-pulse'
+                  ? 'bg-amber-400 border-amber-100 text-slate-950 shadow-amber-500/80 text-3xl sm:text-4xl ring-8 ring-amber-400/50 animate-pulse'
                   : scoreBurst.colorType === 'byes'
                   ? 'bg-indigo-600/95 border-indigo-200 text-white shadow-indigo-600/70 text-4xl sm:text-5xl ring-8 ring-indigo-400/40'
                   : scoreBurst.colorType === 'legbyes'
