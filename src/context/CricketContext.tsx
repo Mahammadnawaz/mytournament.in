@@ -514,7 +514,28 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const liveMatch = matches.find(m => m.status === 'live');
   const activeMatch = liveMatch || (activeMatchId ? matches.find(m => m.id === activeMatchId) : null) || null;
   const activeInnings = activeMatch 
-    ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null
+    ? (activeMatch.currentInnings === 2 
+        ? (activeMatch.innings2 || {
+            inningsNo: 2,
+            battingTeam: activeMatch.innings1?.bowlingTeam || activeMatch.teamB.name,
+            bowlingTeam: activeMatch.innings1?.battingTeam || activeMatch.teamA.name,
+            totalRuns: 0,
+            wickets: 0,
+            overs: 0,
+            balls: 0,
+            target: (activeMatch.innings1?.totalRuns || 0) + 1,
+            strikerId: '',
+            nonStrikerId: '',
+            currentBowlerId: '',
+            batsmenStats: {},
+            bowlerStats: {},
+            ballLogs: [],
+            recentBalls: [],
+            extrasTotal: { wides: 0, noBalls: 0, byes: 0, legByes: 0, total: 0 },
+            isCompleted: false,
+            fow: [],
+          }) 
+        : (activeMatch.innings1 || null))
     : null;
 
   // Player Actions (Permanently saved to LocalStorage & Cloud across all devices)
@@ -1107,6 +1128,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (updatedMatch.innings1) {
         updatedMatch.innings1.isCompleted = true;
       }
+      updatedMatch.currentInnings = 2;
       updatedMatch.innings2 = undefined;
     } else {
       if (updatedMatch.innings2) {

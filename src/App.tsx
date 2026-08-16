@@ -59,7 +59,7 @@ class TabErrorBoundary extends React.Component<{ children: React.ReactNode; tabN
 }
 
 const MainContent: React.FC = () => {
-  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak } = useCricket();
+  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak, setActiveMatchId } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [setupMatchParams, setSetupMatchParams] = useState<{
@@ -298,9 +298,8 @@ const MainContent: React.FC = () => {
     }
 
     const needsInnings2Setup =
-      activeMatch.currentInnings === 1 &&
-      activeMatch.innings1?.isCompleted &&
-      !activeMatch.innings2;
+      (activeMatch.currentInnings === 1 && activeMatch.innings1?.isCompleted && !activeMatch.innings2) ||
+      (activeMatch.currentInnings === 2 && !activeMatch.innings2);
 
     const linkedSeries = (activeMatch.seriesId 
       ? seriesList.find(s => s.id === activeMatch.seriesId)
@@ -340,6 +339,38 @@ const MainContent: React.FC = () => {
       <div className="space-y-6">
         {/* Live Inter-Match Break Banner (ALWAYS FIRST AT TOP OF HOME PAGE) */}
         {breakBanner}
+
+        {/* Ongoing Live Matches Selector Strip for Spectators & Scorekeepers */}
+        {matches.filter(m => m.status === 'live').length > 0 && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center space-x-2">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <span className="text-xs font-black text-white uppercase tracking-wider">
+                Ongoing Live Matches ({matches.filter(m => m.status === 'live').length}):
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 flex-wrap gap-1">
+              {matches.filter(m => m.status === 'live').map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setActiveMatchId(m.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 ${
+                    activeMatch?.id === m.id
+                      ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400'
+                      : 'bg-slate-950 text-emerald-400 border border-slate-800 hover:border-emerald-500/50'
+                  }`}
+                >
+                  🏏 {m.name} ({m.teamA.name} vs {m.teamB.name})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Hero Scoreboard */}
         <LiveScoreboard />
