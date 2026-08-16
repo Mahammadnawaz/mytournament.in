@@ -330,11 +330,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [theme]);
 
   // BroadcastChannel helper for 0ms same-browser cross-tab live sync
-  const broadcastSync = () => {
+  const broadcastSync = (payload?: any) => {
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         const ch = new BroadcastChannel('cricpulse_live_sync');
-        ch.postMessage({ type: 'SYNC', timestamp: Date.now() });
+        ch.postMessage({ type: 'SYNC', payload: payload || null, timestamp: Date.now() });
         ch.close();
       }
     } catch {
@@ -346,7 +346,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const lastSyncTimestamp = useRef<number>(0);
   const isLocalAction = useRef<boolean>(false);
 
-  const releaseLocalActionLock = (delayMs = 800) => {
+  const releaseLocalActionLock = (delayMs = 500) => {
     setTimeout(() => {
       isLocalAction.current = false;
     }, delayMs);
@@ -365,13 +365,13 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const applyIncomingSync = (syncData: any) => {
       if (!syncData) return;
-      const incomingTime = syncData.timestamp || Date.now();
+      if (isLocalAction.current) return;
 
-      // Ignore stale updates that arrive out of order
-      if (incomingTime < lastSyncTimestamp.current) {
+      const incomingTime = syncData.timestamp || Date.now();
+      if (incomingTime < lastSyncTimestamp.current - 5000) {
         return;
       }
-      lastSyncTimestamp.current = incomingTime;
+      lastSyncTimestamp.current = Math.max(lastSyncTimestamp.current, incomingTime);
 
       if (syncData.players && Array.isArray(syncData.players)) {
         setPlayers(syncData.players);
@@ -380,7 +380,14 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (syncData.matches && syncData.matches.length > 0) {
         setMatches(prev => {
           const mMap = new Map(prev.map(m => [m.id, m]));
-          syncData.matches.forEach((m: any) => mMap.set(m.id, m));
+          syncData.matches.forEach((m: any) => {
+            const existing = mMap.get(m.id);
+            if (existing) {
+              mMap.set(m.id, { ...existing, ...m, history: m.history || (existing as any).history });
+            } else {
+              mMap.set(m.id, m);
+            }
+          });
           const merged = Array.from(mMap.values());
           localStorage.setItem('cricket_matches_v1', JSON.stringify(merged));
           return merged;
@@ -428,9 +435,13 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (channel) {
       channel.onmessage = (evt) => {
         if (evt.data?.type === 'SYNC') {
-          cloudSync.pullLatest().then(data => {
-            if (data) applyIncomingSync(data);
-          });
+          if (evt.data.payload) {
+            applyIncomingSync(evt.data.payload);
+          } else {
+            cloudSync.pullLatest().then(data => {
+              if (data) applyIncomingSync(data);
+            });
+          }
         }
       };
     }
@@ -836,11 +847,20 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
-    cloudSync.pushState({ players: finalPlayers || players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
 
+    const syncPayload = {
+      players: finalPlayers || players,
+      matches: updatedMatches,
+      series: seriesList,
+      activeMatchId: updatedMatch.id,
+      activeScorer,
+      timestamp: Date.now(),
+    };
+
+    cloudSync.pushState(syncPayload);
     api.updateMatch(updatedMatch);
-    broadcastSync();
-    releaseLocalActionLock(800);
+    broadcastSync(syncPayload);
+    releaseLocalActionLock(500);
 
     return {
       needBowlerChange: engineResult.needBowlerChange,
