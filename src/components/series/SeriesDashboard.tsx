@@ -148,9 +148,43 @@ export const SeriesDashboard: React.FC = () => {
     });
   };
 
+  const anyLiveMatch = matches.find(m => m.status === 'live');
+
   return (
     <div className="space-y-6">
       
+      {/* ⚡ LIVE STREAM MATCH REDIRECT BANNER */}
+      {anyLiveMatch && (
+        <div 
+          onClick={() => {
+            setActiveMatchId(anyLiveMatch.id);
+            setActiveTab('scoring');
+          }}
+          className="bg-gradient-to-r from-red-600 via-emerald-600 to-teal-600 p-0.5 rounded-2xl shadow-xl cursor-pointer transition transform hover:scale-[1.01] active:scale-95 group"
+        >
+          <div className="bg-slate-950/90 rounded-[14px] px-5 py-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-black text-red-400 uppercase tracking-widest">LIVE STREAM MATCH</span>
+                  <span className="text-xs text-slate-500">•</span>
+                  <span className="text-xs font-bold text-white">{anyLiveMatch.name} ({anyLiveMatch.teamA.name} vs {anyLiveMatch.teamB.name})</span>
+                </div>
+                <p className="text-[11px] text-slate-300 font-medium mt-0.5">Match in progress! Click anywhere on this banner to jump straight to live scoreboard.</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-500 group-hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md">
+              <Activity className="w-4 h-4 animate-pulse" />
+              <span>Watch Live Score →</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -209,7 +243,13 @@ export const SeriesDashboard: React.FC = () => {
           
           {/* LIVE MATCH IN PROGRESS STREAM CARD FOR THIS SERIES */}
           {liveSeriesMatch && liveInnings && (
-            <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-fade-in">
+            <div 
+              onClick={() => {
+                setActiveMatchId(liveSeriesMatch.id);
+                setActiveTab('scoring');
+              }}
+              className="relative overflow-hidden bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 hover:border-emerald-400 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-fade-in cursor-pointer transition transform hover:scale-[1.005]"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
                   <span className="flex h-3 w-3 relative">
@@ -225,16 +265,10 @@ export const SeriesDashboard: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setActiveMatchId(liveSeriesMatch.id);
-                    setActiveTab('scoring');
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg shadow-emerald-500/25 active:scale-95"
-                >
+                <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg shadow-emerald-500/25">
                   <Activity className="w-4 h-4" />
                   <span>Watch Live Broadcast Scoreboard →</span>
-                </button>
+                </div>
               </div>
 
               {/* Live Match Score Overview */}

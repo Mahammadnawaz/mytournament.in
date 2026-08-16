@@ -28,17 +28,20 @@ const MainContent: React.FC = () => {
   }
 
   const renderScoringTab = () => {
-    if (!activeMatch) {
+    if (!activeMatch || activeMatch.status !== 'live') {
       return (
         <div className="theme-bg-card border rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto my-8 shadow-2xl space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
             <Swords className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white">No Active Match in Progress</h2>
+          <h2 className="text-2xl font-extrabold text-white flex items-center justify-center space-x-2">
+            <span>No Matches Ongoing</span>
+            <span className="text-xl">🏏</span>
+          </h2>
           <p className="text-sm text-slate-400">
             {isScorer 
-              ? 'Set up a new cricket match with custom teams, toss selection, and overs limit to start live scorekeeping.'
-              : 'Waiting for official scorer to start a match... Click below to load demo match preview.'}
+              ? 'There are currently no live matches in progress. Set up a new match with custom teams, toss selection, and overs limit to start live scorekeeping.'
+              : 'There are currently no live matches ongoing. You can browse completed matches in Match History or view Series & Tournaments.'}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             {isScorer && (
@@ -102,8 +105,8 @@ const MainContent: React.FC = () => {
       <LiveCelebrationOverlay />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24 sm:pb-8">
-        {(activeTab === 'series' || (activeTab as any) === 'home' || !activeTab) && <SeriesDashboard />}
-        {activeTab === 'scoring' && renderScoringTab()}
+        {(activeTab === 'scoring' || (activeTab as any) === 'home' || !activeTab) && renderScoringTab()}
+        {activeTab === 'series' && <SeriesDashboard />}
         {activeTab === 'players' && <PlayerDirectory />}
         {activeTab === 'scorecard' && <MatchScorecard />}
         {activeTab === 'analytics' && <MatchAnalytics />}

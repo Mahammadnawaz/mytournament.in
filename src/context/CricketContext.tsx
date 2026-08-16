@@ -81,7 +81,20 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return localStorage.getItem('cricket_active_match_v1') || null;
   });
 
-  const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('series');
+  const [activeTab, setActiveTabState] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cricpulse_active_tab') as any;
+      if (saved) return saved;
+    }
+    return 'scoring';
+  });
+
+  const setActiveTab = (tab: 'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series') => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cricpulse_active_tab', tab);
+    }
+  };
 
   // Persistent device ID per browser/device
   const [deviceId] = useState<string>(() => {
@@ -192,7 +205,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setUserNameState(cleanName);
     setUserRoleState('scorer');
-    setActiveTab('series');
+    setActiveTab('scoring');
     localStorage.setItem('cricpulse_user_role', 'scorer');
     localStorage.setItem('cricpulse_user_name', cleanName);
     cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer: lockRes.activeScorer || null });
@@ -204,7 +217,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanName = (name || '').trim() || 'Spectator';
     setUserNameState(cleanName);
     setUserRoleState('spectator');
-    setActiveTab('series');
+    setActiveTab('scoring');
     localStorage.setItem('cricpulse_user_role', 'spectator');
     localStorage.setItem('cricpulse_user_name', cleanName);
     broadcastSync();
