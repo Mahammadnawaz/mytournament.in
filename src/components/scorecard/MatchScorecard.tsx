@@ -9,16 +9,20 @@ interface MatchScorecardProps {
 
 export const MatchScorecard: React.FC<MatchScorecardProps> = ({ matchOverride }) => {
   const { activeMatch, matches, players } = useCricket();
-
-  const match = matchOverride || activeMatch || matches[0];
+  const [selectedMatchId, setSelectedMatchId] = useState<string>(() => {
+    return matchOverride?.id || activeMatch?.id || (matches.length > 0 ? matches[0].id : '');
+  });
   const [selectedInningsNo, setSelectedInningsNo] = useState<1 | 2>(1);
+
+  // Determine active match to display
+  const match = matchOverride || matches.find(m => m.id === selectedMatchId) || activeMatch || matches[0];
 
   if (!match) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-        <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-        <h3 className="text-lg font-bold text-slate-300">No Match Selected</h3>
-        <p className="text-sm text-slate-500 mt-1">Start a match or select one from history to view full scorecard.</p>
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-2xl space-y-3">
+        <FileText className="w-12 h-12 text-slate-600 mx-auto" />
+        <h3 className="text-lg font-bold text-slate-200">No Matches Recorded Yet</h3>
+        <p className="text-xs text-slate-400">Start a match or select one from history to view the full detailed scorecard.</p>
       </div>
     );
   }
@@ -226,6 +230,27 @@ export const MatchScorecard: React.FC<MatchScorecardProps> = ({ matchOverride })
       
       {/* Match Result Banner & POTM Award */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        
+        {/* Match Switcher Dropdown if multiple matches exist */}
+        {!matchOverride && matches.length > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
+              Select Match from History:
+            </span>
+            <select
+              value={match.id}
+              onChange={(e) => setSelectedMatchId(e.target.value)}
+              className="bg-slate-950 border border-slate-700 text-white font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 max-w-xs"
+            >
+              {matches.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.teamA.name} vs {m.teamB.name}) - {m.status === 'live' ? '🔴 LIVE' : 'COMPLETED'}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block mb-1">

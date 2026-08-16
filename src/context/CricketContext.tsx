@@ -300,16 +300,31 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       lastSyncTimestamp.current = incomingTime;
 
       if (syncData.players && syncData.players.length > 0) {
-        setPlayers(syncData.players);
-        localStorage.setItem('cricket_players_v1', JSON.stringify(syncData.players));
+        setPlayers(prev => {
+          const pMap = new Map(prev.map(p => [p.id, p]));
+          syncData.players.forEach((p: any) => pMap.set(p.id, p));
+          const merged = Array.from(pMap.values());
+          localStorage.setItem('cricket_players_v1', JSON.stringify(merged));
+          return merged;
+        });
       }
       if (syncData.matches && syncData.matches.length > 0) {
-        setMatches(syncData.matches);
-        localStorage.setItem('cricket_matches_v1', JSON.stringify(syncData.matches));
+        setMatches(prev => {
+          const mMap = new Map(prev.map(m => [m.id, m]));
+          syncData.matches.forEach((m: any) => mMap.set(m.id, m));
+          const merged = Array.from(mMap.values());
+          localStorage.setItem('cricket_matches_v1', JSON.stringify(merged));
+          return merged;
+        });
       }
       if (syncData.series && syncData.series.length > 0) {
-        setSeriesList(syncData.series);
-        localStorage.setItem('cricket_series_v1', JSON.stringify(syncData.series));
+        setSeriesList(prev => {
+          const sMap = new Map(prev.map(s => [s.id, s]));
+          syncData.series.forEach((s: any) => sMap.set(s.id, s));
+          const merged = Array.from(sMap.values());
+          localStorage.setItem('cricket_series_v1', JSON.stringify(merged));
+          return merged;
+        });
       }
       if (syncData.activeScorer !== undefined) {
         setActiveScorer(syncData.activeScorer);

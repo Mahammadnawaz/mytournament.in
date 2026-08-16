@@ -320,13 +320,19 @@ app.post('/api/sync', (req, res) => {
   const { players, matches, series, activeMatchId, activeScorer, timestamp } = req.body;
 
   if (players && Array.isArray(players) && players.length > 0) {
-    db.players = players;
+    const pMap = new Map((db.players || []).map(p => [p.id, p]));
+    players.forEach(p => pMap.set(p.id, p));
+    db.players = Array.from(pMap.values());
   }
   if (matches && Array.isArray(matches) && matches.length > 0) {
-    db.matches = matches;
+    const mMap = new Map((db.matches || []).map(m => [m.id, m]));
+    matches.forEach(m => mMap.set(m.id, m));
+    db.matches = Array.from(mMap.values());
   }
   if (series && Array.isArray(series) && series.length > 0) {
-    db.series = series;
+    const sMap = new Map((db.series || []).map(s => [s.id, s]));
+    series.forEach(s => sMap.set(s.id, s));
+    db.series = Array.from(sMap.values());
   }
   if (activeMatchId !== undefined) {
     db.activeMatchId = activeMatchId;
