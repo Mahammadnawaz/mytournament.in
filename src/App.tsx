@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CricketProvider, useCricket } from './context/CricketContext';
 import Navbar from './components/layout/Navbar';
+import LoginPage from './components/auth/LoginPage';
 import PlayerDirectory from './components/players/PlayerDirectory';
 import LiveScoreboard from './components/match/LiveScoreboard';
 import LivePitchCard from './components/match/LivePitchCard';
@@ -17,9 +18,13 @@ import LiveCelebrationOverlay from './components/match/LiveCelebrationOverlay';
 import { Plus, Swords } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer } = useCricket();
+  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
+
+  if (!isLoggedIn) {
+    return <LoginPage />;
+  }
 
   const renderScoringTab = () => {
     if (!activeMatch) {

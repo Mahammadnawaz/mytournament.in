@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { ThemeMode } from '../../context/CricketContext';
-import { Trophy, Plus, RotateCw, Activity, Users, FileText, BarChart3, History, Palette, Medal, Lock } from 'lucide-react';
+import { Trophy, Plus, RotateCw, Activity, Users, FileText, BarChart3, History, Palette, Medal, LogOut } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import MatchSetupModal from '../match/MatchSetupModal';
 
@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export const Navbar: React.FC = () => {
-  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer, deviceId } = useCricket();
+  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isOnline, logoutRole, userName } = useCricket();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -34,8 +34,6 @@ export const Navbar: React.FC = () => {
     { id: 'daylight', label: '☀️ Daylight Mode', color: 'bg-slate-100 border-slate-400 text-slate-900' },
   ];
 
-  const isLockedByOther = Boolean(activeScorer && activeScorer.deviceId !== deviceId);
-
   return (
     <>
       <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
@@ -55,52 +53,32 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions & Role Switcher */}
+            {/* Quick Actions & Logged-in Role Badge */}
             <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
               
-              {/* Role Mode Selector (Scorer vs Spectator) with Exclusive Lock */}
-              <div className="flex items-center bg-slate-950/90 border border-slate-800 rounded-xl p-0.5 text-[11px] sm:text-xs font-black">
-                <button
-                  onClick={async () => {
-                    await setUserRole('scorer');
-                  }}
-                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1.5 transition active:scale-95 ${
-                    isScorer
-                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                      : isLockedByOther
-                      ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title={
-                    isScorer 
-                      ? 'Scorer Mode (Active)' 
-                      : isLockedByOther 
-                      ? `🔒 Locked by ${activeScorer?.deviceName || 'another device'} (Access Denied)` 
-                      : 'Switch to Scorer Mode'
-                  }
-                >
-                  {isLockedByOther ? (
-                    <Lock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                  ) : isScorer ? (
-                    <span className="w-2 h-2 rounded-full bg-slate-950" />
-                  ) : (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                  )}
-                  <span className="font-extrabold">{isLockedByOther ? 'Locked' : 'Scorer'}</span>
-                </button>
-
-                <button
-                  onClick={() => setUserRole('spectator')}
-                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${
-                    isSpectator
-                      ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Spectator Mode: Read-only live broadcast stream"
-                >
-                  <span>Spectator</span>
-                </button>
+              {/* Current Role Badge with Username */}
+              <div
+                className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-black shadow-sm ${
+                  isScorer
+                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                    : 'bg-sky-500/20 border-sky-500/40 text-sky-300'
+                }`}
+                title={isScorer ? `Logged in as Scorer (${userName || 'Official'})` : `Logged in as Spectator (${userName || 'Viewer'})`}
+              >
+                <span className={`w-2 h-2 rounded-full ${isScorer ? 'bg-emerald-400 animate-pulse' : 'bg-sky-400'}`} />
+                <span className="font-bold">{userName || (isScorer ? 'Scorer' : 'Spectator')}</span>
+                <span className="text-[10px] opacity-75 font-normal">({isScorer ? 'Scorer' : 'Spectator'})</span>
               </div>
+
+              {/* Switch Role / Logout Button */}
+              <button
+                onClick={logoutRole}
+                className="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center space-x-1 border border-slate-700/80 active:scale-95"
+                title="Switch role or logout"
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                <span className="hidden sm:inline font-semibold">Switch Role</span>
+              </button>
 
               {/* Online Cloud Sync Status */}
               <div

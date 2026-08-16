@@ -12,9 +12,6 @@ export interface CloudSyncData {
   timestamp: number;
 }
 
-// Global in-memory cache to prevent unnecessary state overwrites
-let lastSyncedTimestamp = 0;
-
 const ensureArray = <T>(val: any): T[] => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
@@ -77,8 +74,6 @@ export const cloudSync = {
       timestamp: Date.now(),
     };
 
-    lastSyncedTimestamp = payload.timestamp;
-
     let firebaseSuccess = false;
     if (isFirebaseConfigured) {
       try {
@@ -113,10 +108,7 @@ export const cloudSync = {
           const val = snapshot.val();
           if (val) {
             const sanitized = sanitizeSyncData(val);
-            if (!sanitized.timestamp || sanitized.timestamp >= lastSyncedTimestamp) {
-              lastSyncedTimestamp = sanitized.timestamp;
-              onUpdate(sanitized);
-            }
+            onUpdate(sanitized);
           }
         });
         return unsubscribe;
@@ -168,10 +160,10 @@ export const cloudSync = {
   },
 
   // 🔒 Distributed Scorer Lock via Firebase RTDB + REST API
-  async acquireScorerLock(deviceId: string, deviceName: string): Promise<{
+  async acquireScorerLock(deviceId: string, deviceName: string, userName?: string): Promise<{
     success: boolean;
     isLocked?: boolean;
-    activeScorer?: { deviceId: string; deviceName: string; timestamp: number };
+    activeScorer?: { deviceId: string; deviceName: string; userName?: string; timestamp: number };
     message?: string;
   }> {
     if (isFirebaseConfigured) {
@@ -180,19 +172,20 @@ export const cloudSync = {
         const snap = await get(scorerRef);
         const currentLock = snap.exists() ? snap.val() : null;
 
-        // Check if another device holds an active, fresh lock (< 45 seconds old)
+        // Check if another user/device holds an active, fresh lock (< 45 seconds old)
         const isFresh = currentLock && currentLock.timestamp && (Date.now() - currentLock.timestamp < 45000);
         if (isFresh && currentLock.deviceId && currentLock.deviceId !== deviceId) {
+          const lockedByName = currentLock.userName ? `${currentLock.userName} (${currentLock.deviceName})` : (currentLock.deviceName || 'another user');
           return {
             success: false,
             isLocked: true,
             activeScorer: currentLock,
-            message: `🔒 Scoring controls are locked by ${currentLock.deviceName || 'another device'}.`,
+            message: `🔒 Scoring controls are already locked by official scorer: ${lockedByName}.\n\nPlease login as Spectator to view the live match.`,
           };
         }
 
         // Claim lock in Firebase RTDB
-        const newLock = { deviceId, deviceName, timestamp: Date.now() };
+        const newLock = { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() };
         await set(scorerRef, newLock);
         return { success: true, activeScorer: newLock };
       } catch (err) {
@@ -201,7 +194,7 @@ export const cloudSync = {
     }
 
     // Local/API fallback
-    const newLock = { deviceId, deviceName, timestamp: Date.now() };
+    const newLock = { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() };
     return { success: true, activeScorer: newLock };
   },
 
@@ -223,11 +216,11 @@ export const cloudSync = {
     return await api.releaseScorerLock(deviceId, force);
   },
 
-  async heartbeatScorerLock(deviceId: string, deviceName: string): Promise<void> {
+  async heartbeatScorerLock(deviceId: string, deviceName: string, userName?: string): Promise<void> {
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
-        await set(scorerRef, { deviceId, deviceName, timestamp: Date.now() });
+        await set(scorerRef, { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() });
       } catch {
         // Ignore
       }
@@ -235,7 +228,7 @@ export const cloudSync = {
     api.heartbeatScorerLock(deviceId);
   },
 
-  subscribeScorerLock(onUpdate: (scorer: { deviceId: string; deviceName: string; timestamp: number } | null) => void): () => void {
+  subscribeScorerLock(onUpdate: (scorer: { deviceId: string; deviceName: string; userName?: string; timestamp: number } | null) => void): () => void {
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');

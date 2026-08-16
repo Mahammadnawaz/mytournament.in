@@ -20,13 +20,18 @@ interface CricketContextType {
   setActiveTab: (tab: 'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series') => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  userRole: UserRole;
+  userRole: UserRole | null;
+  userName: string | null;
+  isLoggedIn: boolean;
   isScorer: boolean;
   isSpectator: boolean;
   isOnline: boolean;
   deviceId: string;
-  activeScorer: { deviceId: string; deviceName: string } | null;
-  setUserRole: (role: UserRole, forceTakeover?: boolean) => Promise<void>;
+  activeScorer: { deviceId: string; deviceName: string; userName?: string } | null;
+  setUserRole: (role: UserRole) => Promise<void>;
+  loginAsScorer: (name: string) => Promise<{ success: boolean; message?: string }>;
+  loginAsSpectator: (name: string) => void;
+  logoutRole: () => Promise<void>;
   releaseScorerLock: (force?: boolean) => Promise<void>;
   addPlayer: (player: Omit<Player, 'id' | 'stats'>) => void;
   updatePlayer: (player: Player) => void;
@@ -91,28 +96,16 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return 'dev-default';
   });
 
-  const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string } | null>(null);
+  const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string; userName?: string } | null>(null);
 
-  const [userRole, setUserRoleState] = useState<UserRole>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlRole = params.get('role');
-      if (urlRole === 'spectator' || urlRole === 'scorer') {
-        return urlRole as UserRole;
-      }
-      const savedRole = localStorage.getItem('cricpulse_user_role') as UserRole;
-      if (savedRole === 'spectator' || savedRole === 'scorer') {
-        return savedRole;
-      }
-    }
-    return 'spectator';
-  });
+  const [userRole, setUserRoleState] = useState<UserRole | null>(null);
+  const [userName, setUserNameState] = useState<string | null>(null);
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
 
-  // Scorer role is active when user selected scorer and lock is held or unassigned
+  const isLoggedIn = Boolean(userRole);
   const isScorer = userRole === 'scorer' && (!activeScorer || activeScorer.deviceId === deviceId);
-  const isSpectator = !isScorer;
+  const isSpectator = userRole === 'spectator' || !isScorer;
 
   // Real-time Cloud Scorer Lock subscription: sync active scorer across all devices
   useEffect(() => {
@@ -133,45 +126,74 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!isScorer) return;
 
     const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
-    cloudSync.heartbeatScorerLock(deviceId, devName);
+    cloudSync.heartbeatScorerLock(deviceId, devName, userName || 'Official Scorer');
 
     const interval = setInterval(() => {
-      cloudSync.heartbeatScorerLock(deviceId, devName);
+      cloudSync.heartbeatScorerLock(deviceId, devName, userName || 'Official Scorer');
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [isScorer, deviceId]);
+  }, [isScorer, deviceId, userName]);
 
-  const setUserRole = async (newRole: UserRole) => {
-    if (newRole === 'scorer') {
-      const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
-      const lockRes = await cloudSync.acquireScorerLock(deviceId, devName);
+  const loginAsScorer = async (name: string): Promise<{ success: boolean; message?: string }> => {
+    const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
+    const cleanName = (name || '').trim() || 'Official Scorer';
+    const lockRes = await cloudSync.acquireScorerLock(deviceId, devName, cleanName);
 
-      if (!lockRes.success) {
-        alert(
-          `🔒 Access Denied: Scoring controls are currently locked by ${lockRes.activeScorer?.deviceName || 'another device'}.\n\nOnly 1 device is allowed to score at a time. Please wait for the current scorer to release control.`
-        );
-        setUserRoleState('spectator');
-        localStorage.setItem('cricpulse_user_role', 'spectator');
-        return;
-      }
+    if (!lockRes.success) {
+      return {
+        success: false,
+        message: lockRes.message || `🔒 Scorer role is locked: Another user is already scoring this match. Please login as Spectator.`,
+      };
+    }
 
-      if (lockRes.activeScorer) {
-        setActiveScorer(lockRes.activeScorer);
-      }
-    } else {
+    if (lockRes.activeScorer) {
+      setActiveScorer(lockRes.activeScorer);
+    }
+    setUserNameState(cleanName);
+    setUserRoleState('scorer');
+    localStorage.setItem('cricpulse_user_role', 'scorer');
+    localStorage.setItem('cricpulse_user_name', cleanName);
+    broadcastSync();
+    return { success: true };
+  };
+
+  const loginAsSpectator = (name: string) => {
+    const cleanName = (name || '').trim() || 'Spectator';
+    setUserNameState(cleanName);
+    setUserRoleState('spectator');
+    localStorage.setItem('cricpulse_user_role', 'spectator');
+    localStorage.setItem('cricpulse_user_name', cleanName);
+    broadcastSync();
+  };
+
+  const logoutRole = async () => {
+    if (userRole === 'scorer') {
       await cloudSync.releaseScorerLock(deviceId);
       setActiveScorer(null);
     }
-
-    setUserRoleState(newRole);
-    localStorage.setItem('cricpulse_user_role', newRole);
-    broadcastSync();
-
+    setUserRoleState(null);
+    setUserNameState(null);
+    localStorage.removeItem('cricpulse_user_role');
+    localStorage.removeItem('cricpulse_user_name');
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
-      url.searchParams.set('role', newRole);
+      url.searchParams.delete('role');
       window.history.replaceState({}, '', url.toString());
+    }
+    broadcastSync();
+  };
+
+  const setUserRole = async (newRole: UserRole) => {
+    if (newRole === 'scorer') {
+      const res = await loginAsScorer(userName || 'Official Scorer');
+      if (!res.success) {
+        alert(res.message);
+        setUserRoleState('spectator');
+        localStorage.setItem('cricpulse_user_role', 'spectator');
+      }
+    } else {
+      loginAsSpectator(userName || 'Spectator');
     }
   };
 
@@ -802,12 +824,17 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         theme,
         setTheme,
         userRole,
+        userName,
+        isLoggedIn,
         isScorer,
         isSpectator,
         isOnline,
         deviceId,
         activeScorer,
         setUserRole,
+        loginAsScorer,
+        loginAsSpectator,
+        logoutRole,
         releaseScorerLock,
         addPlayer,
         updatePlayer,
