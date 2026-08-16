@@ -81,7 +81,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return localStorage.getItem('cricket_active_match_v1') || null;
   });
 
-  const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('scoring');
+  const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('series');
 
   // Persistent device ID per browser/device
   const [deviceId] = useState<string>(() => {
@@ -192,6 +192,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setUserNameState(cleanName);
     setUserRoleState('scorer');
+    setActiveTab('series');
     localStorage.setItem('cricpulse_user_role', 'scorer');
     localStorage.setItem('cricpulse_user_name', cleanName);
     cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer: lockRes.activeScorer || null });
@@ -203,6 +204,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanName = (name || '').trim() || 'Spectator';
     setUserNameState(cleanName);
     setUserRoleState('spectator');
+    setActiveTab('series');
     localStorage.setItem('cricpulse_user_role', 'spectator');
     localStorage.setItem('cricpulse_user_name', cleanName);
     broadcastSync();

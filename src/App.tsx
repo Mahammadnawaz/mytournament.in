@@ -16,10 +16,10 @@ import MatchHistory from './components/scorecard/MatchHistory';
 import MatchAnalytics from './components/analytics/MatchAnalytics';
 import SeriesDashboard from './components/series/SeriesDashboard';
 import LiveCelebrationOverlay from './components/match/LiveCelebrationOverlay';
-import { Plus, Swords } from 'lucide-react';
+import { Plus, Swords, RotateCw } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn } = useCricket();
+  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
@@ -38,17 +38,26 @@ const MainContent: React.FC = () => {
           <p className="text-sm text-slate-400">
             {isScorer 
               ? 'Set up a new cricket match with custom teams, toss selection, and overs limit to start live scorekeeping.'
-              : 'Waiting for the official scorer to start a match... Live scores will stream here in real-time as soon as play begins.'}
+              : 'Waiting for official scorer to start a match... Click below to load demo match preview.'}
           </p>
-          {isScorer && (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            {isScorer && (
+              <button
+                onClick={() => setShowSetupModal(true)}
+                className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create New Match</span>
+              </button>
+            )}
             <button
-              onClick={() => setShowSetupModal(true)}
-              className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95"
+              onClick={resetToDemoData}
+              className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition active:scale-95"
             >
-              <Plus className="w-5 h-5" />
-              <span>Create New Match</span>
+              <RotateCw className="w-4 h-4 text-emerald-400" />
+              <span>Load Demo Match</span>
             </button>
-          )}
+          </div>
         </div>
       );
     }
@@ -93,8 +102,8 @@ const MainContent: React.FC = () => {
       <LiveCelebrationOverlay />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24 sm:pb-8">
+        {(activeTab === 'series' || (activeTab as any) === 'home' || !activeTab) && <SeriesDashboard />}
         {activeTab === 'scoring' && renderScoringTab()}
-        {activeTab === 'series' && <SeriesDashboard />}
         {activeTab === 'players' && <PlayerDirectory />}
         {activeTab === 'scorecard' && <MatchScorecard />}
         {activeTab === 'analytics' && <MatchAnalytics />}
