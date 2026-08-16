@@ -391,6 +391,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Player Actions (Permanently saved to LocalStorage & Cloud across all devices)
   const addPlayer = (newPlayerData: Omit<Player, 'id' | 'stats'>) => {
+    isLocalAction.current = true;
     const newPlayer: Player = {
       ...newPlayerData,
       id: `p-${Date.now()}`,
@@ -419,24 +420,29 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.addPlayer(newPlayer);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const updatePlayer = (updatedPlayer: Player) => {
+    isLocalAction.current = true;
     const updatedPlayers = players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p);
     setPlayers(updatedPlayers);
     localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
     cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.updatePlayer(updatedPlayer);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const deletePlayer = (id: string) => {
+    isLocalAction.current = true;
     const updatedPlayers = players.filter(p => p.id !== id);
     setPlayers(updatedPlayers);
     localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
     cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.deletePlayer(id);
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   // Tournament / Series Actions (Permanently synced across all devices)

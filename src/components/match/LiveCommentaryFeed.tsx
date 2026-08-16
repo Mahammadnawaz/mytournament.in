@@ -104,14 +104,14 @@ export function formatBallCommentary(
     if (extraRuns > 1 || totalRunsThisBall > 1) {
       const additional = totalRunsThisBall - 1;
       const headline = `WIDE + ${additional} ${additional === 1 ? 'RUN' : 'RUNS'} ⚡`;
-      const description = `WIDE + ${additional} (${totalRunsThisBall} runs total)! ${bowler} strays way down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
-      const speechText = `Wide plus ${additional} run${additional > 1 ? 's' : ''}! ${totalRunsThisBall} runs added.`;
+      const description = `WIDE + ${additional} (${totalRunsThisBall} runs total)! ${bowler} strays down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
+      const speechText = `Wide plus ${additional}`;
       return { headline, description, speechText };
     }
 
     const headline = 'WIDE BALL ⚡';
-    const description = `Wide ball! ${bowler} sprays it well outside the tramlines. 1 extra run added to the total.`;
-    const speechText = `Wide ball from ${bowler}. One extra run.`;
+    const description = `Wide ball! ${bowler} sprays it outside the tramlines. 1 extra run added.`;
+    const speechText = `Wide plus 1`;
     return { headline, description, speechText };
   }
 
@@ -124,12 +124,12 @@ export function formatBallCommentary(
         const { verb, prep } = getShotZoneAction(clickedZone, true);
         const headline = `NO BALL + SIX! 🚀 (${clickedZone.toUpperCase()})`;
         const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
-        const speechText = `No ball and a massive Six by ${striker} over ${clickedZone}! Seven runs scored! Free Hit next!`;
+        const speechText = `No ball plus 6`;
         return { headline, description, speechText };
       }
       const headline = 'NO BALL + SIX! 🚀 (7 RUNS)';
       const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.six, seed)}! Free Hit coming up!`;
-      const speechText = `No ball and a massive Six by ${striker}! Seven runs scored! Free Hit next!`;
+      const speechText = `No ball plus 6`;
       return { headline, description, speechText };
     }
 
@@ -138,12 +138,12 @@ export function formatBallCommentary(
         const { verb, prep } = getShotZoneAction(clickedZone, false);
         const headline = `NO BALL + FOUR! ⚡ (${clickedZone.toUpperCase()})`;
         const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
-        const speechText = `No ball plus Four runs! ${striker} hits it through ${clickedZone}! Free Hit coming up!`;
+        const speechText = `No ball plus 4`;
         return { headline, description, speechText };
       }
       const headline = 'NO BALL + FOUR! ⚡ (5 RUNS)';
       const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.four, seed)} for four! Free Hit next!`;
-      const speechText = `No ball plus Four runs to ${striker}! Five runs in total. Free Hit coming up!`;
+      const speechText = `No ball plus 4`;
       return { headline, description, speechText };
     }
 
@@ -151,13 +151,13 @@ export function formatBallCommentary(
       const zoneText = clickedZone ? ` towards ${clickedZone}` : '';
       const headline = `NO BALL + ${batRuns} ${batRuns === 1 ? 'RUN' : 'RUNS'} (${batRuns + 1} TOTAL)`;
       const description = `NO BALL + ${batRuns} runs! ${bowler} oversteps the bowling crease. ${striker} works it${zoneText} for ${batRuns} run${batRuns > 1 ? 's' : ''}. Free Hit next!`;
-      const speechText = `No ball plus ${batRuns} run${batRuns > 1 ? 's' : ''}. Free hit next delivery.`;
+      const speechText = `No ball plus ${batRuns}`;
       return { headline, description, speechText };
     }
 
     const headline = 'NO BALL ⚠️ (FREE HIT)';
     const description = `No ball called! ${bowler} oversteps the crease. 1 run added and Free Hit awarded next delivery!`;
-    const speechText = `No ball from ${bowler}! Free Hit awarded.`;
+    const speechText = `No ball plus 1`;
     return { headline, description, speechText };
   }
 
@@ -168,7 +168,7 @@ export function formatBallCommentary(
     const zoneText = clickedZone ? ` through ${clickedZone}` : '';
     const headline = `${isLB ? 'LEG BYES' : 'BYES'} + ${r} 🦵`;
     const description = `${isLB ? 'Leg Byes' : 'Byes'} (${r} run${r > 1 ? 's' : ''})! Deflected${zoneText} into the outfield as batsmen scramble through.`;
-    const speechText = `${isLB ? 'Leg bye' : 'Bye'}, ${r} run${r > 1 ? 's' : ''} taken.`;
+    const speechText = `${isLB ? 'Leg byes' : 'Byes'} plus ${r}`;
     return { headline, description, speechText };
   }
 

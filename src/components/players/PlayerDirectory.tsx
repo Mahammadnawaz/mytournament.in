@@ -7,7 +7,7 @@ import PlayerProfileModal from './PlayerProfileModal';
 import { Search, Plus, Users, Filter } from 'lucide-react';
 
 export const PlayerDirectory: React.FC = () => {
-  const { players, addPlayer, updatePlayer, deletePlayer } = useCricket();
+  const { players, addPlayer, updatePlayer, deletePlayer, isScorer } = useCricket();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('All');
@@ -30,24 +30,28 @@ export const PlayerDirectory: React.FC = () => {
     <div className="space-y-6">
       
       {/* Header Banner & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 theme-bg-card theme-border p-6 rounded-3xl border shadow-xl">
         <div>
           <h2 className="text-2xl font-extrabold text-white flex items-center space-x-3">
             <Users className="w-7 h-7 text-emerald-400" />
             <span>Player Directory & Roster</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Manage your team squad, view aggregated career stats, or recruit new players.
+            {isScorer 
+              ? 'Manage squad roster, recruit new players, and update player profile information.'
+              : 'Browse team squad, career records, batting averages, and bowling figures.'}
           </p>
         </div>
 
-        <button
-          onClick={() => { setEditingPlayer(null); setShowAddModal(true); }}
-          className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95 self-start md:self-auto"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add New Player</span>
-        </button>
+        {isScorer && (
+          <button
+            onClick={() => { setEditingPlayer(null); setShowAddModal(true); }}
+            className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95 self-start md:self-auto"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add New Player</span>
+          </button>
+        )}
       </div>
 
       {/* Search & Role Filters Bar */}
@@ -60,7 +64,7 @@ export const PlayerDirectory: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by player name..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-sm placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition shadow-sm"
           />
         </div>
 
@@ -73,8 +77,8 @@ export const PlayerDirectory: React.FC = () => {
               onClick={() => setSelectedRole(role)}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                 selectedRole === role
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20'
+                  : 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
               {role}
@@ -90,6 +94,7 @@ export const PlayerDirectory: React.FC = () => {
             <PlayerCard
               key={player.id}
               player={player}
+              isScorer={isScorer}
               onSelect={(p) => setViewingPlayer(p)}
               onEdit={(p) => { setEditingPlayer(p); setShowAddModal(true); }}
               onDelete={(id) => deletePlayer(id)}
@@ -97,29 +102,34 @@ export const PlayerDirectory: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-12 text-center">
-          <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-slate-300">No Players Found</h3>
-          <p className="text-sm text-slate-500 mt-1">Try adjusting your search criteria or add a new player.</p>
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-12 text-center space-y-2">
+          <Users className="w-10 h-10 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-slate-300">No players match the criteria</h3>
+          <p className="text-xs text-slate-500">Try changing your search keywords or role filters.</p>
         </div>
       )}
 
-      {/* Add / Edit Modal */}
-      {showAddModal && (
+      {/* Modals */}
+      {showAddModal && isScorer && (
         <PlayerModal
           playerToEdit={editingPlayer}
-          onSave={addPlayer}
-          onUpdate={updatePlayer}
-          onClose={() => { setShowAddModal(false); setEditingPlayer(null); }}
+          onSave={(data) => {
+            addPlayer(data);
+            setShowAddModal(false);
+          }}
+          onUpdate={(updated) => {
+            updatePlayer(updated);
+            setShowAddModal(false);
+          }}
+          onClose={() => setShowAddModal(false)}
         />
       )}
 
-      {/* Career Profile Modal */}
       {viewingPlayer && (
         <PlayerProfileModal
           player={viewingPlayer}
-          onEdit={(p) => { setEditingPlayer(p); setShowAddModal(true); }}
-          onDelete={(id) => deletePlayer(id)}
+          onEdit={isScorer ? (p) => { setViewingPlayer(null); setEditingPlayer(p); setShowAddModal(true); } : undefined}
+          onDelete={isScorer ? (id) => { deletePlayer(id); setViewingPlayer(null); } : undefined}
           onClose={() => setViewingPlayer(null)}
         />
       )}
@@ -127,4 +137,5 @@ export const PlayerDirectory: React.FC = () => {
     </div>
   );
 };
+
 export default PlayerDirectory;

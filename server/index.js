@@ -132,6 +132,7 @@ app.post('/api/players', (req, res) => {
   const db = readDb();
   const newPlayer = { ...req.body, id: req.body.id || `p-${Date.now()}` };
   db.players = [newPlayer, ...(db.players || []).filter(p => p.id !== newPlayer.id)];
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.status(201).json(newPlayer);
 });
@@ -146,6 +147,7 @@ app.put('/api/players/:id', (req, res) => {
     const newPlayer = { ...req.body, id };
     db.players = [newPlayer, ...(db.players || [])];
   }
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.json({ success: true });
 });
@@ -154,6 +156,7 @@ app.delete('/api/players/:id', (req, res) => {
   const db = readDb();
   const { id } = req.params;
   db.players = (db.players || []).filter(p => p.id !== id);
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.json({ success: true });
 });
@@ -169,6 +172,7 @@ app.post('/api/matches', (req, res) => {
   const newMatch = { ...req.body, id: req.body.id || `match-${Date.now()}` };
   db.matches = [newMatch, ...(db.matches || []).filter(m => m.id !== newMatch.id)];
   db.activeMatchId = newMatch.id;
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.status(201).json(newMatch);
 });
@@ -186,6 +190,7 @@ app.put('/api/matches/:id', (req, res) => {
   if (req.body.status === 'live' || !db.activeMatchId) {
     db.activeMatchId = id;
   }
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.json({ success: true, activeMatchId: db.activeMatchId });
 });
@@ -200,6 +205,7 @@ app.post('/api/series', (req, res) => {
   const db = readDb();
   const newSeries = { ...req.body, id: req.body.id || `series-${Date.now()}` };
   db.series = [newSeries, ...(db.series || []).filter(s => s.id !== newSeries.id)];
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.status(201).json(newSeries);
 });
@@ -214,6 +220,7 @@ app.put('/api/series/:id', (req, res) => {
     const newSeries = { ...req.body, id };
     db.series = [newSeries, ...(db.series || [])];
   }
+  db.syncTimestamp = Date.now();
   writeDb(db);
   res.json({ success: true });
 });
