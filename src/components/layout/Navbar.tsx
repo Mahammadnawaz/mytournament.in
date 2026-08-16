@@ -70,14 +70,18 @@ export const Navbar: React.FC = () => {
                 <span className="text-[10px] opacity-75 font-normal">({isScorer ? 'Scorer' : 'Spectator'})</span>
               </div>
 
-              {/* Switch Role / Logout Button */}
+              {/* Scorer / Spectator Logout Button */}
               <button
                 onClick={logoutRole}
-                className="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center space-x-1 border border-slate-700/80 active:scale-95"
-                title="Switch role or logout"
+                className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition text-xs font-black flex items-center space-x-1.5 border active:scale-95 shadow-sm ${
+                  isScorer
+                    ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 hover:text-white border-red-500/40'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700/80'
+                }`}
+                title={isScorer ? 'Logout Scorer (Releases scorer lock for other users)' : 'Logout of Spectator mode'}
               >
-                <LogOut className="w-3.5 h-3.5 text-slate-400" />
-                <span className="hidden sm:inline font-semibold">Switch Role</span>
+                <LogOut className={`w-3.5 h-3.5 ${isScorer ? 'text-red-400' : 'text-slate-400'}`} />
+                <span>Logout</span>
               </button>
 
               {/* Online Cloud Sync Status */}

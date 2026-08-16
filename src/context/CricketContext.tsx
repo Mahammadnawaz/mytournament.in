@@ -194,6 +194,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (userRole === 'scorer' || isScorer) {
       await cloudSync.releaseScorerLock(deviceId, true);
       setActiveScorer(null);
+      cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer: null });
     }
     setUserRoleState(null);
     setUserNameState(null);
