@@ -556,10 +556,20 @@ export const cloudSync = {
               timestamp: status.activeScorer.timestamp || Date.now(),
             });
           } else if (!status.isLocked) {
-            // If API reports not locked, check if Firebase is not active
-            if (!isFirebaseConfigured) {
-              const localRaw = typeof window !== 'undefined' ? localStorage.getItem('cricpulse_active_scorer_lock') : null;
-              if (!localRaw) onUpdate(null);
+            const localRaw = typeof window !== 'undefined' ? localStorage.getItem('cricpulse_active_scorer_lock') : null;
+            if (localRaw) {
+              try {
+                const parsed = JSON.parse(localRaw);
+                if (parsed && parsed.deviceId && (Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+                  onUpdate(parsed);
+                } else {
+                  onUpdate(null);
+                }
+              } catch {
+                onUpdate(null);
+              }
+            } else {
+              onUpdate(null);
             }
           }
         }

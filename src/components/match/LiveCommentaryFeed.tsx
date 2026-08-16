@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { MessageSquare, Volume2, VolumeX, Radio } from 'lucide-react';
+import { MessageSquare, Volume2, VolumeX, Radio, Trophy } from 'lucide-react';
 import type { BallLog } from '../../types/cricket';
 
 // Fallback Cricket Shot Zone Placement Map
@@ -269,8 +269,9 @@ export const LiveCommentaryFeed: React.FC = () => {
   };
 
   const lastSpokenBallId = useRef<string | null>(null);
+  const lastSpokenResultId = useRef<string | null>(null);
 
-  // Audio commentary announcement using SpeechSynthesis
+  // Audio commentary announcement for ball-by-ball events
   useEffect(() => {
     if (!isAudioEnabled || !activeInnings || activeInnings.ballLogs.length === 0) return;
     const latestBall = activeInnings.ballLogs[activeInnings.ballLogs.length - 1];
@@ -290,6 +291,23 @@ export const LiveCommentaryFeed: React.FC = () => {
       window.speechSynthesis.speak(utterance);
     }
   }, [activeInnings?.ballLogs, isAudioEnabled, players]);
+
+  // Audio announcement for Match Winner / End Result (e.g., "Match Completed! India won by 3 wickets!")
+  useEffect(() => {
+    if (!isAudioEnabled || !activeMatch || activeMatch.status !== 'completed' || !activeMatch.result) return;
+    const resultKey = `result-${activeMatch.id}-${activeMatch.result}`;
+
+    if (lastSpokenResultId.current !== resultKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      lastSpokenResultId.current = resultKey;
+      const speechText = `Match Completed! ${activeMatch.result}`;
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [activeMatch?.status, activeMatch?.result, activeMatch?.id, isAudioEnabled]);
 
   if (!activeMatch || !activeInnings) return null;
 
@@ -333,6 +351,24 @@ export const LiveCommentaryFeed: React.FC = () => {
 
       {/* Commentary Feed Body */}
       <div className="p-4 sm:p-6 bg-slate-950/40 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+
+        {/* 🏆 Match Completed Golden Winner Announcement Card */}
+        {activeMatch.status === 'completed' && activeMatch.result && (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-amber-500/20 border border-amber-500/50 shadow-xl flex items-center space-x-3.5 animate-fade-in mb-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-6 h-6 text-amber-400 animate-pulse" />
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block">
+                MATCH WINNER ANNOUNCEMENT 🏆
+              </span>
+              <h4 className="text-sm sm:text-base font-black text-white">
+                {activeMatch.result}
+              </h4>
+            </div>
+          </div>
+        )}
+
         {reversedLogs.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-xs space-y-1">
             <Radio className="w-6 h-6 mx-auto text-slate-600 animate-pulse" />
