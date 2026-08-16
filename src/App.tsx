@@ -19,6 +19,39 @@ import LiveCelebrationOverlay from './components/match/LiveCelebrationOverlay';
 import { calculateSeriesMVP } from './utils/cricketEngine';
 import { Plus, Swords, RotateCw, Trophy, Play, Coffee, Star } from 'lucide-react';
 
+class TabErrorBoundary extends React.Component<{ children: React.ReactNode; tabName: string }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error(`Tab ${this.props.tabName} rendering error:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center max-w-md mx-auto my-8 shadow-2xl space-y-3">
+          <h3 className="text-lg font-bold text-white">Loading View...</h3>
+          <p className="text-xs text-slate-400">Section components are loading.</p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow hover:bg-emerald-400 transition"
+          >
+            Retry Loading ↻
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const MainContent: React.FC = () => {
   const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
@@ -465,12 +498,14 @@ const MainContent: React.FC = () => {
       <LiveCelebrationOverlay />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24 sm:pb-8">
-        {(activeTab === 'scoring' || (activeTab as any) === 'home' || !activeTab) && renderScoringTab()}
-        {activeTab === 'series' && <SeriesDashboard />}
-        {activeTab === 'players' && <PlayerDirectory />}
-        {activeTab === 'scorecard' && <MatchScorecard />}
-        {activeTab === 'analytics' && <MatchAnalytics />}
-        {activeTab === 'history' && <MatchHistory />}
+        <TabErrorBoundary tabName={activeTab || 'scoring'}>
+          {(activeTab === 'scoring' || (activeTab as any) === 'home' || !activeTab) && renderScoringTab()}
+          {activeTab === 'series' && <SeriesDashboard />}
+          {activeTab === 'players' && <PlayerDirectory />}
+          {activeTab === 'scorecard' && <MatchScorecard />}
+          {activeTab === 'analytics' && <MatchAnalytics />}
+          {activeTab === 'history' && <MatchHistory />}
+        </TabErrorBoundary>
       </main>
 
       {/* Footer */}

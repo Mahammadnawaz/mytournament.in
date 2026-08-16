@@ -34,6 +34,28 @@ export const ScoringControlPanel: React.FC = () => {
     return null;
   }
 
+  const maxOvers = activeMatch.dlsRevisedOvers || activeMatch.totalOvers;
+  const isOversLimitReached = activeInnings.overs >= maxOvers;
+  const isInningsFinished = activeInnings.isCompleted || isOversLimitReached || activeInnings.wickets >= 10;
+
+  if (isInningsFinished) {
+    return (
+      <div className="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 text-center shadow-xl space-y-2 my-4">
+        <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-amber-500/15 text-amber-300 font-bold text-xs">
+          <span>⚠️ INNINGS COMPLETED / MAX OVERS REACHED</span>
+        </div>
+        <h4 className="text-base font-extrabold text-white">
+          {isOversLimitReached ? `Max ${maxOvers} Overs Limit Reached (${activeInnings.overs}.${activeInnings.balls} Overs bowled)` : 'Innings Completed'}
+        </h4>
+        <p className="text-xs text-slate-400">
+          {activeMatch.currentInnings === 1 
+            ? 'Innings 1 is finished. Use "Declare Innings" or setup 2nd Innings to continue.' 
+            : 'Match is completed. View final summary & scorecard.'}
+        </p>
+      </div>
+    );
+  }
+
   const triggerEventAlert = (type: 'four' | 'six' | 'wicket' | 'over', title: string, subtitle: string) => {
     setLiveEventAlert({ type, title, subtitle });
     setTimeout(() => setLiveEventAlert(null), 2000);

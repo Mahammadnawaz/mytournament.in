@@ -687,12 +687,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Live Scorekeeper Engine Action (Permanently synced to Cloud & Storage)
   const scoreBall = (params: ScoreBallParams) => {
-    if (!activeMatch || !activeInnings || activeMatch.status !== 'live') return;
+    if (!activeMatch || !activeInnings || activeMatch.status !== 'live' || activeInnings.isCompleted) return;
+
+    const maxOvers = activeMatch.dlsRevisedOvers || activeMatch.totalOvers;
+    if (activeInnings.overs >= maxOvers || activeInnings.wickets >= 10) return;
 
     // Step 1: Set Local Action Flag before executing local dispatch and sync
     isLocalAction.current = true;
 
-    const engineResult = processBall(activeInnings, params, activeMatch.totalOvers);
+    const engineResult = processBall(activeInnings, params, maxOvers);
 
     const updatedMatch: Match = JSON.parse(JSON.stringify(activeMatch));
     if (activeMatch.currentInnings === 1) {
@@ -1122,6 +1125,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    setActiveTab('scoring');
 
     const syncPayload = {
       players,
