@@ -219,9 +219,19 @@ app.put('/api/series/:id', (req, res) => {
 });
 
 // --- EXCLUSIVE SCORER LOCK SYSTEM ---
+app.get('/api/scorer/status', (req, res) => {
+  const db = readDb();
+  const now = Date.now();
+  const currentScorer = db.activeScorer;
+  if (currentScorer && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < 10 * 60 * 1000) {
+    return res.json({ isLocked: true, activeScorer: currentScorer });
+  }
+  return res.json({ isLocked: false, activeScorer: null });
+});
+
 app.post('/api/scorer/acquire', (req, res) => {
   const db = readDb();
-  const { deviceId, deviceName } = req.body;
+  const { deviceId, deviceName, userName } = req.body;
 
   if (!deviceId) {
     return res.status(400).json({ success: false, message: 'deviceId is required' });
@@ -230,13 +240,14 @@ app.post('/api/scorer/acquire', (req, res) => {
   const now = Date.now();
   const currentScorer = db.activeScorer;
 
-  // If another device holds the lock and it hasn't expired (10 mins inactivity timeout)
-  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt)) < 10 * 60 * 1000) {
+  // If another device/user holds the lock and it hasn't expired (10 mins inactivity timeout)
+  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < 10 * 60 * 1000) {
+    const lockedByName = currentScorer.userName ? `${currentScorer.userName}` : (currentScorer.deviceName || 'another official scorer');
     return res.json({
       success: false,
       isLocked: true,
       activeScorer: currentScorer,
-      message: `Scorer controls are currently locked by ${currentScorer.deviceName || 'another device'}. You cannot take over scoring until they release the role or switch to spectator.`,
+      message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
     });
   }
 
@@ -244,8 +255,10 @@ app.post('/api/scorer/acquire', (req, res) => {
   db.activeScorer = {
     deviceId,
     deviceName: deviceName || 'Primary Scorer Device',
-    acquiredAt: currentScorer?.deviceId === deviceId ? currentScorer.acquiredAt : now,
+    userName: userName || currentScorer?.userName || 'Official Scorer',
+    acquiredAt: currentScorer?.deviceId === deviceId ? (currentScorer.acquiredAt || now) : now,
     lastActive: now,
+    timestamp: now,
   };
 
   writeDb(db);

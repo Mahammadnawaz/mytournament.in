@@ -159,19 +159,57 @@ export const cloudSync = {
     return null;
   },
 
-  // 🔒 Distributed Scorer Lock via Firebase RTDB + REST API
+  // 🔒 Distributed Scorer Lock via Firebase RTDB + REST API + BroadcastChannel + LocalStorage
   async getActiveScorerLock(): Promise<{ deviceId: string; deviceName: string; userName?: string; timestamp: number } | null> {
+    const now = Date.now();
+    const LOCK_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
+    // 1. Firebase RTDB
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
         const snap = await get(scorerRef);
         if (snap.exists()) {
-          return snap.val();
+          const val = snap.val();
+          if (val && val.timestamp && (now - val.timestamp < LOCK_EXPIRY_MS)) {
+            return val;
+          }
         }
       } catch (err) {
         console.warn('Firebase getActiveScorerLock error:', err);
       }
     }
+
+    // 2. REST API Status
+    try {
+      const statusRes = await api.getScorerStatus();
+      if (statusRes && statusRes.isLocked && statusRes.activeScorer) {
+        return {
+          deviceId: statusRes.activeScorer.deviceId,
+          deviceName: statusRes.activeScorer.deviceName,
+          userName: statusRes.activeScorer.userName,
+          timestamp: statusRes.activeScorer.timestamp || now,
+        };
+      }
+    } catch {
+      // Backend offline
+    }
+
+    // 3. LocalStorage cross-tab lock
+    try {
+      if (typeof window !== 'undefined') {
+        const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.deviceId && parsed.timestamp && (now - parsed.timestamp < LOCK_EXPIRY_MS)) {
+            return parsed;
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     return null;
   },
 
@@ -181,34 +219,93 @@ export const cloudSync = {
     activeScorer?: { deviceId: string; deviceName: string; userName?: string; timestamp: number };
     message?: string;
   }> {
+    const now = Date.now();
+    const cleanUserName = (userName || '').trim() || 'Official Scorer';
+
+    // 1. Check Local Cross-Tab Lock first
+    try {
+      if (typeof window !== 'undefined') {
+        const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.deviceId && parsed.deviceId !== deviceId && (now - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+            const lockedByName = parsed.userName ? `${parsed.userName}` : (parsed.deviceName || 'another official scorer');
+            return {
+              success: false,
+              isLocked: true,
+              activeScorer: parsed,
+              message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
+            };
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 2. Check Firebase RTDB
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
         const snap = await get(scorerRef);
         const currentLock = snap.exists() ? snap.val() : null;
 
-        // Strict Check: If another user/device holds an active lock, reject immediately
-        if (currentLock && currentLock.deviceId && currentLock.deviceId !== deviceId) {
-          const lockedByName = currentLock.userName ? `${currentLock.userName} (${currentLock.deviceName})` : (currentLock.deviceName || 'another official scorer');
+        // Strict Check: If another user/device holds an active lock
+        if (currentLock && currentLock.deviceId && currentLock.deviceId !== deviceId && (now - (currentLock.timestamp || 0) < 10 * 60 * 1000)) {
+          const lockedByName = currentLock.userName ? `${currentLock.userName}` : (currentLock.deviceName || 'another official scorer');
           return {
             success: false,
             isLocked: true,
             activeScorer: currentLock,
-            message: `🔒 Scoring controls are already locked by official scorer: ${lockedByName}.\n\nPlease login as Spectator to view the live match.`,
+            message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
           };
         }
-
-        // Claim lock in Firebase RTDB
-        const newLock = { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() };
-        await set(scorerRef, newLock);
-        return { success: true, activeScorer: newLock };
       } catch (err) {
-        console.warn('Firebase acquireScorerLock error:', err);
+        console.warn('Firebase acquireScorerLock check error:', err);
       }
     }
 
-    // Local/API fallback
-    const newLock = { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() };
+    // 3. Call REST API endpoint
+    try {
+      const apiRes = await api.acquireScorerLock(deviceId, deviceName, cleanUserName);
+      if (apiRes && !apiRes.success && apiRes.isLocked) {
+        const lockedByName = apiRes.activeScorer?.userName || apiRes.activeScorer?.deviceName || 'another official scorer';
+        return {
+          success: false,
+          isLocked: true,
+          activeScorer: apiRes.activeScorer ? { ...apiRes.activeScorer, timestamp: apiRes.activeScorer.timestamp || now } : undefined,
+          message: apiRes.message || `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
+        };
+      }
+    } catch {
+      // Offline fallback
+    }
+
+    // 4. Lock acquired successfully: Broadcast & persist to all tiers
+    const newLock = { deviceId, deviceName, userName: cleanUserName, timestamp: now };
+
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        await set(scorerRef, newLock);
+      } catch (err) {
+        console.warn('Firebase set scorer lock error:', err);
+      }
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cricpulse_active_scorer_lock', JSON.stringify(newLock));
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel('cricpulse_live_sync');
+          ch.postMessage({ type: 'SCORER_LOCK_UPDATE', lock: newLock, timestamp: now });
+          ch.close();
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     return { success: true, activeScorer: newLock };
   },
 
@@ -227,44 +324,174 @@ export const cloudSync = {
         console.warn('Firebase releaseScorerLock error:', err);
       }
     }
+
+    try {
+      if (typeof window !== 'undefined') {
+        const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (force || parsed?.deviceId === deviceId) {
+            localStorage.removeItem('cricpulse_active_scorer_lock');
+          }
+        }
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel('cricpulse_live_sync');
+          ch.postMessage({ type: 'SCORER_LOCK_UPDATE', lock: null, timestamp: Date.now() });
+          ch.close();
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     return await api.releaseScorerLock(deviceId, force);
   },
 
   async heartbeatScorerLock(deviceId: string, deviceName: string, userName?: string): Promise<void> {
+    const now = Date.now();
+    const cleanUserName = (userName || '').trim() || 'Official Scorer';
+    const lockPayload = { deviceId, deviceName, userName: cleanUserName, timestamp: now };
+
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
-        await set(scorerRef, { deviceId, deviceName, userName: userName || 'Official Scorer', timestamp: Date.now() });
+        await set(scorerRef, lockPayload);
       } catch {
         // Ignore
       }
     }
+
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cricpulse_active_scorer_lock', JSON.stringify(lockPayload));
+      }
+    } catch {
+      // Ignore
+    }
+
     api.heartbeatScorerLock(deviceId);
   },
 
   subscribeScorerLock(onUpdate: (scorer: { deviceId: string; deviceName: string; userName?: string; timestamp: number } | null) => void): () => void {
+    let active = true;
+
+    // 1. Check local lock immediately on registration
+    try {
+      if (typeof window !== 'undefined') {
+        const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && (Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+            onUpdate(parsed);
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 2. Firebase Listener
+    let unsubscribeFirebase = () => {};
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
-        const unsubscribe = onValue(scorerRef, (snapshot) => {
+        unsubscribeFirebase = onValue(scorerRef, (snapshot) => {
+          if (!active) return;
           if (!snapshot.exists()) {
             onUpdate(null);
             return;
           }
           const val = snapshot.val();
-          if (val && val.timestamp && (Date.now() - val.timestamp > 45000)) {
+          if (val && val.timestamp && (Date.now() - val.timestamp > 10 * 60 * 1000)) {
             // Expired lock
             onUpdate(null);
           } else {
             onUpdate(val);
           }
         });
-        return unsubscribe;
       } catch {
         // Ignore
       }
     }
-    return () => {};
+
+    // 3. BroadcastChannel Listener (Instant 0ms cross-tab updates)
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('cricpulse_live_sync');
+        channel.onmessage = (event) => {
+          if (!active) return;
+          if (event.data?.type === 'SCORER_LOCK_UPDATE') {
+            onUpdate(event.data.lock || null);
+          }
+        };
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 4. LocalStorage StorageEvent listener (detects lock updates from other windows/tabs)
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (!active) return;
+      if (e.key === 'cricpulse_active_scorer_lock') {
+        if (!e.newValue) {
+          onUpdate(null);
+        } else {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            onUpdate(parsed);
+          } catch {
+            // Ignore
+          }
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageEvent);
+    }
+
+    // 5. REST API Polling every 1.5 seconds to sync lock across network devices
+    const interval = setInterval(async () => {
+      if (!active) return;
+      try {
+        const status = await api.getScorerStatus();
+        if (status) {
+          if (status.isLocked && status.activeScorer) {
+            onUpdate({
+              deviceId: status.activeScorer.deviceId,
+              deviceName: status.activeScorer.deviceName,
+              userName: status.activeScorer.userName,
+              timestamp: status.activeScorer.timestamp || Date.now(),
+            });
+          } else if (!status.isLocked) {
+            // If API reports not locked, check if Firebase is not active
+            if (!isFirebaseConfigured) {
+              const localRaw = typeof window !== 'undefined' ? localStorage.getItem('cricpulse_active_scorer_lock') : null;
+              if (!localRaw) onUpdate(null);
+            }
+          }
+        }
+      } catch {
+        // Offline
+      }
+    }, 1500);
+
+    return () => {
+      active = false;
+      unsubscribeFirebase();
+      if (channel) {
+        try {
+          channel.close();
+        } catch {
+          // Ignore
+        }
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageEvent);
+      }
+      clearInterval(interval);
+    };
   }
 };
 

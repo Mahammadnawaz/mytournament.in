@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import { cloudSync } from '../../services/cloudSync';
-import { Trophy, Activity, Lock, Shield, Eye, Flame, ChevronRight, X, AlertCircle, User } from 'lucide-react';
+import { Trophy, Activity, Lock, Shield, Eye, Flame, ChevronRight, X, AlertCircle, User, ShieldAlert } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { activeScorer, deviceId, loginAsScorer, loginAsSpectator } = useCricket();
@@ -12,9 +12,34 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lockedBannerMessage, setLockedBannerMessage] = useState<string | null>(null);
+  const [showAccessDeniedModal, setShowAccessDeniedModal] = useState<boolean>(false);
+  const [deniedScorerName, setDeniedScorerName] = useState<string>('Official Scorer');
 
-  const isScorerLockedByOther = Boolean(activeScorer && activeScorer.deviceId !== deviceId);
-  const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || 'another scorer';
+  // Real-time lock check on mount & periodically
+  useEffect(() => {
+    let isMounted = true;
+    const checkLock = async () => {
+      try {
+        const liveLock = await cloudSync.getActiveScorerLock();
+        if (!isMounted) return;
+        if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
+          const name = liveLock.userName || liveLock.deviceName || 'Official Scorer';
+          setDeniedScorerName(name);
+        }
+      } catch {
+        // Ignore
+      }
+    };
+    checkLock();
+    const interval = setInterval(checkLock, 2000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [deviceId]);
+
+  const isScorerLockedByOther = Boolean(activeScorer && activeScorer.deviceId && activeScorer.deviceId !== deviceId);
+  const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || deniedScorerName || 'another official scorer';
 
   const handleOpenScorerModal = async () => {
     setErrorMessage(null);
@@ -24,10 +49,12 @@ export const LoginPage: React.FC = () => {
     try {
       const liveLock = await cloudSync.getActiveScorerLock();
       if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
-        const lockedName = liveLock.userName ? `${liveLock.userName} (${liveLock.deviceName})` : (liveLock.deviceName || 'another official scorer');
+        const lockedName = liveLock.userName || liveLock.deviceName || 'another official scorer';
+        setDeniedScorerName(lockedName);
         setLockedBannerMessage(
-          `🔒 Access Denied: Scoring controls are already locked by official scorer: ${lockedName}.\n\nPlease login as Spectator to view the live match.`
+          `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
         );
+        setShowAccessDeniedModal(true);
         return;
       }
     } catch {
@@ -36,9 +63,11 @@ export const LoginPage: React.FC = () => {
 
     // 2. If another device/user is already scoring, deny and instruct to use Spectator
     if (isScorerLockedByOther) {
+      setDeniedScorerName(lockedScorerName);
       setLockedBannerMessage(
-        `🔒 Access Denied: Scoring controls are already locked by official scorer: ${lockedScorerName}.\n\nPlease login as Spectator to view the live match.`
+        `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedScorerName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
       );
+      setShowAccessDeniedModal(true);
       return;
     }
 
@@ -49,6 +78,7 @@ export const LoginPage: React.FC = () => {
   const handleOpenSpectatorModal = () => {
     setErrorMessage(null);
     setLockedBannerMessage(null);
+    setShowAccessDeniedModal(false);
     setInputName('');
     setModalRole('spectator');
   };
@@ -70,7 +100,11 @@ export const LoginPage: React.FC = () => {
       setIsSubmitting(false);
 
       if (!res.success) {
-        setErrorMessage(res.message || '🔒 Scorer role is locked by another device.');
+        const errMsg = res.message || `🔒 Access Denied: Match scoring is already locked by another scorer.`;
+        setErrorMessage(errMsg);
+        setLockedBannerMessage(errMsg);
+        setShowAccessDeniedModal(true);
+        setModalRole(null);
       } else {
         setModalRole(null);
       }
@@ -352,6 +386,59 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ACCESS DENIED MODAL (WHEN SCORER ROLE IS TAKEN) ── */}
+      {showAccessDeniedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md bg-slate-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-red-950/50 space-y-6 text-center">
+            
+            {/* Warning Icon Badge */}
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-red-500/15 border border-red-500/40 text-red-400 flex items-center justify-center shadow-lg shadow-red-500/10">
+              <ShieldAlert className="w-8 h-8" />
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-[10px] font-black tracking-widest uppercase border border-red-500/30">
+                Single Official Scorer Policy
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight pt-1">
+                Access Denied
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Scoring controls are already active and locked by official scorer:
+              </p>
+              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-amber-300 font-mono font-bold text-sm sm:text-base flex items-center justify-center space-x-2">
+                <Lock className="w-4 h-4 text-amber-400" />
+                <span>{lockedScorerName}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                To prevent conflicting score entries, only one official scorer is permitted at a time. You can watch the full match and live ball-by-ball stream as a Spectator.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleOpenSpectatorModal}
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center space-x-2 transition shadow-lg shadow-sky-500/20 active:scale-95"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Continue as Spectator</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAccessDeniedModal(false)}
+                className="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs transition"
+              >
+                Close
+              </button>
+            </div>
 
           </div>
         </div>

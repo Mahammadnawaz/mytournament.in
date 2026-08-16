@@ -139,7 +139,7 @@ export const api = {
     matches: Match[];
     series: TournamentSeries[];
     activeMatchId: string | null;
-    activeScorer: { deviceId: string; deviceName: string; acquiredAt: number; lastActive: number } | null;
+    activeScorer: { deviceId: string; deviceName: string; userName?: string; acquiredAt?: number; lastActive?: number; timestamp?: number } | null;
     timestamp: number;
   } | null> {
     try {
@@ -151,17 +151,30 @@ export const api = {
     return null;
   },
 
-  async acquireScorerLock(deviceId: string, deviceName?: string): Promise<{
+  async getScorerStatus(): Promise<{
+    isLocked: boolean;
+    activeScorer: { deviceId: string; deviceName: string; userName?: string; timestamp?: number } | null;
+  } | null> {
+    try {
+      const res = await fetch(`${API_BASE}/scorer/status`);
+      if (res.ok) return await res.json();
+    } catch {
+      // Backend offline
+    }
+    return null;
+  },
+
+  async acquireScorerLock(deviceId: string, deviceName?: string, userName?: string): Promise<{
     success: boolean;
     isLocked?: boolean;
-    activeScorer?: { deviceId: string; deviceName: string };
+    activeScorer?: { deviceId: string; deviceName: string; userName?: string; timestamp?: number };
     message?: string;
   }> {
     try {
       const res = await fetch(`${API_BASE}/scorer/acquire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceId, deviceName }),
+        body: JSON.stringify({ deviceId, deviceName, userName }),
       });
       return await res.json();
     } catch {
