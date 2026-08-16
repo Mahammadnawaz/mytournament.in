@@ -4,14 +4,17 @@ import type { DismissalType, WicketDetails } from '../../types/cricket';
 import { Skull, X, Shield, User, Flame } from 'lucide-react';
 
 interface WicketModalProps {
-  onConfirm: (wicketInfo: WicketDetails, nextBatsmanId: string) => void;
+  onConfirm: (wicketInfo: WicketDetails, nextBatsmanId: string, isNoBall?: boolean) => void;
   onClose: () => void;
+  initialDismissalType?: DismissalType;
+  initialIsNoBall?: boolean;
 }
 
-export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) => {
+export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose, initialDismissalType, initialIsNoBall }) => {
   const { players, activeMatch, activeInnings } = useCricket();
 
-  const [dismissalType, setDismissalType] = useState<DismissalType>('bowled');
+  const [dismissalType, setDismissalType] = useState<DismissalType>(initialDismissalType || 'bowled');
+  const [isNoBall, setIsNoBall] = useState<boolean>(initialIsNoBall || false);
   const [fielderId, setFielderId] = useState<string>('');
   const [runsCompleted, setRunsCompleted] = useState<number>(0);
   
@@ -55,7 +58,8 @@ export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) 
         fielderId: fielderId || undefined,
         runsCompleted: dismissalType === 'run-out' ? runsCompleted : 0,
       },
-      nextBatsmanId
+      nextBatsmanId,
+      isNoBall
     );
     onClose();
   };
@@ -113,6 +117,27 @@ export const WicketModal: React.FC<WicketModalProps> = ({ onConfirm, onClose }) 
                   <span>{opt.label}</span>
                 </button>
               ))}
+            </div>
+
+            {/* No-Ball Penalty Toggle Button */}
+            <div className="mt-2.5">
+              <button
+                type="button"
+                onClick={() => setIsNoBall(prev => !prev)}
+                className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-between border ${
+                  isNoBall
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-md'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <span className="flex items-center space-x-1.5">
+                  <span>⚠️</span>
+                  <span>No-Ball Penalty (+1 Extra Run, Illegal Ball)</span>
+                </span>
+                <span className={`px-2 py-0.5 rounded-md text-[10px] uppercase font-black ${isNoBall ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+                  {isNoBall ? 'ACTIVE (+1 NB)' : 'OFF'}
+                </span>
+              </button>
             </div>
           </div>
 

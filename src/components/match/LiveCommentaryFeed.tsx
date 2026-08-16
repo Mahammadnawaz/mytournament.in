@@ -81,19 +81,51 @@ function getShotZoneAction(shotZone: string, isSix: boolean): { verb: string; pr
 export function formatBallCommentary(
   ball: BallLog,
   striker: string,
-  bowler: string
+  bowler: string,
+  players: any[] = []
 ): { headline: string; description: string; speechText: string } {
   const seed = (ball.overNumber * 10) + ball.ballNumber + (ball.runsScored * 7);
   const clickedZone = ball.shotZone?.trim();
 
   // 1. WICKET
   if (ball.isWicket) {
+    const isRunOut = ball.wicketInfo?.type === 'run-out';
+    const isNoBall = ball.extras?.type === 'no-ball';
+    const dismissedPlayer = players.find(p => p.id === ball.wicketInfo?.dismissedPlayerId)?.name || striker;
+    const fielderPlayer = players.find(p => p.id === ball.wicketInfo?.fielderId)?.name;
+
+    if (isRunOut) {
+      const fielderText = fielderPlayer ? ` by ${fielderPlayer}` : '';
+      const headline = isNoBall
+        ? (fielderPlayer ? `🔴 NO-BALL + RUN OUT BY ${fielderPlayer.toUpperCase()}! ⚡` : `🔴 NO-BALL + RUN OUT! ⚡`)
+        : (fielderPlayer ? `🔴 RUN OUT BY ${fielderPlayer.toUpperCase()}! ⚡` : `🔴 RUN OUT! ⚡`);
+      
+      const description = isNoBall
+        ? `NO-BALL + RUN OUT! 1 penalty run added. ${dismissedPlayer} is run out${fielderText}! Direct hit in over ${ball.overNumber + 1}.`
+        : `RUN OUT! Sharp fielding${fielderText}! ${dismissedPlayer} is caught short of the crease in over ${ball.overNumber + 1}.`;
+      
+      const speechText = isNoBall
+        ? (fielderPlayer ? `No ball plus run out by ${fielderPlayer}` : 'No ball plus run out')
+        : (fielderPlayer ? `Run out by ${fielderPlayer}` : 'Run out');
+
+      return { headline, description, speechText };
+    }
+
+    const fielderText = fielderPlayer ? ` by ${fielderPlayer}` : '';
+    let descText = `WICKET! ${bowler} strikes! ${dismissedPlayer} is dismissed (${ball.wicketInfo?.type || 'out'}) in over ${ball.overNumber + 1}!`;
+    let speech = `Out! ${bowler} dismisses ${dismissedPlayer}!`;
+
+    if (ball.wicketInfo?.type === 'caught' && fielderPlayer) {
+      descText = `WICKET! ${dismissedPlayer} is caught by ${fielderPlayer} off the bowling of ${bowler}!`;
+      speech = `Caught by ${fielderPlayer}! ${dismissedPlayer} is out!`;
+    } else if (ball.wicketInfo?.type === 'stumped' && fielderPlayer) {
+      descText = `WICKET! ${dismissedPlayer} is stumped by ${fielderPlayer} off ${bowler}!`;
+      speech = `Stumped by ${fielderPlayer}! ${dismissedPlayer} is out!`;
+    }
+
     const wType = ball.wicketInfo?.type ? ball.wicketInfo.type.toUpperCase() : 'WICKET';
-    const detail = ball.wicketInfo?.description ? ` (${ball.wicketInfo.description})` : '';
-    const headline = `🔴 OUT! ${wType}`;
-    const description = `WICKET! ${bowler} strikes! ${striker} is dismissed${detail}. Huge breakthrough in over ${ball.overNumber + 1}!`;
-    const speechText = `Out! Wicket falls! ${bowler} dismisses ${striker} in over ${ball.overNumber + 1}!`;
-    return { headline, description, speechText };
+    const headline = `🔴 OUT! ${wType}${fielderText ? ` (${fielderPlayer.toUpperCase()})` : ''}`;
+    return { headline, description: descText, speechText: speech };
   }
 
   // 2. WIDE BALL (with optional extra runs)
@@ -282,7 +314,7 @@ export const LiveCommentaryFeed: React.FC = () => {
       const bStriker = players.find(p => p.id === latestBall.strikerId)?.name || 'Batsman';
       const bBowler = players.find(p => p.id === latestBall.bowlerId)?.name || 'Bowler';
       
-      const { speechText } = formatBallCommentary(latestBall, bStriker, bBowler);
+      const { speechText } = formatBallCommentary(latestBall, bStriker, bBowler, players);
 
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(speechText);
@@ -379,11 +411,14 @@ export const LiveCommentaryFeed: React.FC = () => {
           reversedLogs.map((ball, idx) => {
             const bStriker = players.find(p => p.id === ball.strikerId)?.name || 'Batsman';
             const bBowler = players.find(p => p.id === ball.bowlerId)?.name || 'Bowler';
-            const { headline, description } = formatBallCommentary(ball, bStriker, bBowler);
+            const { headline, description } = formatBallCommentary(ball, bStriker, bBowler, players);
 
             const isBoundary6 = ball.runsScored === 6;
             const isBoundary4 = ball.runsScored === 4;
             const isExtra = Boolean(ball.extras?.type && ball.extras.type !== 'none');
+
+            const isNoBall = ball.extras?.type === 'no-ball';
+            const isWide = ball.extras?.type === 'wide';
 
             return (
               <div
@@ -395,6 +430,10 @@ export const LiveCommentaryFeed: React.FC = () => {
                     ? 'bg-purple-500/10 border-purple-500/30'
                     : isBoundary4
                     ? 'bg-amber-500/10 border-amber-500/30'
+                    : isNoBall
+                    ? 'bg-amber-500/15 border-amber-500/50 shadow-md shadow-amber-500/10'
+                    : isWide
+                    ? 'bg-sky-500/15 border-sky-500/50 shadow-md shadow-sky-500/10'
                     : isExtra
                     ? 'bg-blue-500/10 border-blue-500/30'
                     : 'bg-slate-900/90 border-slate-800'
@@ -416,6 +455,10 @@ export const LiveCommentaryFeed: React.FC = () => {
                         ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
                         : isBoundary4
                         ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                        : isNoBall
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30'
+                        : isWide
+                        ? 'bg-sky-400 text-slate-950 font-black shadow-md shadow-sky-400/30'
                         : isExtra
                         ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                         : ball.runsScored === 0

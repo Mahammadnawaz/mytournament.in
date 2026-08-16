@@ -147,7 +147,7 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
 
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="font-extrabold text-base text-slate-100">
+              <h3 className="font-black text-lg text-emerald-400 font-mono tracking-wide drop-shadow">
                 {name || 'Player Name'}
               </h3>
               {jerseyNumber && (
@@ -223,7 +223,7 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
 
           {/* Player Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-extrabold text-slate-200 mb-1">
               Player Full Name *
             </label>
             <input
@@ -232,14 +232,14 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Virat Kohli"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 placeholder-slate-500 outline-none transition font-bold"
+              className="w-full px-4 py-3 rounded-xl bg-slate-950 border-2 border-emerald-500/50 focus:border-emerald-400 text-sky-300 placeholder-slate-500 outline-none transition font-black text-base shadow-inner"
             />
           </div>
 
           {/* Country & Jersey Number & Age */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center space-x-1">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1 flex items-center space-x-1">
                 <Globe className="w-3 h-3 text-emerald-400" />
                 <span>Country</span>
               </label>
@@ -248,12 +248,12 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="India"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 text-xs outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-400 text-white placeholder-slate-400 text-xs font-bold outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center space-x-1">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1 flex items-center space-x-1">
                 <Hash className="w-3 h-3 text-amber-400" />
                 <span>Jersey #</span>
               </label>
@@ -264,12 +264,12 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
                 value={jerseyNumber}
                 onChange={(e) => setJerseyNumber(e.target.value)}
                 placeholder="18"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-amber-500 text-slate-100 text-xs outline-none font-mono font-bold"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-400 text-white placeholder-slate-400 text-xs outline-none font-mono font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Age</label>
+              <label className="block text-xs font-extrabold text-slate-200 mb-1">Age</label>
               <input
                 type="number"
                 min="14"
@@ -277,60 +277,60 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 placeholder="25"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 text-xs outline-none font-mono"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-400 text-white placeholder-slate-400 text-xs outline-none font-mono font-bold"
               />
             </div>
           </div>
 
           {/* Primary Role */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-extrabold text-slate-200 mb-1">
               Primary Playing Role
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as PlayerRole)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 font-semibold outline-none transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-400 text-white font-extrabold outline-none transition"
             >
-              <option value="Batsman">Batsman</option>
-              <option value="Bowler">Bowler</option>
-              <option value="All-Rounder">All-Rounder</option>
-              <option value="Wicket-Keeper">Wicket-Keeper</option>
+              <option value="Batsman" className="bg-slate-900 text-white font-bold">Batsman</option>
+              <option value="Bowler" className="bg-slate-900 text-white font-bold">Bowler</option>
+              <option value="All-Rounder" className="bg-slate-900 text-white font-bold">All-Rounder</option>
+              <option value="Wicket-Keeper" className="bg-slate-900 text-white font-bold">Wicket-Keeper</option>
             </select>
           </div>
 
           {/* Batting & Bowling Styles */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1">
                 Batting Style
               </label>
               <select
                 value={battingStyle}
                 onChange={(e) => setBattingStyle(e.target.value as BattingStyle)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-400 text-white font-extrabold outline-none transition"
               >
-                <option value="Right-hand">Right-hand</option>
-                <option value="Left-hand">Left-hand</option>
+                <option value="Right-hand" className="bg-slate-900 text-white font-bold">Right-hand</option>
+                <option value="Left-hand" className="bg-slate-900 text-white font-bold">Left-hand</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1">
                 Bowling Style
               </label>
               <select
                 value={bowlingStyle}
                 onChange={(e) => setBowlingStyle(e.target.value as BowlingStyle)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-slate-100 outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-400 text-white font-extrabold outline-none transition"
               >
-                <option value="Right-arm Fast">Right-arm Fast</option>
-                <option value="Right-arm Medium">Right-arm Medium</option>
-                <option value="Left-arm Fast">Left-arm Fast</option>
-                <option value="Left-arm Spin">Left-arm Spin</option>
-                <option value="Leg-spin">Leg-spin</option>
-                <option value="Off-spin">Off-spin</option>
-                <option value="None">None</option>
+                <option value="Right-arm Fast" className="bg-slate-900 text-white font-bold">Right-arm Fast</option>
+                <option value="Right-arm Medium" className="bg-slate-900 text-white font-bold">Right-arm Medium</option>
+                <option value="Left-arm Fast" className="bg-slate-900 text-white font-bold">Left-arm Fast</option>
+                <option value="Left-arm Spin" className="bg-slate-900 text-white font-bold">Left-arm Spin</option>
+                <option value="Leg-spin" className="bg-slate-900 text-white font-bold">Leg-spin</option>
+                <option value="Off-spin" className="bg-slate-900 text-white font-bold">Off-spin</option>
+                <option value="None" className="bg-slate-900 text-white font-bold">None</option>
               </select>
             </div>
           </div>

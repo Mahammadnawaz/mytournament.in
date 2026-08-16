@@ -32,11 +32,11 @@ export const PlayerDirectory: React.FC = () => {
       {/* Header Banner & Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 theme-bg-card theme-border p-6 rounded-3xl border shadow-xl">
         <div>
-          <h2 className="text-2xl font-extrabold text-white flex items-center space-x-3">
-            <Users className="w-7 h-7 text-emerald-400" />
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white theme-text-primary flex items-center space-x-3">
+            <Users className="w-7 h-7 text-emerald-500" />
             <span>Player Directory & Roster</span>
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold mt-1">
             {isScorer 
               ? 'Manage squad roster, recruit new players, and update player profile information.'
               : 'Browse team squad, career records, batting averages, and bowling figures.'}
@@ -64,7 +64,7 @@ export const PlayerDirectory: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by player name..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-100 text-sm placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 dark:bg-slate-950 border border-slate-700/80 text-white text-sm placeholder-slate-400 focus:border-emerald-400 focus:outline-none transition shadow-sm font-bold"
           />
         </div>
 

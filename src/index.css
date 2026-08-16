@@ -655,3 +655,26 @@ html.theme-lords .potm-points-text,
 html.theme-daylight .potm-points-text {
   color: #b45309 !important;
 }
+
+/* Input Autofill & High-Contrast Typing Safeguards */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px #020617 inset !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+  caret-color: #38bdf8 !important;
+}
+
+/* Player Roster Card Name Contrast Rules Across All Themes */
+.player-card-name-text {
+  color: #ffffff !important;
+}
+
+html.theme-testcricket .player-card-name-text,
+html.theme-county .player-card-name-text,
+html.theme-lords .player-card-name-text,
+html.theme-daylight .player-card-name-text {
+  color: #0f172a !important;
+}

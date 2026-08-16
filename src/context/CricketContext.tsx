@@ -406,7 +406,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [activeMatchId]);
 
-  const activeMatch = matches.find(m => m.id === activeMatchId) || null;
+  const activeMatch = matches.find(m => m.id === activeMatchId) || matches.find(m => m.status === 'live') || matches[0] || null;
   const activeInnings = activeMatch 
     ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null
     : null;

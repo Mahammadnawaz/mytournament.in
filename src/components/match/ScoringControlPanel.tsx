@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import type { ExtraType, WicketDetails, ShotZone } from '../../types/cricket';
+import type { ExtraType, WicketDetails, ShotZone, DismissalType } from '../../types/cricket';
 import WicketModal from './WicketModal';
 import BowlerSelectModal from './BowlerSelectModal';
 import ShotZoneModal from './ShotZoneModal';
@@ -121,13 +121,15 @@ export const ScoringControlPanel: React.FC = () => {
     handleProcessBallResult(result);
   };
 
-  const handleWicketConfirm = (wicketInfo: WicketDetails, nextBatsmanId: string) => {
+  const [wicketModalConfig, setWicketModalConfig] = useState<{ isNoBall?: boolean; dismissalType?: DismissalType } | null>(null);
+
+  const handleWicketConfirm = (wicketInfo: WicketDetails, nextBatsmanId: string, isNoBall?: boolean) => {
     const runsScored = wicketInfo.runsCompleted || 0;
-    triggerEventAlert('wicket', '⚡ WICKET DOWN! OUT!', `${wicketInfo.type.toUpperCase()}${runsScored > 0 ? ` (+${runsScored} runs)` : ''}`);
+    triggerEventAlert('wicket', isNoBall ? '⚡ NO-BALL + RUN OUT!' : '⚡ WICKET DOWN! OUT!', `${wicketInfo.type.toUpperCase()}${runsScored > 0 ? ` (+${runsScored} runs)` : ''}`);
     const result = scoreBall({
       runsScored,
-      extraType: 'none',
-      extraRuns: 0,
+      extraType: isNoBall ? 'no-ball' : 'none',
+      extraRuns: isNoBall ? 1 : 0,
       isWicket: true,
       wicketInfo,
       nextBatsmanId,
@@ -326,9 +328,24 @@ export const ScoringControlPanel: React.FC = () => {
                   </button>
                 ))}
               </div>
+
+              {pendingExtraType === 'no-ball' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingExtraType(null);
+                    setWicketModalConfig({ isNoBall: true, dismissalType: 'run-out' });
+                    setShowWicketModal(true);
+                  }}
+                  className="w-full mt-3 py-2.5 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 font-extrabold text-xs transition flex items-center justify-center space-x-2 active:scale-95 shadow"
+                >
+                  <Skull className="w-4 h-4 text-red-400" />
+                  <span>RECORD NO-BALL + RUN OUT ⚡</span>
+                </button>
+              )}
             </div>
 
-            <div className="mt-5 pt-3 border-t border-slate-800 text-right">
+            <div className="mt-4 pt-3 border-t border-slate-800 text-right">
               <button
                 type="button"
                 onClick={() => setPendingExtraType(null)}
@@ -354,8 +371,17 @@ export const ScoringControlPanel: React.FC = () => {
       {/* Wicket Details Modal */}
       {showWicketModal && (
         <WicketModal
-          onConfirm={handleWicketConfirm}
-          onClose={() => setShowWicketModal(false)}
+          initialDismissalType={wicketModalConfig?.dismissalType}
+          initialIsNoBall={wicketModalConfig?.isNoBall}
+          onConfirm={(wicketInfo, nextId, isNB) => {
+            setShowWicketModal(false);
+            setWicketModalConfig(null);
+            handleWicketConfirm(wicketInfo, nextId, isNB);
+          }}
+          onClose={() => {
+            setShowWicketModal(false);
+            setWicketModalConfig(null);
+          }}
         />
       )}
 

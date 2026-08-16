@@ -81,7 +81,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, isScorer = false
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="font-extrabold text-white text-base group-hover:text-emerald-400 transition flex items-center space-x-1.5 truncate">
+            <h3 className="font-extrabold text-white text-base group-hover:text-emerald-400 player-card-name-text transition flex items-center space-x-1.5 truncate">
               <span className="truncate">{player.name}</span>
             </h3>
             
@@ -90,14 +90,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, isScorer = false
                 {player.role}
               </span>
               {player.country && (
-                <span className="text-[11px] text-slate-200 font-bold flex items-center space-x-1 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800/90">
-                  <Globe className="w-3 h-3 text-emerald-400" />
+                <span className="text-[11px] font-bold flex items-center space-x-1 bg-slate-800/20 dark:bg-slate-950/80 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded-md border border-slate-400/40 dark:border-slate-800/90">
+                  <Globe className="w-3 h-3 text-emerald-500" />
                   <span>{player.country}</span>
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-slate-300 font-medium mt-1 truncate">
+            <p className="text-xs text-slate-700 dark:text-slate-300 font-bold mt-1.5 truncate">
               {player.battingStyle} {player.bowlingStyle !== 'None' ? `• ${player.bowlingStyle}` : ''}
             </p>
           </div>

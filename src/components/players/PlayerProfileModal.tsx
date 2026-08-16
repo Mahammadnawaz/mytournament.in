@@ -95,7 +95,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({ player, 
           </div>
 
           <div>
-            <h2 className="text-2xl font-extrabold text-white flex items-center space-x-2">
+            <h2 className="text-2xl font-extrabold text-white player-card-name-text flex items-center space-x-2">
               <span>{player.name}</span>
             </h2>
             

@@ -79,7 +79,8 @@ export function processBall(
     extraPenalty = Math.max(1, extraRuns || 1);
   }
 
-  const totalBallRuns = (extraType === 'no-ball' ? runsScored : 0) + extraPenalty;
+  const runsOffBat = (extraType === 'bye' || extraType === 'leg-bye' || extraType === 'wide') ? 0 : (runsScored || 0);
+  const totalBallRuns = runsOffBat + extraPenalty;
   state.totalRuns += totalBallRuns;
 
   if (extraType === 'wide') {
