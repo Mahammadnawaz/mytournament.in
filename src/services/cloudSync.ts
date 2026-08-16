@@ -1,6 +1,6 @@
 import { ref, onValue, set, get } from 'firebase/database';
 import { db, isFirebaseConfigured } from '../config/firebase';
-import type { Player, Match, TournamentSeries } from '../types/cricket';
+import type { Player, Match, TournamentSeries, SeriesBreakTimer } from '../types/cricket';
 import { api } from './api';
 
 export interface CloudSyncData {
@@ -9,6 +9,7 @@ export interface CloudSyncData {
   series: TournamentSeries[];
   activeMatchId: string | null;
   activeScorer: { deviceId: string; deviceName: string } | null;
+  seriesBreakTimer?: SeriesBreakTimer | null;
   timestamp: number;
 }
 
@@ -57,6 +58,7 @@ export const sanitizeSyncData = (data: any): CloudSyncData => {
     series: ensureArray(data.series),
     activeMatchId: data.activeMatchId || null,
     activeScorer,
+    seriesBreakTimer: data.seriesBreakTimer || null,
     timestamp: data.timestamp || Date.now(),
   };
 };

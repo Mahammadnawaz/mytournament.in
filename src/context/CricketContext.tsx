@@ -102,11 +102,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     setSeriesBreakTimer(timer);
     localStorage.setItem('cricpulse_series_break_timer', JSON.stringify(timer));
+    cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer, seriesBreakTimer: timer });
+    broadcastSync();
   };
 
   const cancelSeriesBreak = () => {
     setSeriesBreakTimer(null);
     localStorage.removeItem('cricpulse_series_break_timer');
+    cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer, seriesBreakTimer: null });
+    broadcastSync();
   };
 
   const [activeMatchId, setActiveMatchId] = useState<string | null>(() => {
@@ -396,6 +400,16 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Keep local scorer lock active if user is scorer
         } else {
           setActiveScorer(syncData.activeScorer);
+        }
+      }
+
+      if (syncData.seriesBreakTimer !== undefined) {
+        if (syncData.seriesBreakTimer && syncData.seriesBreakTimer.endTime > Date.now()) {
+          setSeriesBreakTimer(syncData.seriesBreakTimer);
+          localStorage.setItem('cricpulse_series_break_timer', JSON.stringify(syncData.seriesBreakTimer));
+        } else {
+          setSeriesBreakTimer(null);
+          localStorage.removeItem('cricpulse_series_break_timer');
         }
       }
 
