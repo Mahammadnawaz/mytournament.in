@@ -22,9 +22,6 @@ export const LiveCelebrationOverlay: React.FC = () => {
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
 
-  if (activeTab !== 'scoring' && (activeTab as any) !== 'home' && activeTab !== undefined) {
-    return null;
-  }
   // Helper to ensure array conversion
   const ensureArray = <T,>(val: any): T[] => {
     if (!val) return [];
@@ -39,6 +36,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
   // 1. Direct Real-Time Delivery Score Pop Trigger from Sync for All Users
   useEffect(() => {
+    if (activeTab !== 'scoring' && (activeTab as any) !== 'home' && activeTab !== undefined) return;
     if (activeMatch?.status === 'completed') return; // Silence score pop bursts for completed matches
 
     const burst = activeMatch?.latestDeliveryBurst;
@@ -95,6 +93,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
   // Detect live ball events from activeInnings.ballLogs for All Users
   useEffect(() => {
+    if (activeTab !== 'scoring' && (activeTab as any) !== 'home' && activeTab !== undefined) return;
     if (activeMatch?.status === 'completed') return; // Silence score pops for completed matches
 
     const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
