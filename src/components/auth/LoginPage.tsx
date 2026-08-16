@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import { cloudSync } from '../../services/cloudSync';
 import { Trophy, Activity, Lock, Shield, Eye, Flame, ChevronRight, X, AlertCircle, User, ShieldAlert } from 'lucide-react';
@@ -13,33 +13,9 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lockedBannerMessage, setLockedBannerMessage] = useState<string | null>(null);
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState<boolean>(false);
-  const [deniedScorerName, setDeniedScorerName] = useState<string>('Official Scorer');
-
-  // Real-time lock check on mount & periodically
-  useEffect(() => {
-    let isMounted = true;
-    const checkLock = async () => {
-      try {
-        const liveLock = await cloudSync.getActiveScorerLock();
-        if (!isMounted) return;
-        if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
-          const name = liveLock.userName || liveLock.deviceName || 'Official Scorer';
-          setDeniedScorerName(name);
-        }
-      } catch {
-        // Ignore
-      }
-    };
-    checkLock();
-    const interval = setInterval(checkLock, 2000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [deviceId]);
 
   const isScorerLockedByOther = Boolean(activeScorer && activeScorer.deviceId && activeScorer.deviceId !== deviceId);
-  const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || deniedScorerName || 'another official scorer';
+  const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || 'Official Scorer';
 
   const handleOpenScorerModal = async () => {
     setErrorMessage(null);
@@ -49,8 +25,7 @@ export const LoginPage: React.FC = () => {
     try {
       const liveLock = await cloudSync.getActiveScorerLock();
       if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
-        const lockedName = liveLock.userName || liveLock.deviceName || 'another official scorer';
-        setDeniedScorerName(lockedName);
+        const lockedName = liveLock.userName || liveLock.deviceName || 'Official Scorer';
         setLockedBannerMessage(
           `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
         );
@@ -63,7 +38,6 @@ export const LoginPage: React.FC = () => {
 
     // 2. If another device/user is already scoring, deny and instruct to use Spectator
     if (isScorerLockedByOther) {
-      setDeniedScorerName(lockedScorerName);
       setLockedBannerMessage(
         `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedScorerName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
       );

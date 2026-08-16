@@ -57,7 +57,7 @@ export const sanitizeSyncData = (data: any): CloudSyncData => {
 };
 
 export const cloudSync = {
-  // Push full state update to Cloud (Firebase RTDB + Express API)
+  // Push full state update to Cloud (Firebase RTDB + Express API + BroadcastChannel + LocalStorage)
   async pushState(data: Partial<CloudSyncData>): Promise<boolean> {
     // 🛡️ Strip Heavy History Payload for 90% bandwidth reduction & ultra-fast sync
     const lightweightMatches = (data.matches || []).map(m => {
@@ -85,10 +85,22 @@ export const cloudSync = {
       }
     }
 
-    // Also push to REST API endpoint if reachable
+    // Push full live state to REST API backend for all spectator devices on network
     try {
-      if (data.activeMatchId) {
-        await api.setActiveMatchId(data.activeMatchId);
+      await api.pushSync(payload);
+    } catch {
+      // Ignore
+    }
+
+    // Broadcast across same-browser tabs (0ms latency)
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cricpulse_live_sync_state', JSON.stringify(payload));
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel('cricpulse_live_sync');
+          ch.postMessage({ type: 'LIVE_STATE_PUSH', data: payload, timestamp: Date.now() });
+          ch.close();
+        }
       }
     } catch {
       // Ignore
@@ -97,13 +109,17 @@ export const cloudSync = {
     return firebaseSuccess;
   },
 
-  // Subscribe to real-time changes from Cloud (Firebase or Polling)
+  // Subscribe to real-time changes from Cloud (Firebase, BroadcastChannel, Storage, and Fast Polling)
   subscribe(onUpdate: (data: CloudSyncData) => void): () => void {
+    let active = true;
+
     // 1. Firebase Realtime Database Listener (Instant WebSockets)
+    let unsubscribeFirebase = () => {};
     if (isFirebaseConfigured) {
       try {
         const syncRef = ref(db, 'cricpulse_live_state');
-        const unsubscribe = onValue(syncRef, (snapshot) => {
+        unsubscribeFirebase = onValue(syncRef, (snapshot) => {
+          if (!active) return;
           if (!snapshot.exists() || !snapshot.val()) return;
           const val = snapshot.val();
           if (val) {
@@ -111,26 +127,75 @@ export const cloudSync = {
             onUpdate(sanitized);
           }
         });
-        return unsubscribe;
       } catch (err) {
         console.warn('Firebase subscription failed, falling back to polling:', err);
       }
     }
 
-    // 2. Fallback: Fast polling to backend API
+    // 2. BroadcastChannel Listener (0ms instant cross-tab live match updates)
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('cricpulse_live_sync');
+        channel.onmessage = (event) => {
+          if (!active) return;
+          if (event.data?.type === 'LIVE_STATE_PUSH' && event.data.data) {
+            const sanitized = sanitizeSyncData(event.data.data);
+            onUpdate(sanitized);
+          }
+        };
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 3. LocalStorage Event Listener for multi-window sync
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (!active) return;
+      if (e.key === 'cricpulse_live_sync_state' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          const sanitized = sanitizeSyncData(parsed);
+          onUpdate(sanitized);
+        } catch {
+          // Ignore
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageEvent);
+    }
+
+    // 4. Fast Polling to backend REST API (every 750ms for live spectator devices)
     const interval = setInterval(async () => {
+      if (!active) return;
       try {
         const syncData = await api.getSync();
-        if (syncData) {
+        if (syncData && active) {
           const sanitized = sanitizeSyncData(syncData);
           onUpdate(sanitized);
         }
       } catch {
         // Offline
       }
-    }, 800);
+    }, 750);
 
-    return () => clearInterval(interval);
+    return () => {
+      active = false;
+      unsubscribeFirebase();
+      if (channel) {
+        try {
+          channel.close();
+        } catch {
+          // Ignore
+        }
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageEvent);
+      }
+      clearInterval(interval);
+    };
   },
 
   // Pull latest snapshot once
@@ -154,6 +219,17 @@ export const cloudSync = {
       }
     } catch {
       // Backend offline
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        const localRaw = localStorage.getItem('cricpulse_live_sync_state');
+        if (localRaw) {
+          return sanitizeSyncData(JSON.parse(localRaw));
+        }
+      }
+    } catch {
+      // Ignore
     }
 
     return null;

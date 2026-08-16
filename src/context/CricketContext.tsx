@@ -140,7 +140,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => unsubscribe();
   }, [deviceId, userRole]);
 
-  // Periodic heartbeat for active scorer to keep lock fresh every 10 seconds
+  // Periodic heartbeat for active scorer to keep lock fresh every 4 seconds
   useEffect(() => {
     if (!isScorer) return;
 
@@ -149,7 +149,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const interval = setInterval(() => {
       cloudSync.heartbeatScorerLock(deviceId, devName, userName || 'Official Scorer');
-    }, 10000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [isScorer, deviceId, userName]);
@@ -160,6 +160,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const lockRes = await cloudSync.acquireScorerLock(deviceId, devName, cleanName);
 
     if (!lockRes.success) {
+      if (lockRes.activeScorer) {
+        setActiveScorer(lockRes.activeScorer);
+      }
       return {
         success: false,
         message: lockRes.message || `🔒 Scorer role is locked: Another user is already scoring this match. Please login as Spectator.`,
@@ -173,6 +176,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUserRoleState('scorer');
     localStorage.setItem('cricpulse_user_role', 'scorer');
     localStorage.setItem('cricpulse_user_name', cleanName);
+    cloudSync.pushState({ players, matches, series: seriesList, activeMatchId, activeScorer: lockRes.activeScorer || null });
     broadcastSync();
     return { success: true };
   };
@@ -187,8 +191,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const logoutRole = async () => {
-    if (userRole === 'scorer') {
-      await cloudSync.releaseScorerLock(deviceId);
+    if (userRole === 'scorer' || isScorer) {
+      await cloudSync.releaseScorerLock(deviceId, true);
       setActiveScorer(null);
     }
     setUserRoleState(null);

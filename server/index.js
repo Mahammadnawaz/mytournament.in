@@ -219,11 +219,13 @@ app.put('/api/series/:id', (req, res) => {
 });
 
 // --- EXCLUSIVE SCORER LOCK SYSTEM ---
+const LOCK_EXPIRY_MS = 60 * 1000; // 60 seconds of inactivity without heartbeat
+
 app.get('/api/scorer/status', (req, res) => {
   const db = readDb();
   const now = Date.now();
   const currentScorer = db.activeScorer;
-  if (currentScorer && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < 10 * 60 * 1000) {
+  if (currentScorer && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < LOCK_EXPIRY_MS) {
     return res.json({ isLocked: true, activeScorer: currentScorer });
   }
   return res.json({ isLocked: false, activeScorer: null });
@@ -240,8 +242,8 @@ app.post('/api/scorer/acquire', (req, res) => {
   const now = Date.now();
   const currentScorer = db.activeScorer;
 
-  // If another device/user holds the lock and it hasn't expired (10 mins inactivity timeout)
-  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < 10 * 60 * 1000) {
+  // If another device/user holds the lock and it hasn't expired
+  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < LOCK_EXPIRY_MS) {
     const lockedByName = currentScorer.userName ? `${currentScorer.userName}` : (currentScorer.deviceName || 'another official scorer');
     return res.json({
       success: false,
@@ -269,7 +271,7 @@ app.post('/api/scorer/release', (req, res) => {
   const db = readDb();
   const { deviceId, force } = req.body;
 
-  if (force || (db.activeScorer && db.activeScorer.deviceId === deviceId)) {
+  if (force || !deviceId || (db.activeScorer && db.activeScorer.deviceId === deviceId)) {
     db.activeScorer = null;
     writeDb(db);
     return res.json({ success: true, message: 'Scorer lock released successfully' });
@@ -280,10 +282,13 @@ app.post('/api/scorer/release', (req, res) => {
 
 app.post('/api/scorer/heartbeat', (req, res) => {
   const db = readDb();
-  const { deviceId } = req.body;
+  const { deviceId, userName, deviceName } = req.body;
 
   if (db.activeScorer && db.activeScorer.deviceId === deviceId) {
     db.activeScorer.lastActive = Date.now();
+    db.activeScorer.timestamp = Date.now();
+    if (userName) db.activeScorer.userName = userName;
+    if (deviceName) db.activeScorer.deviceName = deviceName;
     writeDb(db);
     return res.json({ success: true });
   }
@@ -291,10 +296,9 @@ app.post('/api/scorer/heartbeat', (req, res) => {
   res.json({ success: false });
 });
 
-// --- REALTIME MULTI-DEVICE SYNC ENDPOINT ---
+// --- REALTIME MULTI-DEVICE SYNC ENDPOINTS ---
 app.get('/api/sync', (req, res) => {
   const db = readDb();
-  // If activeMatchId is not explicitly set, find any live ongoing match
   let activeId = db.activeMatchId;
   if (!activeId) {
     const liveMatch = (db.matches || []).find(m => m.status === 'live');
@@ -309,6 +313,30 @@ app.get('/api/sync', (req, res) => {
     activeScorer: db.activeScorer || null,
     timestamp: Date.now(),
   });
+});
+
+app.post('/api/sync', (req, res) => {
+  const db = readDb();
+  const { players, matches, series, activeMatchId, activeScorer } = req.body;
+
+  if (players && Array.isArray(players) && players.length > 0) {
+    db.players = players;
+  }
+  if (matches && Array.isArray(matches) && matches.length > 0) {
+    db.matches = matches;
+  }
+  if (series && Array.isArray(series) && series.length > 0) {
+    db.series = series;
+  }
+  if (activeMatchId !== undefined) {
+    db.activeMatchId = activeMatchId;
+  }
+  if (activeScorer !== undefined) {
+    db.activeScorer = activeScorer;
+  }
+
+  writeDb(db);
+  res.json({ success: true, timestamp: Date.now() });
 });
 
 app.post('/api/active-match', (req, res) => {

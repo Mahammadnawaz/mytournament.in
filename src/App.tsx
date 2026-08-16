@@ -4,6 +4,7 @@ import Navbar from './components/layout/Navbar';
 import LoginPage from './components/auth/LoginPage';
 import PlayerDirectory from './components/players/PlayerDirectory';
 import LiveScoreboard from './components/match/LiveScoreboard';
+import LiveStreamSection from './components/match/LiveStreamSection';
 import LivePitchCard from './components/match/LivePitchCard';
 import OverTimeline from './components/match/OverTimeline';
 import ScoringControlPanel from './components/match/ScoringControlPanel';
@@ -61,6 +62,11 @@ const MainContent: React.FC = () => {
       <div className="space-y-6">
         {/* Hero Scoreboard */}
         <LiveScoreboard />
+
+        {/* 🔴 Live Match Stream Section (Virtual Arena, Commentary Feed, TV Broadcast) */}
+        {activeMatch.status === 'live' && activeInnings && (
+          <LiveStreamSection />
+        )}
 
         {/* Pitch Card & Controls */}
         {activeMatch.status === 'live' && activeInnings && !needsInnings2Setup && (

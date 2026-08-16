@@ -151,6 +151,19 @@ export const api = {
     return null;
   },
 
+  async pushSync(data: any): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
   async getScorerStatus(): Promise<{
     isLocked: boolean;
     activeScorer: { deviceId: string; deviceName: string; userName?: string; timestamp?: number } | null;
@@ -195,12 +208,12 @@ export const api = {
     }
   },
 
-  async heartbeatScorerLock(deviceId: string): Promise<boolean> {
+  async heartbeatScorerLock(deviceId: string, userName?: string, deviceName?: string): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/scorer/heartbeat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceId }),
+        body: JSON.stringify({ deviceId, userName, deviceName }),
       });
       return res.ok;
     } catch {

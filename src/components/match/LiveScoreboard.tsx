@@ -142,14 +142,16 @@ export const LiveScoreboard: React.FC = () => {
               </button>
             )}
 
-            <button
-              onClick={() => setShowDLSModal(true)}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-[11px] transition"
-              title="Duckworth-Lewis-Stern Rain Calculator & Adjustment"
-            >
-              <CloudRain className="w-3.5 h-3.5" />
-              <span>DLS Manager</span>
-            </button>
+            {isScorer && (
+              <button
+                onClick={() => setShowDLSModal(true)}
+                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-[11px] transition"
+                title="Duckworth-Lewis-Stern Rain Calculator & Adjustment"
+              >
+                <CloudRain className="w-3.5 h-3.5" />
+                <span>DLS Manager</span>
+              </button>
+            )}
 
             <span className="px-2.5 py-0.5 rounded-full bg-slate-800/80 scoreboard-team-name font-bold text-[11px]">
               Innings {activeMatch.currentInnings} of 2
