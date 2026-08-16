@@ -18,7 +18,7 @@ export interface ScoreBurstEvent {
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
-  const { activeMatch, activeInnings, players } = useCricket();
+  const { activeMatch, activeInnings, players, isScorer } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
   const isInitialMount = useRef(true);
@@ -45,8 +45,9 @@ export const LiveCelebrationOverlay: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators & Scorers
+  // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators
   useEffect(() => {
+    if (isScorer) return;
     if (activeMatch?.currentAlert && activeMatch.currentAlert.type === 'hat-trick') {
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.2, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.8, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
@@ -62,9 +63,9 @@ export const LiveCelebrationOverlay: React.FC = () => {
       const timer = setTimeout(() => setScoreBurst(null), 3000);
       return () => clearTimeout(timer);
     }
-  }, [activeMatch?.currentAlert?.timestamp]);
+  }, [activeMatch?.currentAlert?.timestamp, isScorer]);
 
-  // Detect live ball events from activeInnings.ballLogs for ALL devices (Scorer and Spectators)
+  // Detect live ball events from activeInnings.ballLogs exclusively for Spectators
   useEffect(() => {
     const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
     if (!activeInnings || ballLogs.length === 0) {
@@ -111,7 +112,10 @@ export const LiveCelebrationOverlay: React.FC = () => {
       }
     }
 
-    // 2. Determine Score Burst Number & Celebration for All Devices (0, 1, 2, 3, 4, 6, OUT, HAT-TRICK, WIDE, NOBALL, BYES, LEGBYES)
+    // 2. Score Popups on screen are exclusively for Spectator devices
+    if (isScorer) {
+      return;
+    }
     const bowlerBalls = ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
     const isHatTrick = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
 
