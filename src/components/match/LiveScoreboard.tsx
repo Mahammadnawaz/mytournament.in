@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { Trophy, Activity, CloudRain, ShieldAlert, TrendingUp } from 'lucide-react';
+import { Trophy, Activity, CloudRain, ShieldAlert, TrendingUp, History } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchPOTMModal from './MatchPOTMModal';
 import DLSModal from './DLSModal';
@@ -8,7 +8,7 @@ import EndMatchModal from './EndMatchModal';
 import { calculateDLSParScore } from '../../utils/dlsEngine';
 
 export const LiveScoreboard: React.FC = () => {
-  const { activeMatch, activeInnings, setActiveTab, isScorer } = useCricket();
+  const { activeMatch, activeInnings, setActiveTab, isScorer, matches, setActiveMatchId } = useCricket();
 
   const [showPOTM, setShowPOTM] = useState(false);
   const [showDLSModal, setShowDLSModal] = useState(false);
@@ -125,11 +125,11 @@ export const LiveScoreboard: React.FC = () => {
         )}
 
         {/* Match Info Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-4 mb-6 text-xs scoreboard-overs-text">
-          <div className="flex items-center space-x-2 font-medium">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-800/80 pb-4 mb-6 text-xs scoreboard-overs-text">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="scoreboard-team-name font-bold">{activeMatch.name}</span>
-            <span>•</span>
-            <span>{activeMatch.venue}</span>
+            <span className="text-slate-500">•</span>
+            <span className="text-slate-400 font-medium">{activeMatch.venue}</span>
             {activeMatch.dlsApplied && (
               <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-bold text-[10px]">
                 DLS REVISED ({activeMatch.dlsRevisedOvers} OV)
@@ -138,6 +138,24 @@ export const LiveScoreboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {matches.length > 1 && (
+              <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-700/80 rounded-xl px-2.5 py-1 text-[11px] shadow-sm">
+                <History className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-slate-400 font-bold hidden sm:inline">Switch Match:</span>
+                <select
+                  value={activeMatch.id}
+                  onChange={(e) => setActiveMatchId(e.target.value)}
+                  className="bg-transparent text-emerald-400 font-bold text-[11px] focus:outline-none cursor-pointer max-w-[160px] sm:max-w-[200px] truncate"
+                >
+                  {matches.map((m) => (
+                    <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
+                      {m.name} ({m.teamA.name} vs {m.teamB.name}) - {m.status === 'live' ? '🔴 LIVE' : 'COMPLETED'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {isScorer && activeMatch.status === 'live' && (
               <button
                 onClick={() => setShowEndMatchModal(true)}

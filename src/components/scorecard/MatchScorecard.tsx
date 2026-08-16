@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { InningsState, Match } from '../../types/cricket';
-import { FileText, Trophy, Shield, Flame, Award } from 'lucide-react';
+import { FileText, Trophy, Shield, Flame, Award, History } from 'lucide-react';
 
 interface MatchScorecardProps {
   matchOverride?: Match;
@@ -233,17 +233,20 @@ export const MatchScorecard: React.FC<MatchScorecardProps> = ({ matchOverride })
         
         {/* Match Switcher Dropdown if multiple matches exist */}
         {!matchOverride && matches.length > 1 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
-            <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
-              Select Match from History:
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-slate-800/80">
+            <div className="flex items-center space-x-2">
+              <History className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">
+                Select Match:
+              </span>
+            </div>
             <select
               value={match.id}
               onChange={(e) => setSelectedMatchId(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-white font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 max-w-xs"
+              className="bg-slate-950 border border-slate-700/90 text-emerald-400 font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-emerald-500 cursor-pointer max-w-[240px] sm:max-w-xs shadow-sm truncate"
             >
               {matches.map((m) => (
-                <option key={m.id} value={m.id}>
+                <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
                   {m.name} ({m.teamA.name} vs {m.teamB.name}) - {m.status === 'live' ? '🔴 LIVE' : 'COMPLETED'}
                 </option>
               ))}

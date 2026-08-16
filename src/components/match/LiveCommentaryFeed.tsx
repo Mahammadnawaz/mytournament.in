@@ -98,13 +98,12 @@ export function formatBallCommentary(
 
   // 2. WIDE BALL (with optional extra runs)
   if (ball.extras?.type === 'wide') {
-    const extraRuns = ball.extras.runs || 1;
-    const totalRunsThisBall = ball.runsScored; // total runs from wide + bye runs
-    const additional = totalRunsThisBall > 1 ? totalRunsThisBall - 1 : (extraRuns > 1 ? extraRuns - 1 : 0);
+    const totalWideRuns = ball.totalRuns || ball.extras?.runs || 1;
+    const additional = totalWideRuns > 1 ? totalWideRuns - 1 : 0;
 
     if (additional > 0) {
       const headline = `WIDE + ${additional} ⚡`;
-      const description = `WIDE + ${additional} (${additional + 1} runs total)! ${bowler} strays down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
+      const description = `WIDE + ${additional} (${totalWideRuns} runs total)! ${bowler} strays down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
       const speechText = `Wide plus ${additional}`;
       return { headline, description, speechText };
     }
@@ -117,7 +116,7 @@ export function formatBallCommentary(
 
   // 3. NO BALL (with optional off-the-bat or extra runs)
   if (ball.extras?.type === 'no-ball') {
-    const extraNum = ball.runsScored > 0 ? ball.runsScored : (ball.extras.runs > 1 ? ball.extras.runs - 1 : 0);
+    const extraNum = ball.runsScored || 0;
 
     if (extraNum === 6) {
       if (clickedZone) {

@@ -182,17 +182,19 @@ export const LoginPage: React.FC = () => {
             <div className="space-y-3 py-2">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-400 transition-colors">
-                  Login as Scorer
+                  {isScorerLockedByOther ? 'Scorer Mode Locked 🔒' : 'Login as Scorer'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-400 pt-1">
-                  Record runs, balls, boundaries, wickets, player substitutions, toss, and match settings.
+                  {isScorerLockedByOther
+                    ? `Match scoring is currently locked by official scorer: ${lockedScorerName}. Only 1 official scorer is permitted.`
+                    : 'Record runs, balls, boundaries, wickets, player substitutions, toss, and match settings.'}
                 </p>
               </div>
 
               {isScorerLockedByOther && (
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-amber-500/30 text-amber-300 text-xs flex items-center space-x-2">
                   <Lock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>Currently active: <strong className="text-white ml-1 font-mono">{lockedScorerName}</strong></span>
+                  <span>Official Scorer: <strong className="text-white ml-1 font-mono">{lockedScorerName}</strong></span>
                 </div>
               )}
             </div>
@@ -210,7 +212,7 @@ export const LoginPage: React.FC = () => {
                 {isScorerLockedByOther ? (
                   <>
                     <Lock className="w-4 h-4" />
-                    <span>Locked (Active by {lockedScorerName})</span>
+                    <span>Locked (Scorer Active)</span>
                   </>
                 ) : (
                   <>

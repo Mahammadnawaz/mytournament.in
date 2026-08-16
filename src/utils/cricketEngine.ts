@@ -69,14 +69,17 @@ export function processBall(
   let extraPenalty = 0;
   let isLegalBall = true;
 
-  if (extraType === 'wide' || extraType === 'no-ball') {
+  if (extraType === 'no-ball') {
     isLegalBall = false;
-    extraPenalty = 1 + extraRuns;
+    extraPenalty = 1; // 1 penalty run for No Ball
+  } else if (extraType === 'wide') {
+    isLegalBall = false;
+    extraPenalty = Math.max(1, extraRuns || 1);
   } else if (extraType === 'bye' || extraType === 'leg-bye') {
-    extraPenalty = extraRuns;
+    extraPenalty = Math.max(1, extraRuns || 1);
   }
 
-  const totalBallRuns = runsScored + extraPenalty;
+  const totalBallRuns = (extraType === 'no-ball' ? runsScored : 0) + extraPenalty;
   state.totalRuns += totalBallRuns;
 
   if (extraType === 'wide') {

@@ -96,7 +96,30 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return 'dev-default';
   });
 
-  const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string; userName?: string } | null>(null);
+  const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string; userName?: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
+      if (localRaw) {
+        try {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.deviceId && (Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+            return parsed;
+          }
+        } catch {
+          // Ignore
+        }
+      }
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (activeScorer) {
+      localStorage.setItem('cricpulse_active_scorer_lock', JSON.stringify(activeScorer));
+    } else {
+      localStorage.removeItem('cricpulse_active_scorer_lock');
+    }
+  }, [activeScorer]);
 
   const [userRole, setUserRoleState] = useState<UserRole | null>(() => {
     if (typeof window !== 'undefined') {
