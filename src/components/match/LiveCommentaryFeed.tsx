@@ -161,14 +161,23 @@ export function formatBallCommentary(
     return { headline, description, speechText };
   }
 
-  // 4. LEG BYES / BYES
-  if (ball.extras?.type === 'leg-bye' || ball.extras?.type === 'bye') {
-    const isLB = ball.extras.type === 'leg-bye';
+  // 4. BYES
+  if (ball.extras?.type === 'bye') {
     const r = ball.runsScored || ball.extras.runs || 1;
     const zoneText = clickedZone ? ` through ${clickedZone}` : '';
-    const headline = `${isLB ? 'LEG BYES' : 'BYES'} + ${r} 🦵`;
-    const description = `${isLB ? 'Leg Byes' : 'Byes'} (${r} run${r > 1 ? 's' : ''})! Deflected${zoneText} into the outfield as batsmen scramble through.`;
-    const speechText = `${isLB ? 'Leg byes' : 'Byes'} plus ${r}`;
+    const headline = `BYES + ${r} 🛡️`;
+    const description = `BYES (${r} run${r > 1 ? 's' : ''})! ${bowler} beats the batsman, ball slips past keeper${zoneText} into the outfield for ${r} run${r > 1 ? 's' : ''}.`;
+    const speechText = `Byes plus ${r}`;
+    return { headline, description, speechText };
+  }
+
+  // 5. LEG BYES
+  if (ball.extras?.type === 'leg-bye') {
+    const r = ball.runsScored || ball.extras.runs || 1;
+    const zoneText = clickedZone ? ` through ${clickedZone}` : '';
+    const headline = `LEG BYES + ${r} 🦵`;
+    const description = `LEG BYES (${r} run${r > 1 ? 's' : ''})! Deflected off the pad${zoneText} into the outfield as batsmen scramble ${r} run${r > 1 ? 's' : ''}.`;
+    const speechText = `Leg byes plus ${r}`;
     return { headline, description, speechText };
   }
 
