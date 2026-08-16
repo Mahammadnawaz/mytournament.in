@@ -272,7 +272,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Update Lock Guard to prevent delayed Firebase/Cloud echoes from overwriting local state
+  // Monotonic Timestamp Guard to guarantee score never goes backwards or accepts stale echoes
+  const lastSyncTimestamp = useRef<number>(0);
   const isLocalAction = useRef<boolean>(false);
 
   const releaseLocalActionLock = (delayMs = 800) => {
@@ -281,7 +282,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, delayMs);
   };
 
-  // Realtime Multi-Device Sync Hook (Firebase WebSockets + Fallback Polling)
+  // Realtime Multi-Device Sync Hook (Firebase WebSockets + REST API Polling + BroadcastChannel)
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
     try {
@@ -292,56 +293,56 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Ignore
     }
 
-    // 1. Initial snapshot pull: Load latest persistent roster & match history for all devices
+    const applyIncomingSync = (syncData: any) => {
+      if (!syncData) return;
+      const incomingTime = syncData.timestamp || Date.now();
+
+      // Ignore stale updates that arrive out of order
+      if (incomingTime < lastSyncTimestamp.current) {
+        return;
+      }
+      lastSyncTimestamp.current = incomingTime;
+
+      if (syncData.players && syncData.players.length > 0) {
+        setPlayers(syncData.players);
+        localStorage.setItem('cricket_players_v1', JSON.stringify(syncData.players));
+      }
+      if (syncData.matches && syncData.matches.length > 0) {
+        setMatches(syncData.matches);
+        localStorage.setItem('cricket_matches_v1', JSON.stringify(syncData.matches));
+      }
+      if (syncData.series && syncData.series.length > 0) {
+        setSeriesList(syncData.series);
+        localStorage.setItem('cricket_series_v1', JSON.stringify(syncData.series));
+      }
+      if (syncData.activeScorer !== undefined) {
+        setActiveScorer(syncData.activeScorer);
+      }
+
+      if (syncData.activeMatchId) {
+        setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
+        localStorage.setItem('cricket_active_match_v1', syncData.activeMatchId);
+      } else {
+        const liveMatch = (syncData.matches || []).find((m: any) => m.status === 'live');
+        if (liveMatch) {
+          setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
+          localStorage.setItem('cricket_active_match_v1', liveMatch.id);
+        }
+      }
+    };
+
+    // 1. Initial snapshot pull on load/refresh: guarantee latest score from cloud
     cloudSync.pullLatest().then(data => {
       if (data) {
-        if (data.players && data.players.length > 0) {
-          setPlayers(data.players);
-          localStorage.setItem('cricket_players_v1', JSON.stringify(data.players));
-        }
-        if (data.matches && data.matches.length > 0) {
-          setMatches(data.matches);
-          localStorage.setItem('cricket_matches_v1', JSON.stringify(data.matches));
-        }
-        if (data.series && data.series.length > 0) {
-          setSeriesList(data.series);
-          localStorage.setItem('cricket_series_v1', JSON.stringify(data.series));
-        }
-        if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
-        if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
+        applyIncomingSync(data);
       }
     });
 
-    // 2. Real-time subscription: Sync roster, past matches, scorecards, and live match to spectators
-    // Local state handles 100% of instant UI updates on the Scorer device.
+    // 2. Real-time subscription: Sync live score, balls, wickets, commentary instantly to spectators
     let unsubscribe = () => {};
     if (!isScorer) {
       unsubscribe = cloudSync.subscribe((syncData) => {
-        // 🛡️ Null Data Protection: Ignore empty/null snapshots
-        if (!syncData) return;
-
-        if (syncData.players && syncData.players.length > 0) {
-          setPlayers(syncData.players);
-          localStorage.setItem('cricket_players_v1', JSON.stringify(syncData.players));
-        }
-        if (syncData.matches && syncData.matches.length > 0) {
-          setMatches(syncData.matches);
-          localStorage.setItem('cricket_matches_v1', JSON.stringify(syncData.matches));
-        }
-        if (syncData.series && syncData.series.length > 0) {
-          setSeriesList(syncData.series);
-          localStorage.setItem('cricket_series_v1', JSON.stringify(syncData.series));
-        }
-        if (syncData.activeScorer !== undefined) setActiveScorer(syncData.activeScorer);
-
-        if (syncData.activeMatchId) {
-          setActiveMatchId(prev => (prev !== syncData.activeMatchId ? syncData.activeMatchId : prev));
-        } else {
-          const liveMatch = (syncData.matches || []).find(m => m.status === 'live');
-          if (liveMatch) {
-            setActiveMatchId(prev => (prev !== liveMatch.id ? liveMatch.id : prev));
-          }
-        }
+        applyIncomingSync(syncData);
       });
     }
 

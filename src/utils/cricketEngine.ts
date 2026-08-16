@@ -31,7 +31,8 @@ export interface EngineResult {
 }
 
 /**
- * Detects if the current bowler has taken 3 wickets in 3 consecutive deliveries
+ * Detects if the current bowler has taken strictly 3 wickets in 3 consecutive deliveries (Hat-Trick).
+ * Does NOT re-trigger on 4th or 5th consecutive wickets.
  */
 export function checkIfHatTrick(ballLogs: BallLog[], bowlerId: string): boolean {
   if (!ballLogs || ballLogs.length < 3 || !bowlerId) return false;
@@ -39,8 +40,21 @@ export function checkIfHatTrick(ballLogs: BallLog[], bowlerId: string): boolean 
   const bowlerBalls = ballLogs.filter(b => b.bowlerId === bowlerId);
   if (bowlerBalls.length < 3) return false;
 
+  const isEligibleWicket = (b: BallLog) => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt';
+
   const last3 = bowlerBalls.slice(-3);
-  return last3.every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
+  const is3Wickets = last3.every(isEligibleWicket);
+  if (!is3Wickets) return false;
+
+  // Strict Hat-Trick rule: If the 4th ball back was also a wicket, this is the 4th/5th wicket, so do not trigger hat-trick again
+  if (bowlerBalls.length >= 4) {
+    const fourthBallBack = bowlerBalls[bowlerBalls.length - 4];
+    if (isEligibleWicket(fourthBallBack)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function processBall(

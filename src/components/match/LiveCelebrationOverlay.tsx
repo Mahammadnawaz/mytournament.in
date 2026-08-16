@@ -141,8 +141,11 @@ export const LiveCelebrationOverlay: React.FC = () => {
       }
     }
 
+    const isEligibleWicket = (b: any) => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt';
     const bowlerBalls = ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
-    const isHatTrick = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
+    const last3Wickets = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(isEligibleWicket);
+    const was4thBallWicket = bowlerBalls.length >= 4 && isEligibleWicket(bowlerBalls[bowlerBalls.length - 4]);
+    const isHatTrick = last3Wickets && !was4thBallWicket;
 
     if (isHatTrick) {
       // 🎩🔥 Massive Hat-Trick Confetti Extravaganza
@@ -321,10 +324,10 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
       {/* ── DUCK OUT TRANSPARENT WALKING CHARACTER ── */}
       {duckEvent && (
-        <div className="fixed bottom-12 sm:bottom-20 left-0 right-0 z-50 pointer-events-none overflow-hidden h-44">
+        <div className="fixed bottom-6 sm:bottom-12 left-0 right-0 z-50 pointer-events-none overflow-hidden h-28 sm:h-32">
           {/* Translating container across the pitch */}
           <div 
-            className={`absolute flex items-center space-x-3 pointer-events-none drop-shadow-2xl ${
+            className={`absolute flex items-center space-x-2.5 pointer-events-none drop-shadow-2xl ${
               duckEvent.direction === 'right' 
                 ? 'animate-duck-walk-right' 
                 : 'animate-duck-walk-left'
@@ -333,40 +336,40 @@ export const LiveCelebrationOverlay: React.FC = () => {
             {/* Waddling step bobbing & rocking animation */}
             <div className="relative flex flex-col items-center animate-duck-waddle">
               {/* Sad Tears Animation */}
-              <div className="absolute -top-3 left-6 flex space-x-1 animate-bounce">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-300"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-300"></span>
+              <div className="absolute -top-2 left-4 flex space-x-1 animate-bounce">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-300"></span>
+                <span className="w-1 h-1 rounded-full bg-cyan-300"></span>
               </div>
 
-              {/* Reference Duck Image with Cricket Bat */}
+              {/* Reference Duck Image with Cricket Bat (Reduced Compact Size) */}
               <div className="relative">
                 <img
                   src="/assets/cricket_duck.png"
                   alt="Duck with Bat"
-                  className={`w-28 h-28 sm:w-36 sm:h-36 object-contain select-none filter drop-shadow-2xl ${
+                  className={`w-14 h-14 sm:w-18 sm:h-18 object-contain select-none filter drop-shadow-xl ${
                     duckEvent.direction === 'left' ? 'scale-x-[-1]' : ''
                   }`}
                 />
 
                 {/* Animated Webbed Walking Feet */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex space-x-4 pointer-events-none">
-                  <div className="w-4 h-2 bg-amber-500 rounded-full border border-amber-600 shadow-sm animate-duck-foot-left" />
-                  <div className="w-4 h-2 bg-amber-500 rounded-full border border-amber-600 shadow-sm animate-duck-foot-right" />
+                <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 flex space-x-2.5 pointer-events-none">
+                  <div className="w-2.5 h-1.5 bg-amber-500 rounded-full border border-amber-600 shadow-xs animate-duck-foot-left" />
+                  <div className="w-2.5 h-1.5 bg-amber-500 rounded-full border border-amber-600 shadow-xs animate-duck-foot-right" />
                 </div>
               </div>
 
-              <span className="text-[10px] sm:text-xs font-black bg-red-600/95 text-white px-3 py-0.5 rounded-full shadow-lg mt-1 whitespace-nowrap border border-red-300/60">
+              <span className="text-[9px] sm:text-[10px] font-black bg-red-600/95 text-white px-2 py-0.2 rounded-full shadow-md mt-0.5 whitespace-nowrap border border-red-300/60">
                 0 Runs (Duck)
               </span>
             </div>
 
             {/* Transparent floating speech pill with waddle sync */}
-            <div className="bg-slate-950/90 backdrop-blur-md border border-slate-700 px-4 py-2 rounded-2xl shadow-2xl animate-duck-waddle">
-              <span className="text-xs sm:text-sm font-black text-amber-300 block whitespace-nowrap">
+            <div className="bg-slate-950/90 backdrop-blur-md border border-slate-700 px-3 py-1.5 rounded-2xl shadow-xl animate-duck-waddle">
+              <span className="text-xs sm:text-xs font-black text-amber-300 block whitespace-nowrap">
                 😢 {duckEvent.batsmanName}
               </span>
-              <span className="text-[10px] sm:text-xs text-slate-300 font-bold block whitespace-nowrap">
-                {duckEvent.direction === 'right' ? 'Walking to Right Pavilion ➔' : '⬅ Walking to Left Pavilion'}
+              <span className="text-[9px] sm:text-[10px] text-slate-300 font-bold block whitespace-nowrap">
+                {duckEvent.direction === 'right' ? 'Walking to Pavilion ➔' : '⬅ Walking to Pavilion'}
               </span>
             </div>
           </div>

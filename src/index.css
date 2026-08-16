@@ -473,68 +473,66 @@ h6 {
   animation: broadcastPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Animated Duck Walking Across Pitch (Linear translation across screen) */
+/* Animated Duck Walking Across Pitch (Smooth linear translation across screen) */
 @keyframes duckWalkAcrossRight {
   0% {
-    left: -15%;
+    left: -12%;
   }
 
   100% {
-    left: 108%;
+    left: 106%;
   }
 }
 
 @keyframes duckWalkAcrossLeft {
   0% {
-    right: -15%;
+    right: -12%;
   }
 
   100% {
-    right: 108%;
+    right: 106%;
   }
 }
 
-/* Realistic Duck Waddling Step Cycle (Active bobbing, foot-rocking, body tilt) */
+/* Smooth Natural Duck Walking Step Cycle */
 @keyframes duckWaddleStep {
   0% {
-    transform: translateY(0px) rotate(-7deg) scale(1, 0.95);
+    transform: translateY(0px) rotate(-3deg) scale(1, 0.98);
   }
 
   25% {
-    transform: translateY(-12px) rotate(0deg) scale(0.96, 1.05);
+    transform: translateY(-4px) rotate(0deg) scale(0.98, 1.02);
   }
 
   50% {
-    transform: translateY(0px) rotate(7deg) scale(1, 0.95);
+    transform: translateY(0px) rotate(3deg) scale(1, 0.98);
   }
 
   75% {
-    transform: translateY(-12px) rotate(0deg) scale(0.96, 1.05);
+    transform: translateY(-4px) rotate(0deg) scale(0.98, 1.02);
   }
 
   100% {
-    transform: translateY(0px) rotate(-7deg) scale(1, 0.95);
+    transform: translateY(0px) rotate(-3deg) scale(1, 0.98);
   }
 }
 
-/* Duck Webbed Feet Walking Step Cycle */
+/* Duck Webbed Feet Smooth Stepping Motion */
 @keyframes duckFootLeftStep {
-
   0%,
   100% {
     transform: translateY(0px) rotate(0deg);
   }
 
   50% {
-    transform: translateY(-8px) rotate(-18deg);
+    transform: translateY(-3px) rotate(-10deg);
   }
 }
 
 @keyframes duckFootRightStep {
-
   0%,
   100% {
-    transform: translateY(-8px) rotate(18deg);
+    transform: translateY(-3px) rotate(10deg);
   }
 
   50% {
@@ -543,24 +541,24 @@ h6 {
 }
 
 .animate-duck-walk-right {
-  animation: duckWalkAcrossRight 6.5s linear forwards;
+  animation: duckWalkAcrossRight 6s linear forwards;
 }
 
 .animate-duck-walk-left {
-  animation: duckWalkAcrossLeft 6.5s linear forwards;
+  animation: duckWalkAcrossLeft 6s linear forwards;
 }
 
 .animate-duck-waddle {
-  animation: duckWaddleStep 0.36s ease-in-out infinite;
+  animation: duckWaddleStep 0.42s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform-origin: bottom center;
 }
 
 .animate-duck-foot-left {
-  animation: duckFootLeftStep 0.36s ease-in-out infinite;
+  animation: duckFootLeftStep 0.42s ease-in-out infinite;
 }
 
 .animate-duck-foot-right {
-  animation: duckFootRightStep 0.36s ease-in-out infinite;
+  animation: duckFootRightStep 0.42s ease-in-out infinite;
 }
 
 /* Floating On-Screen Score Number Pop & Fade (2.2s auto disappear) */
