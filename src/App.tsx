@@ -56,41 +56,198 @@ const MainContent: React.FC = () => {
   }
 
   const renderScoringTab = () => {
-    if (!activeMatch) {
-      return (
-        <div className="theme-bg-card border rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto my-8 shadow-2xl space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
-            <Swords className="w-8 h-8" />
+    // Inter-Match Break Banner (visible to SPECTATORS & SCORERS on Home Screen)
+    const breakBanner = seriesBreakTimer && breakRemainingSecs > 0 ? (
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-0.5 rounded-3xl shadow-2xl animate-pulse my-4">
+        <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 flex items-center justify-center shrink-0">
+              <Coffee className="w-8 h-8 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-indigo-400/20 text-indigo-300 text-xs font-black uppercase tracking-widest border border-indigo-400/30">
+                  INTER-MATCH BREAK IN PROGRESS ({seriesBreakTimer.durationMinutes} MINS)
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1 flex items-center space-x-3">
+                <span>Break Remaining:</span>
+                <span className="font-mono text-emerald-400 text-2xl sm:text-3xl font-black bg-slate-900 px-3.5 py-1 rounded-xl border border-slate-800">
+                  {Math.floor(breakRemainingSecs / 60).toString().padStart(2, '0')}:{(breakRemainingSecs % 60).toString().padStart(2, '0')}
+                </span>
+              </h3>
+              <p className="text-xs text-slate-300 font-medium mt-0.5">
+                Teams are taking a strategy break before Match {seriesBreakTimer.nextMatchNo} starts.
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-white flex items-center justify-center space-x-2">
-            <span>No Matches Ongoing</span>
-            <span className="text-xl">🏏</span>
-          </h2>
-          <p className="text-sm text-slate-400">
-            {isScorer 
-              ? 'There are currently no live matches in progress. Set up a new match with custom teams, toss selection, and overs limit to start live scorekeeping.'
-              : 'There are currently no live matches ongoing. You can browse completed matches in Match History or view Series & Tournaments.'}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            {isScorer && (
+
+          {isScorer && (
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
               <button
                 onClick={() => {
-                  setSetupMatchParams(null);
-                  setShowSetupModal(true);
+                  const targetSeries = seriesList.find(s => s.id === seriesBreakTimer.seriesId);
+                  cancelSeriesBreak();
+                  if (targetSeries) {
+                    setSetupMatchParams({
+                      seriesId: targetSeries.id,
+                      matchName: `${targetSeries.name} - Match ${seriesBreakTimer.nextMatchNo}`,
+                      teamA: targetSeries.teamA,
+                      teamB: targetSeries.teamB,
+                    });
+                    setShowSetupModal(true);
+                  }
                 }}
-                className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95"
+                className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5"
               >
-                <Plus className="w-5 h-5" />
-                <span>Create New Match</span>
+                <Play className="w-4 h-4 fill-current" />
+                <span>End Break & Start Match {seriesBreakTimer.nextMatchNo} Now ➔</span>
               </button>
-            )}
-            <button
-              onClick={resetToDemoData}
-              className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition active:scale-95"
-            >
-              <RotateCw className="w-4 h-4 text-emerald-400" />
-              <span>Load Demo Match</span>
-            </button>
+              <button
+                onClick={cancelSeriesBreak}
+                className="px-3.5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null;
+
+    if (!activeMatch) {
+      // Find latest ongoing or active series for prompt
+      const ongoingSeries = seriesList.find(s => {
+        const sMatches = matches.filter(m => m.seriesId === s.id || s.matchIds?.includes(m.id));
+        const doneCount = sMatches.filter(m => m.status === 'completed').length;
+        return doneCount < s.totalMatches;
+      });
+
+      let seriesPrompt = null;
+      if (ongoingSeries) {
+        const sMatches = matches.filter(m => m.seriesId === ongoingSeries.id || ongoingSeries.matchIds?.includes(m.id));
+        const doneCount = sMatches.filter(m => m.status === 'completed').length;
+        const nextNo = Math.min(ongoingSeries.totalMatches, doneCount + 1);
+
+        let winsA = 0;
+        let winsB = 0;
+        sMatches.filter(m => m.status === 'completed').forEach(m => {
+          const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
+          if (winner === ongoingSeries.teamA) winsA++;
+          else if (winner === ongoingSeries.teamB) winsB++;
+        });
+
+        seriesPrompt = !seriesBreakTimer ? (
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-3xl shadow-2xl animate-pulse space-y-3 mb-6">
+            <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0">
+                    <Trophy className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black uppercase tracking-widest border border-amber-400/30">
+                        {ongoingSeries.name} • Match {doneCount} of {ongoingSeries.totalMatches} Completed
+                      </span>
+                    </div>
+                    <h3 className="text-lg sm:text-2xl font-extrabold text-white mt-1">
+                      Start Match {nextNo} of {ongoingSeries.totalMatches} Series?
+                    </h3>
+                    <p className="text-xs text-slate-300 font-medium mt-0.5">
+                      Ready for Match {nextNo} ({ongoingSeries.teamA} vs {ongoingSeries.teamB})? Choose to start now or schedule a break:
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-center self-start sm:self-auto shrink-0">
+                  <span className="text-[10px] uppercase font-extrabold text-slate-400 block tracking-wider">Series Head-to-Head</span>
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm font-black mt-0.5">
+                    <span className="text-emerald-400">{ongoingSeries.teamA} ({winsA})</span>
+                    <span className="text-slate-500">-</span>
+                    <span className="text-cyan-400">({winsB}) {ongoingSeries.teamB}</span>
+                  </div>
+                </div>
+              </div>
+
+              {isScorer && (
+                <div className="flex flex-wrap items-center gap-2.5 pt-1 justify-end">
+                  <button
+                    onClick={() => {
+                      setSetupMatchParams({
+                        seriesId: ongoingSeries.id,
+                        matchName: `${ongoingSeries.name} - Match ${nextNo}`,
+                        teamA: ongoingSeries.teamA,
+                        teamB: ongoingSeries.teamB,
+                      });
+                      setShowSetupModal(true);
+                    }}
+                    className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-xl transition transform active:scale-95 flex items-center space-x-1.5"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Start Match {nextNo} Immediately ➔</span>
+                  </button>
+
+                  <button
+                    onClick={() => startSeriesBreak(ongoingSeries.id, nextNo, 15)}
+                    className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
+                  >
+                    <Coffee className="w-4 h-4 text-amber-400" />
+                    <span>Take 15 Min Break ☕</span>
+                  </button>
+
+                  <button
+                    onClick={() => startSeriesBreak(ongoingSeries.id, nextNo, 30)}
+                    className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
+                  >
+                    <Coffee className="w-4 h-4 text-amber-400" />
+                    <span>Take 30 Min Break ☕</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null;
+      }
+
+      return (
+        <div className="space-y-6">
+          {breakBanner}
+          {seriesPrompt}
+          <div className="theme-bg-card border rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto my-8 shadow-2xl space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
+              <Swords className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white flex items-center justify-center space-x-2">
+              <span>No Matches Ongoing</span>
+              <span className="text-xl">🏏</span>
+            </h2>
+            <p className="text-sm text-slate-400">
+              {isScorer 
+                ? 'There are currently no live matches in progress. Set up a new match with custom teams, toss selection, and overs limit to start live scorekeeping.'
+                : 'There are currently no live matches ongoing. You can browse completed matches in Match History or view Series & Tournaments.'}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              {isScorer && (
+                <button
+                  onClick={() => {
+                    setSetupMatchParams(null);
+                    setShowSetupModal(true);
+                  }}
+                  className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Create New Match</span>
+                </button>
+              )}
+              <button
+                onClick={resetToDemoData}
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition active:scale-95"
+              >
+                <RotateCw className="w-4 h-4 text-emerald-400" />
+                <span>Load Demo Match</span>
+              </button>
+            </div>
           </div>
         </div>
       );

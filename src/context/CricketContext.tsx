@@ -986,11 +986,26 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updatedMatch.status = 'completed';
     if (resultMessage) updatedMatch.result = resultMessage;
 
-    const potm = calculateMatchPOTM(updatedMatch);
-    if (potm) updatedMatch.potmInfo = potm;
-
     const updatedPlayers = aggregateMatchStatsToPlayers(players, updatedMatch);
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+
+    let updatedSeriesList = seriesList;
+    if (updatedMatch.seriesId) {
+      updatedSeriesList = seriesList.map(s => {
+        if (s.id === updatedMatch.seriesId) {
+          const matchIds = s.matchIds ? (s.matchIds.includes(updatedMatch.id) ? s.matchIds : [...s.matchIds, updatedMatch.id]) : [updatedMatch.id];
+          const sMatches = updatedMatches.filter(m => m.seriesId === s.id || matchIds.includes(m.id));
+          const completedCount = sMatches.filter(m => m.status === 'completed').length;
+          const status = completedCount >= s.totalMatches ? 'completed' : s.status;
+          const updatedS = { ...s, matchIds, status };
+          api.updateSeries(updatedS);
+          return updatedS;
+        }
+        return s;
+      });
+      setSeriesList(updatedSeriesList);
+      localStorage.setItem('cricket_series_v1', JSON.stringify(updatedSeriesList));
+    }
 
     setPlayers(updatedPlayers);
     setMatches(updatedMatches);
@@ -999,7 +1014,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
     localStorage.removeItem('cricket_active_match_v1');
 
-    cloudSync.pushState({ players: updatedPlayers, matches: updatedMatches, series: seriesList, activeMatchId: null, activeScorer: null });
+    cloudSync.pushState({ players: updatedPlayers, matches: updatedMatches, series: updatedSeriesList, activeMatchId: null, activeScorer: null });
 
     api.updateMatch(updatedMatch);
     api.setActiveMatchId(null);
