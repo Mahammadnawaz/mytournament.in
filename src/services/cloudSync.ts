@@ -19,10 +19,10 @@ export const cloudSync = {
   // Push full state update to Cloud (Firebase RTDB + Express API)
   async pushState(data: Partial<CloudSyncData>): Promise<boolean> {
     // 🛡️ Strip Heavy History Payload for 90% bandwidth reduction & ultra-fast sync
-    const lightweightMatches = (data.matches || []).map(m => ({
-      ...m,
-      history: undefined,
-    }));
+    const lightweightMatches = (data.matches || []).map(m => {
+      const { history, ...lightweightMatch } = m as any;
+      return lightweightMatch;
+    });
 
     const payload: CloudSyncData = {
       players: data.players || [],
@@ -65,6 +65,7 @@ export const cloudSync = {
       try {
         const syncRef = ref(db, 'cricpulse_live_state');
         const unsubscribe = onValue(syncRef, (snapshot) => {
+          if (!snapshot.exists() || !snapshot.val()) return;
           const val = snapshot.val();
           if (val && val.timestamp && val.timestamp > lastSyncedTimestamp) {
             lastSyncedTimestamp = val.timestamp;

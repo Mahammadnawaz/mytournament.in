@@ -197,20 +197,61 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     };
   }, [isScorer, options]);
 
+// Helper to safely format arrays (e.g. timeline, ballLogs, recentBalls, fow) from Firebase snapshots
+const ensureArray = <T>(val: any): T[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  return Object.values(val);
+};
+
+const sanitizeMatchFromFirebase = (data: any): Match => {
+  if (!data) return data;
+  const match = { ...data };
+  
+  if (match.teamA?.playerIds) {
+    match.teamA.playerIds = ensureArray(match.teamA.playerIds);
+  }
+  if (match.teamB?.playerIds) {
+    match.teamB.playerIds = ensureArray(match.teamB.playerIds);
+  }
+  if (match.timeline) {
+    match.timeline = ensureArray(match.timeline);
+  }
+
+  const sanitizeInnings = (inn: any) => {
+    if (!inn) return inn;
+    return {
+      ...inn,
+      ballLogs: ensureArray(inn.ballLogs),
+      recentBalls: ensureArray(inn.recentBalls),
+      fow: ensureArray(inn.fow),
+      ...(inn.timeline ? { timeline: ensureArray(inn.timeline) } : {}),
+    };
+  };
+
+  if (match.innings1) match.innings1 = sanitizeInnings(match.innings1);
+  if (match.innings2) match.innings2 = sanitizeInnings(match.innings2);
+
+  return match as Match;
+};
+
   // 3. Sub-100ms Active Match Live State Subscription (/activeMatches/{activeMatchId})
   // 🛡️ COMPLETELY DISABLED FOR SCORER: Scorer handles 100% of UI via local state & write-only pushes.
   // ONLY Spectators listen to onValue to eliminate all feedback loops and double-counting.
   useEffect(() => {
+    // 1. Block onValue Listener on Scorer Device: exit early if isScorer === true
     if (isScorer || !isFirebaseConfigured || !activeMatchId) {
       return;
     }
 
     const liveMatchRef = ref(db, `activeMatches/${activeMatchId}`);
     const unsubLiveMatch = onValue(liveMatchRef, (snapshot) => {
-      // 🛡️ Null Data Protection: Prevent resetting app to empty/initial state
+      // 2. Add Null / Empty Payload Guard:
       if (!snapshot.exists() || !snapshot.val()) return;
 
-      const liveMatchData = snapshot.val() as Match;
+      const rawData = snapshot.val();
+      const liveMatchData = sanitizeMatchFromFirebase(rawData);
+
       if (liveMatchData && liveMatchData.id) {
         setActiveMatch(liveMatchData);
         localStorage.setItem(STORAGE_ACTIVE_MATCH_KEY, JSON.stringify(liveMatchData));
@@ -273,13 +314,10 @@ export const useCricketSync = (options: UseCricketSyncOptions = {}): UseCricketS
     try {
       const liveRef = ref(db, `activeMatches/${updatedMatch.id}`);
 
-      // 🛡️ Strip History Payload: reduces network payload by 90% and eliminates latency spikes
-      const cleanMatchPayload = {
-        ...updatedMatch,
-        history: undefined,
-      };
+      // 3. Strip history Array Before Firebase Write: eliminates latency spikes
+      const { history, ...lightweightPayload } = (updatedMatch as any);
 
-      await set(liveRef, cleanMatchPayload);
+      await set(liveRef, lightweightPayload);
       scheduleReleaseLocalActionLock();
       return true;
     } catch (err) {
