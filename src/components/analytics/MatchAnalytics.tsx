@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { ShotZone } from '../../types/cricket';
-import { BarChart3, Flame, Shield, TrendingUp, Target, Sparkles } from 'lucide-react';
+import { BarChart3, Flame, Shield, TrendingUp, Target, Sparkles, Swords } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
 
 const CustomBarTooltip = ({ active, payload, label }: any) => {
@@ -33,12 +33,73 @@ export const MatchAnalytics: React.FC = () => {
   const { players, activeMatch, matches } = useCricket();
 
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('all');
+  const [analyticsFilter, setAnalyticsFilter] = useState<'all' | 'series' | 'individual'>('all');
 
   // Top Batting Leaderboard
   const sortedBatsmen = [...players].sort((a, b) => b.stats.totalRuns - a.stats.totalRuns);
   
   // Top Bowling Leaderboard
   const sortedBowlers = [...players].sort((a, b) => b.stats.wicketsTaken - a.stats.wicketsTaken);
+
+  // Compute Head-to-Head Analytics for Team Pairings with Category Filter
+  const h2hAnalytics = useMemo(() => {
+    const filteredMatches = matches.filter(m => {
+      if (m.status !== 'completed') return false;
+      if (analyticsFilter === 'series') return m.seriesId || m.matchCategory === 'series';
+      if (analyticsFilter === 'individual') return !m.seriesId && m.matchCategory !== 'series';
+      return true;
+    });
+
+    const teamPairings: Record<string, {
+      teamA: string;
+      teamB: string;
+      teamAWins: number;
+      teamBWins: number;
+      ties: number;
+      matchesPlayed: number;
+      teamARuns: number;
+      teamBRuns: number;
+      highestA: number;
+      highestB: number;
+    }> = {};
+
+    filteredMatches.forEach(m => {
+      const sortedNames = [m.teamA.name, m.teamB.name].sort();
+      const pairKey = sortedNames.join(' vs ');
+      if (!teamPairings[pairKey]) {
+        teamPairings[pairKey] = {
+          teamA: sortedNames[0],
+          teamB: sortedNames[1],
+          teamAWins: 0,
+          teamBWins: 0,
+          ties: 0,
+          matchesPlayed: 0,
+          teamARuns: 0,
+          teamBRuns: 0,
+          highestA: 0,
+          highestB: 0,
+        };
+      }
+
+      const p = teamPairings[pairKey];
+      p.matchesPlayed += 1;
+
+      const runsA = m.teamA.name === p.teamA ? (m.innings1?.totalRuns || 0) : (m.innings2?.totalRuns || 0);
+      const runsB = m.teamB.name === p.teamB ? (m.innings1?.totalRuns || 0) : (m.innings2?.totalRuns || 0);
+
+      p.teamARuns += runsA;
+      p.teamBRuns += runsB;
+      p.highestA = Math.max(p.highestA, runsA);
+      p.highestB = Math.max(p.highestB, runsB);
+
+      const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
+      if (winner === p.teamA) p.teamAWins += 1;
+      else if (winner === p.teamB) p.teamBWins += 1;
+      else p.ties += 1;
+    });
+
+    return Object.values(teamPairings);
+  }, [matches, analyticsFilter]);
 
   // Over-by-over data for active match if available
   const overGraphData = useMemo(() => {
@@ -375,6 +436,122 @@ export const MatchAnalytics: React.FC = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* ── HEAD-TO-HEAD TEAM ANALYTICS (SERIES VS INDIVIDUAL MATCHES) ── */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Swords className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white">Head-to-Head Team Analytics</h3>
+              <p className="text-xs text-slate-400">Comparison breakdown for Series vs Individual Single Matches</p>
+            </div>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800 self-start sm:self-auto">
+            <button
+              onClick={() => setAnalyticsFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                analyticsFilter === 'all'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              All Matches
+            </button>
+            <button
+              onClick={() => setAnalyticsFilter('series')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                analyticsFilter === 'series'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏆 Series Matches
+            </button>
+            <button
+              onClick={() => setAnalyticsFilter('individual')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                analyticsFilter === 'individual'
+                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚔️ Standalone Matches
+            </button>
+          </div>
+        </div>
+
+        {h2hAnalytics.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 text-xs font-medium bg-slate-950/60 rounded-2xl border border-slate-800">
+            No completed {analyticsFilter === 'series' ? 'Series' : analyticsFilter === 'individual' ? 'Standalone' : ''} matches recorded yet to build Head-to-Head analytics.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {h2hAnalytics.map((h2h, idx) => {
+              const totalDecided = h2h.teamAWins + h2h.teamBWins || 1;
+              const winPctA = Math.round((h2h.teamAWins / totalDecided) * 100);
+              const winPctB = Math.round((h2h.teamBWins / totalDecided) * 100);
+
+              return (
+                <div key={`h2h-${idx}`} className="bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
+                      {h2h.matchesPlayed} Matches ({analyticsFilter === 'series' ? 'Series' : analyticsFilter === 'individual' ? 'Standalone' : 'Total'})
+                    </span>
+                    {h2h.ties > 0 && (
+                      <span className="text-[11px] font-bold text-slate-400">
+                        {h2h.ties} Ties / No Result
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Team Head to Head Bar */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-black">
+                      <span className="text-emerald-400 flex items-center space-x-1">
+                        <span>{h2h.teamA}</span>
+                        <strong className="text-white font-mono ml-1">({h2h.teamAWins} Wins)</strong>
+                      </span>
+                      <span className="text-cyan-400 flex items-center space-x-1">
+                        <strong className="text-white font-mono mr-1">({h2h.teamBWins} Wins)</strong>
+                        <span>{h2h.teamB}</span>
+                      </span>
+                    </div>
+
+                    {/* Progress Ratio Bar */}
+                    <div className="h-3 rounded-full bg-slate-900 border border-slate-800 flex overflow-hidden">
+                      <div
+                        style={{ width: `${winPctA}%` }}
+                        className="bg-emerald-500 transition-all duration-500"
+                      />
+                      <div
+                        style={{ width: `${winPctB}%` }}
+                        className="bg-cyan-500 transition-all duration-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* High Stats Breakdown */}
+                  <div className="grid grid-cols-2 gap-2 text-center text-[11px] pt-1">
+                    <div className="bg-slate-900/80 p-2 rounded-xl border border-slate-800/80">
+                      <span className="text-slate-400 block font-medium">Highest Score</span>
+                      <span className="font-mono font-black text-emerald-400 text-sm">{h2h.highestA} Runs</span>
+                    </div>
+                    <div className="bg-slate-900/80 p-2 rounded-xl border border-slate-800/80">
+                      <span className="text-slate-400 block font-medium">Highest Score</span>
+                      <span className="font-mono font-black text-cyan-400 text-sm">{h2h.highestB} Runs</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
     </div>

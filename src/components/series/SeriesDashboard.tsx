@@ -43,15 +43,13 @@ export const SeriesDashboard: React.FC = () => {
 
   const topPerformer = leaderboard[0];
 
-  // Calculate Series matches & win counts
+  // Calculate Series matches & win counts (strictly linked to series ID or matchIds list)
   const seriesMatches = selectedSeries
     ? matches.filter(m => {
+        if (m.matchCategory === 'individual' && !m.seriesId) return false;
+        if (m.seriesId) return m.seriesId === selectedSeries.id;
         if (selectedSeries.matchIds?.includes(m.id)) return true;
-        if (m.seriesId === selectedSeries.id) return true;
-        return (
-          (m.teamA.name === selectedSeries.teamA && m.teamB.name === selectedSeries.teamB) ||
-          (m.teamA.name === selectedSeries.teamB && m.teamB.name === selectedSeries.teamA)
-        ) && m.status === 'completed';
+        return false;
       })
     : [];
 
@@ -181,6 +179,35 @@ export const SeriesDashboard: React.FC = () => {
               <Activity className="w-4 h-4 animate-pulse" />
               <span>Watch Live Score →</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🚀 QUICK LAUNCH NEXT MATCH BANNER FOR SCORER */}
+      {isScorer && selectedSeries && !isSeriesCompleted && seriesMatches.length < selectedSeries.totalMatches && (
+        <div className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 p-0.5 rounded-2xl shadow-2xl animate-pulse">
+          <div className="bg-slate-950/95 rounded-[14px] px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shrink-0">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-black text-emerald-400 uppercase tracking-widest block">
+                  {selectedSeries.name} • Match {seriesMatches.length + 1} of {selectedSeries.totalMatches}
+                </span>
+                <h4 className="text-sm sm:text-base font-extrabold text-white">
+                  Ready to launch Match {seriesMatches.length + 1} ({selectedSeries.teamA} vs {selectedSeries.teamB})?
+                </h4>
+              </div>
+            </div>
+
+            <button
+              onClick={handleStartNextSeriesMatch}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5 shrink-0 active:scale-95"
+            >
+              <Play className="w-4 h-4 fill-current text-slate-950" />
+              <span>▶️ Start Match {seriesMatches.length + 1} of Series ➔</span>
+            </button>
           </div>
         </div>
       )}
@@ -367,14 +394,14 @@ export const SeriesDashboard: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start md:self-auto pt-1 md:pt-0">
-                {/* HIDE START NEXT MATCH BUTTON WHEN SERIES IS COMPLETED OR USER IS SPECTATOR */}
+                {/* PROMINENT START NEXT MATCH BUTTON */}
                 {isScorer && !isSeriesCompleted && (
                   <button
                     onClick={handleStartNextSeriesMatch}
-                    className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20 active:scale-95"
+                    className="flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm transition shadow-xl shadow-emerald-500/30 active:scale-95 animate-pulse"
                   >
-                    <Play className="w-4 h-4 fill-current" />
-                    <span>Start Match {seriesMatches.length + 1}</span>
+                    <Play className="w-5 h-5 fill-current text-slate-950" />
+                    <span>▶️ Start Match {seriesMatches.length + 1} of Series ➔</span>
                   </button>
                 )}
 
@@ -388,8 +415,15 @@ export const SeriesDashboard: React.FC = () => {
                 )}
 
                 {isSeriesCompleted && (
-                  <div className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-xs">
-                    🏆 Series Completed
+                  <div className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 border-2 border-amber-400 text-amber-300 font-black text-sm shadow-xl flex items-center space-x-2 animate-pulse">
+                    <Trophy className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                    <span>
+                      {teamAWins > teamBWins
+                        ? `Series won by ${selectedSeries.teamA}!`
+                        : teamBWins > teamAWins
+                        ? `Series won by ${selectedSeries.teamB}!`
+                        : `Series drawn between ${selectedSeries.teamA} and ${selectedSeries.teamB}!`}
+                    </span>
                   </div>
                 )}
               </div>

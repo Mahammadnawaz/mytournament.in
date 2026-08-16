@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CricketProvider, useCricket } from './context/CricketContext';
 import Navbar from './components/layout/Navbar';
 import LoginPage from './components/auth/LoginPage';
@@ -16,12 +16,40 @@ import MatchHistory from './components/scorecard/MatchHistory';
 import MatchAnalytics from './components/analytics/MatchAnalytics';
 import SeriesDashboard from './components/series/SeriesDashboard';
 import LiveCelebrationOverlay from './components/match/LiveCelebrationOverlay';
-import { Plus, Swords, RotateCw, Trophy } from 'lucide-react';
+import { calculateSeriesMVP } from './utils/cricketEngine';
+import { Plus, Swords, RotateCw, Trophy, Play, Coffee, Star } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData } = useCricket();
+  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const [setupMatchParams, setSetupMatchParams] = useState<{
+    seriesId?: string;
+    matchName?: string;
+    teamA?: string;
+    teamB?: string;
+  } | null>(null);
+
+  const [breakRemainingSecs, setBreakRemainingSecs] = useState<number>(0);
+
+  useEffect(() => {
+    if (!seriesBreakTimer) {
+      setBreakRemainingSecs(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((seriesBreakTimer.endTime - Date.now()) / 1000));
+      setBreakRemainingSecs(remaining);
+      if (remaining === 0) {
+        cancelSeriesBreak();
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [seriesBreakTimer]);
 
   if (!isLoggedIn) {
     return <LoginPage />;
@@ -46,7 +74,10 @@ const MainContent: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             {isScorer && (
               <button
-                onClick={() => setShowSetupModal(true)}
+                onClick={() => {
+                  setSetupMatchParams(null);
+                  setShowSetupModal(true);
+                }}
                 className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95"
               >
                 <Plus className="w-5 h-5" />
@@ -70,6 +101,37 @@ const MainContent: React.FC = () => {
       activeMatch.innings1?.isCompleted &&
       !activeMatch.innings2;
 
+    const linkedSeries = activeMatch.seriesId 
+      ? seriesList.find(s => s.id === activeMatch.seriesId)
+      : seriesList.find(s => s.matchIds?.includes(activeMatch.id));
+
+    const seriesMatches = linkedSeries
+      ? matches.filter(m => {
+          if (m.matchCategory === 'individual' && !m.seriesId) return false;
+          if (m.seriesId) return m.seriesId === linkedSeries.id;
+          if (linkedSeries.matchIds?.includes(m.id)) return true;
+          return false;
+        })
+      : [];
+
+    const completedCount = seriesMatches.filter(m => m.status === 'completed').length;
+    const totalSeriesMatches = linkedSeries?.totalMatches || 3;
+    const nextMatchNo = Math.min(totalSeriesMatches, completedCount + 1);
+
+    let teamAWins = 0;
+    let teamBWins = 0;
+    if (linkedSeries) {
+      seriesMatches.forEach(m => {
+        const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
+        if (winner === linkedSeries.teamA) teamAWins++;
+        else if (winner === linkedSeries.teamB) teamBWins++;
+      });
+    }
+
+    const { leaderboard } = linkedSeries ? calculateSeriesMVP(linkedSeries, matches) : { leaderboard: [] };
+    const topMvpStats = leaderboard[0];
+    const seriesMVPPlayer = topMvpStats ? players.find(p => p.id === topMvpStats.playerId) : undefined;
+
     return (
       <div className="space-y-6">
         {/* Hero Scoreboard */}
@@ -86,6 +148,168 @@ const MainContent: React.FC = () => {
 
         {/* Live Commentary Feed & Winner Banner */}
         <LiveCommentaryFeed />
+
+        {/* Live Inter-Match Break Banner */}
+        {seriesBreakTimer && breakRemainingSecs > 0 && (
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-0.5 rounded-3xl shadow-2xl animate-pulse my-4">
+            <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 flex items-center justify-center shrink-0">
+                  <Coffee className="w-8 h-8 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-400/20 text-indigo-300 text-xs font-black uppercase tracking-widest border border-indigo-400/30">
+                      INTER-MATCH BREAK IN PROGRESS ({seriesBreakTimer.durationMinutes} MINS)
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1 flex items-center space-x-3">
+                    <span>Break Remaining:</span>
+                    <span className="font-mono text-emerald-400 text-2xl sm:text-3xl font-black bg-slate-900 px-3.5 py-1 rounded-xl border border-slate-800">
+                      {Math.floor(breakRemainingSecs / 60).toString().padStart(2, '0')}:{(breakRemainingSecs % 60).toString().padStart(2, '0')}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-300 font-medium mt-0.5">
+                    Teams are taking a strategy break before Match {seriesBreakTimer.nextMatchNo} starts.
+                  </p>
+                </div>
+              </div>
+
+              {isScorer && (
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      const targetSeries = seriesList.find(s => s.id === seriesBreakTimer.seriesId);
+                      cancelSeriesBreak();
+                      if (targetSeries) {
+                        setSetupMatchParams({
+                          seriesId: targetSeries.id,
+                          matchName: `${targetSeries.name} - Match ${seriesBreakTimer.nextMatchNo}`,
+                          teamA: targetSeries.teamA,
+                          teamB: targetSeries.teamB,
+                        });
+                        setShowSetupModal(true);
+                      }
+                    }}
+                    className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>End Break & Start Match {seriesBreakTimer.nextMatchNo} Now ➔</span>
+                  </button>
+                  <button
+                    onClick={cancelSeriesBreak}
+                    className="px-3.5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Next Series Match Prompt Action Banner */}
+        {activeMatch.status === 'completed' && linkedSeries && completedCount < totalSeriesMatches && !seriesBreakTimer && isScorer && (
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-3xl shadow-2xl animate-pulse space-y-3">
+            <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col space-y-4">
+              
+              {/* Header Info & Head-to-Head */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0">
+                    <Trophy className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black uppercase tracking-widest border border-amber-400/30">
+                        {linkedSeries.name} • Match {completedCount} of {totalSeriesMatches} Completed
+                      </span>
+                    </div>
+                    <h3 className="text-lg sm:text-2xl font-extrabold text-white mt-1">
+                      Start Match {nextMatchNo} of {totalSeriesMatches} Series?
+                    </h3>
+                    <p className="text-xs text-slate-300 font-medium mt-0.5">
+                      Match {completedCount} is completed ({activeMatch.result || 'Finished'}). Choose to start Match {nextMatchNo} immediately or schedule a break:
+                    </p>
+                  </div>
+                </div>
+
+                {/* Head to Head Series Ratio Pill */}
+                <div className="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-center self-start sm:self-auto shrink-0">
+                  <span className="text-[10px] uppercase font-extrabold text-slate-400 block tracking-wider">Series Head-to-Head</span>
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm font-black mt-0.5">
+                    <span className="text-emerald-400">{linkedSeries.teamA} ({teamAWins})</span>
+                    <span className="text-slate-500">-</span>
+                    <span className="text-cyan-400">({teamBWins}) {linkedSeries.teamB}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Series MVP Leader Banner */}
+              {seriesMVPPlayer && topMvpStats && (
+                <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                      <Star className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-amber-400 font-black uppercase tracking-wider block">Series MVP Leader</span>
+                      <span className="font-extrabold text-white">{seriesMVPPlayer.name}</span>
+                    </div>
+                  </div>
+                  <div className="font-mono text-right">
+                    <span className="text-emerald-400 font-black block">{topMvpStats.mvpPoints} MVP Pts</span>
+                    <span className="text-[10px] text-slate-400">{topMvpStats.runs} Runs • {topMvpStats.wickets} Wkts</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 justify-end">
+                <button
+                  onClick={() => {
+                    setSetupMatchParams({
+                      seriesId: linkedSeries.id,
+                      matchName: `${linkedSeries.name} - Match ${nextMatchNo}`,
+                      teamA: linkedSeries.teamA,
+                      teamB: linkedSeries.teamB,
+                    });
+                    setShowSetupModal(true);
+                  }}
+                  className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-xl transition transform active:scale-95 flex items-center space-x-1.5"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Start Match {nextMatchNo} Immediately ➔</span>
+                </button>
+
+                <button
+                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 15)}
+                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
+                >
+                  <Coffee className="w-4 h-4 text-amber-400" />
+                  <span>Take 15 Min Break ☕</span>
+                </button>
+
+                <button
+                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 30)}
+                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
+                >
+                  <Coffee className="w-4 h-4 text-amber-400" />
+                  <span>Take 30 Min Break ☕</span>
+                </button>
+
+                <button
+                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 45)}
+                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
+                >
+                  <Coffee className="w-4 h-4 text-amber-400" />
+                  <span>Take 45 Min Break ☕</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
 
         {/* Completed Match Full Scorecard - Stays on Home Screen until next match starts */}
         {activeMatch.status === 'completed' && (
@@ -106,6 +330,20 @@ const MainContent: React.FC = () => {
           <BowlerSelectModal
             onSelect={(bowlerId) => changeBowler(bowlerId)}
             onClose={() => setShowBowlerModal(false)}
+          />
+        )}
+
+        {/* Match Setup Modal */}
+        {showSetupModal && (
+          <MatchSetupModal
+            onClose={() => {
+              setShowSetupModal(false);
+              setSetupMatchParams(null);
+            }}
+            initialSeriesId={setupMatchParams?.seriesId}
+            initialMatchName={setupMatchParams?.matchName}
+            initialTeamA={setupMatchParams?.teamA}
+            initialTeamB={setupMatchParams?.teamB}
           />
         )}
       </div>

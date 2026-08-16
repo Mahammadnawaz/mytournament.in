@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { X, Swords, Play, Check, ChevronRight, ChevronLeft, User, Shield, Flame, Coins, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Swords, Play, Check, ChevronRight, ChevronLeft, User, Shield, Flame, Coins, Sparkles, AlertCircle, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface MatchSetupModalProps {
@@ -23,6 +23,7 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1 State
+  const [matchCategory, setMatchCategory] = useState<'individual' | 'series'>(initialSeriesId ? 'series' : 'individual');
   const [matchName, setMatchName] = useState(initialMatchName || 'Premier T20 Match');
   const [venue, setVenue] = useState('Lords Cricket Ground');
   const [totalOvers, setTotalOvers] = useState<number | string>(5);
@@ -165,7 +166,8 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
       },
       tossWinner: actualTossWinner,
       tossChoice,
-      seriesId: initialSeriesId,
+      seriesId: matchCategory === 'series' ? initialSeriesId : undefined,
+      matchCategory,
       openingStrikerId: strikerId,
       openingNonStrikerId: nonStrikerId,
       openingBowlerId: bowlerId,
@@ -214,6 +216,39 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
         {step === 1 && (
           <div className="space-y-5 text-sm">
             
+            {/* Match Classification Selector (Only shown for new general matches, hidden when setting up Series matches) */}
+            {!initialSeriesId && (
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-300">Match Type Classification</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMatchCategory('individual')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center space-x-2 ${
+                      matchCategory === 'individual'
+                        ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-md ring-1 ring-emerald-500/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Swords className="w-4 h-4 text-emerald-400" />
+                    <span>Individual Standalone Match</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMatchCategory('series')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center space-x-2 ${
+                      matchCategory === 'series'
+                        ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-md ring-1 ring-amber-500/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4 text-amber-400" />
+                    <span>Series / Tournament Match</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Match Title *</label>

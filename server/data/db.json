@@ -10,18 +10,18 @@
       "jerseyNumber": 18,
       "avatarUrl": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 29,
-        "inningsBatted": 28,
-        "totalRuns": 1181,
-        "ballsFaced": 846,
+        "matches": 33,
+        "inningsBatted": 32,
+        "totalRuns": 1198,
+        "ballsFaced": 857,
         "highestScore": 122,
-        "notOuts": 10,
-        "fours": 106,
+        "notOuts": 14,
+        "fours": 107,
         "sixes": 38,
-        "inningsBowled": 4,
+        "inningsBowled": 5,
         "oversBowled": 8,
-        "ballsBowled": 48,
-        "runsConceded": 58,
+        "ballsBowled": 50,
+        "runsConceded": 70,
         "wicketsTaken": 2,
         "bestBowlingWickets": 1,
         "bestBowlingRuns": 12,
@@ -38,12 +38,12 @@
       "jerseyNumber": 45,
       "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 30,
-        "inningsBatted": 29,
-        "totalRuns": 1234,
-        "ballsFaced": 857,
+        "matches": 34,
+        "inningsBatted": 32,
+        "totalRuns": 1244,
+        "ballsFaced": 866,
         "highestScore": 130,
-        "notOuts": 8,
+        "notOuts": 11,
         "fours": 114,
         "sixes": 45,
         "inningsBowled": 2,
@@ -298,10 +298,10 @@
         "notOuts": 4,
         "fours": 22,
         "sixes": 11,
-        "inningsBowled": 22,
-        "oversBowled": 65,
-        "ballsBowled": 390,
-        "runsConceded": 380,
+        "inningsBowled": 25,
+        "oversBowled": 67,
+        "ballsBowled": 406,
+        "runsConceded": 405,
         "wicketsTaken": 21,
         "bestBowlingWickets": 3,
         "bestBowlingRuns": 18,
@@ -318,18 +318,18 @@
       "jerseyNumber": 63,
       "avatarUrl": "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 25,
-        "inningsBatted": 24,
-        "totalRuns": 855,
-        "ballsFaced": 530,
+        "matches": 29,
+        "inningsBatted": 28,
+        "totalRuns": 880,
+        "ballsFaced": 542,
         "highestScore": 116,
-        "notOuts": 7,
+        "notOuts": 11,
         "fours": 78,
-        "sixes": 41,
-        "inningsBowled": 3,
-        "oversBowled": 1,
-        "ballsBowled": 15,
-        "runsConceded": 34,
+        "sixes": 43,
+        "inningsBowled": 5,
+        "oversBowled": 2,
+        "ballsBowled": 25,
+        "runsConceded": 48,
         "wicketsTaken": 0,
         "bestBowlingWickets": 0,
         "bestBowlingRuns": 0,
@@ -346,12 +346,12 @@
       "jerseyNumber": 62,
       "avatarUrl": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 24,
-        "inningsBatted": 23,
-        "totalRuns": 935,
-        "ballsFaced": 568,
+        "matches": 28,
+        "inningsBatted": 26,
+        "totalRuns": 940,
+        "ballsFaced": 576,
         "highestScore": 137,
-        "notOuts": 6,
+        "notOuts": 8,
         "fours": 94,
         "sixes": 39,
         "inningsBowled": 3,
@@ -606,10 +606,10 @@
         "notOuts": 3,
         "fours": 102,
         "sixes": 39,
-        "inningsBowled": 1,
-        "oversBowled": 1,
-        "ballsBowled": 6,
-        "runsConceded": 74,
+        "inningsBowled": 4,
+        "oversBowled": 2,
+        "ballsBowled": 16,
+        "runsConceded": 87,
         "wicketsTaken": 0,
         "bestBowlingWickets": 0,
         "bestBowlingRuns": 0,
@@ -618,6 +618,1960 @@
     }
   ],
   "matches": [
+    {
+      "name": "Super Cricket Tri-Series 2026 - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 2,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Super Strikers",
+      "tossChoice": "bowl",
+      "seriesId": "series-1786897516885",
+      "matchCategory": "series",
+      "openingStrikerId": "p-1",
+      "openingNonStrikerId": "p-2",
+      "openingBowlerId": "p-22",
+      "id": "match-1786897558333",
+      "status": "completed",
+      "currentInnings": 2,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 11,
+        "wickets": 0,
+        "overs": 2,
+        "balls": 0,
+        "strikerId": "p-2",
+        "nonStrikerId": "p-1",
+        "currentBowlerId": "p-12",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 5,
+            "balls": 6,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 6,
+            "balls": 6,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-22": {
+            "playerId": "p-22",
+            "overs": 1,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 5,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 2
+          },
+          "p-12": {
+            "playerId": "p-12",
+            "overs": 1,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 6,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786897562269-e0nn",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897562269
+          },
+          {
+            "id": "ball-1786897563117-6rl3",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897563117
+          },
+          {
+            "id": "ball-1786897574550-alp2",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897574550
+          },
+          {
+            "id": "ball-1786897575435-15cv",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897575435
+          },
+          {
+            "id": "ball-1786897576385-uyx8",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 5,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897576385
+          },
+          {
+            "id": "ball-1786897579470-nazk",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 6,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897579470
+          },
+          {
+            "id": "ball-1786897584422-6egg",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897584422
+          },
+          {
+            "id": "ball-1786897586931-2xti",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897586931
+          },
+          {
+            "id": "ball-1786897587133-ebm2",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 3,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897587133
+          },
+          {
+            "id": "ball-1786897587305-aasx",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 4,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897587305
+          },
+          {
+            "id": "ball-1786897587487-pz8v",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 5,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897587487
+          },
+          {
+            "id": "ball-1786897587655-izwd",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 6,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897587655
+          }
+        ],
+        "recentBalls": [],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786897596257",
+        "text": "6",
+        "subText": "MAXIMUM SIX! 🚀",
+        "colorType": "six",
+        "timestamp": 1786897596257
+      },
+      "innings2": {
+        "inningsNo": 2,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 12,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 2,
+        "target": 12,
+        "strikerId": "p-12",
+        "nonStrikerId": "p-13",
+        "currentBowlerId": "p-1",
+        "batsmenStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 12,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 2,
+            "isOut": false
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 0,
+            "balls": 0,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "overs": 0,
+            "balls": 2,
+            "maidens": 0,
+            "runsConceded": 12,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786897593301-b2je",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 6,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Long-on",
+            "timestamp": 1786897593301
+          },
+          {
+            "id": "ball-1786897596251-9z5k",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 6,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Long-off",
+            "timestamp": 1786897596251
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786897593301-b2je",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 6,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Long-on",
+            "timestamp": 1786897593301
+          },
+          {
+            "id": "ball-1786897596251-9z5k",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 6,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Long-off",
+            "timestamp": 1786897596251
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "result": "Super Strikers won by 10 wickets!",
+      "winnerTeam": "Super Strikers",
+      "potmInfo": {
+        "playerId": "p-12",
+        "points": 16,
+        "summary": "12 runs (2b)"
+      }
+    },
+    {
+      "name": "Super - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Royal Titans",
+      "tossChoice": "bat",
+      "seriesId": "series-1786897165041",
+      "matchCategory": "series",
+      "openingStrikerId": "p-1",
+      "openingNonStrikerId": "p-2",
+      "openingBowlerId": "p-22",
+      "id": "match-1786897197178",
+      "status": "completed",
+      "currentInnings": 1,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 6,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 3,
+        "strikerId": "p-1",
+        "nonStrikerId": "p-2",
+        "currentBowlerId": "p-22",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 5,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 1,
+            "balls": 1,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-22": {
+            "playerId": "p-22",
+            "overs": 0,
+            "balls": 3,
+            "maidens": 0,
+            "runsConceded": 6,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786897200545-wide",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 3,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897200545
+          },
+          {
+            "id": "ball-1786897202209-hlmi",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897202209
+          },
+          {
+            "id": "ball-1786897204810-vhqo",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897204810
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786897200545-wide",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 3,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897200545
+          },
+          {
+            "id": "ball-1786897202209-hlmi",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897202209
+          },
+          {
+            "id": "ball-1786897204810-vhqo",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786897204810
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": false,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786897204810",
+        "text": "2",
+        "subText": "2 RUNS (DOUBLE) 🏃‍♂️",
+        "colorType": "two",
+        "timestamp": 1786897204810
+      },
+      "result": "Royal Titans won by Official Declaration",
+      "potmInfo": {
+        "playerId": "p-1",
+        "points": 5,
+        "summary": "5 runs (2b)"
+      }
+    },
+    {
+      "name": "Super Cricket Tri-Series 2026 - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 1,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Royal Titans",
+      "tossChoice": "bowl",
+      "seriesId": "series-1786896898360",
+      "matchCategory": "series",
+      "openingStrikerId": "p-12",
+      "openingNonStrikerId": "p-13",
+      "openingBowlerId": "p-11",
+      "id": "match-1786896922877",
+      "status": "completed",
+      "currentInnings": 2,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 5,
+        "wickets": 0,
+        "overs": 1,
+        "balls": 0,
+        "strikerId": "p-12",
+        "nonStrikerId": "p-13",
+        "currentBowlerId": "p-11",
+        "batsmenStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 4,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 1,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-11": {
+            "playerId": "p-11",
+            "overs": 1,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 5,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 2
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786896925225-c980",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896925225
+          },
+          {
+            "id": "ball-1786896926288-vwj0",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896926288
+          },
+          {
+            "id": "ball-1786896927788-5or4",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896927788
+          },
+          {
+            "id": "ball-1786896929908-x1p3",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896929908
+          },
+          {
+            "id": "ball-1786896932129-7743",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 5,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896932129
+          },
+          {
+            "id": "ball-1786896934324-tuy0",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 6,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896934324
+          }
+        ],
+        "recentBalls": [],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786896952183",
+        "text": "4",
+        "subText": "FOUR! 💥",
+        "colorType": "four",
+        "timestamp": 1786896952183
+      },
+      "innings2": {
+        "inningsNo": 2,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 8,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 4,
+        "target": 6,
+        "strikerId": "p-1",
+        "nonStrikerId": "p-2",
+        "currentBowlerId": "p-12",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 5,
+            "balls": 2,
+            "fours": 1,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 3,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "overs": 0,
+            "balls": 4,
+            "maidens": 0,
+            "runsConceded": 8,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786896944144-z62b",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896944144
+          },
+          {
+            "id": "ball-1786896945042-889v",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896945042
+          },
+          {
+            "id": "ball-1786896947773-jjsv",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896947773
+          },
+          {
+            "id": "ball-1786896952175-t092",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 4,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 4,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Square leg",
+            "timestamp": 1786896952175
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786896944144-z62b",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896944144
+          },
+          {
+            "id": "ball-1786896945042-889v",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896945042
+          },
+          {
+            "id": "ball-1786896947773-jjsv",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896947773
+          },
+          {
+            "id": "ball-1786896952175-t092",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 4,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 4,
+            "isWicket": false,
+            "isLegalBall": true,
+            "shotZone": "Square leg",
+            "timestamp": 1786896952175
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "result": "Royal Titans won by 10 wickets!",
+      "winnerTeam": "Royal Titans",
+      "potmInfo": {
+        "playerId": "p-1",
+        "points": 6,
+        "summary": "5 runs (2b)"
+      }
+    },
+    {
+      "name": "Super Cricket Tri-Series 2026 - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Royal Titans",
+      "tossChoice": "bat",
+      "seriesId": "series-1786896005574",
+      "matchCategory": "series",
+      "openingStrikerId": "p-1",
+      "openingNonStrikerId": "p-2",
+      "openingBowlerId": "p-22",
+      "id": "match-1786896057477",
+      "status": "completed",
+      "currentInnings": 1,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 2,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 1,
+        "strikerId": "p-1",
+        "nonStrikerId": "p-2",
+        "currentBowlerId": "p-22",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 2,
+            "balls": 1,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 0,
+            "balls": 0,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-22": {
+            "playerId": "p-22",
+            "overs": 0,
+            "balls": 1,
+            "maidens": 0,
+            "runsConceded": 2,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786896062909-ww3o",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896062909
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786896062909-ww3o",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786896062909
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": false,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786896062909",
+        "text": "2",
+        "subText": "2 RUNS (DOUBLE) 🏃‍♂️",
+        "colorType": "two",
+        "timestamp": 1786896062909
+      },
+      "result": "Royal Titans won by Official Declaration",
+      "potmInfo": {
+        "playerId": "p-1",
+        "points": 2,
+        "summary": "2 runs (1b)"
+      }
+    },
+    {
+      "name": "Super Cricket Tri-Series 2026 - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Royal Titans",
+      "tossChoice": "bowl",
+      "seriesId": "series-1786895838694",
+      "matchCategory": "series",
+      "openingStrikerId": "p-12",
+      "openingNonStrikerId": "p-13",
+      "openingBowlerId": "p-11",
+      "id": "match-1786895851902",
+      "status": "completed",
+      "currentInnings": 1,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 17,
+        "wickets": 1,
+        "overs": 1,
+        "balls": 0,
+        "strikerId": "p-14",
+        "nonStrikerId": "p-12",
+        "currentBowlerId": "p-1",
+        "batsmenStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 6,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 1,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "run-out",
+            "bowlerId": "p-1",
+            "dismissalText": ""
+          }
+        },
+        "bowlerStats": {
+          "p-11": {
+            "playerId": "p-11",
+            "overs": 1,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 14,
+            "wickets": 0,
+            "wides": 1,
+            "noBalls": 0,
+            "dots": 1
+          },
+          "p-1": {
+            "playerId": "p-1",
+            "overs": 0,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 3,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 2,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786895855812-6kz6",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895855812
+          },
+          {
+            "id": "ball-1786895856944-w740",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895856944
+          },
+          {
+            "id": "ball-1786895858110-y9we",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895858110
+          },
+          {
+            "id": "ball-1786895860894-qneg",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "wide",
+              "runs": 4
+            },
+            "totalRuns": 4,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786895860894
+          },
+          {
+            "id": "ball-1786895863610-apez",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "bye",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895863610
+          },
+          {
+            "id": "ball-1786895867196-aejw",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 5,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "bye",
+              "runs": 3
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895867196
+          },
+          {
+            "id": "ball-1786895876613-c94c",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 6,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 3,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895876613
+          },
+          {
+            "id": "ball-1786895881429-neg7",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 0,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 0,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786895881429
+          },
+          {
+            "id": "ball-1786895890232-7nwy",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 0,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-1",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": true,
+            "wicketInfo": {
+              "type": "run-out",
+              "dismissedPlayerId": "p-13",
+              "bowlerId": "p-1",
+              "runsCompleted": 1
+            },
+            "isLegalBall": false,
+            "timestamp": 1786895890232
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786895881429-neg7",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 0,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-1",
+            "runsScored": 0,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786895881429
+          },
+          {
+            "id": "ball-1786895890232-7nwy",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 1,
+            "ballNumber": 0,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-1",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": true,
+            "wicketInfo": {
+              "type": "run-out",
+              "dismissedPlayerId": "p-13",
+              "bowlerId": "p-1",
+              "runsCompleted": 1
+            },
+            "isLegalBall": false,
+            "timestamp": 1786895890232
+          }
+        ],
+        "extrasTotal": {
+          "wides": 4,
+          "noBalls": 2,
+          "byes": 4,
+          "legByes": 0,
+          "total": 10
+        },
+        "isCompleted": false,
+        "fow": [
+          {
+            "wicketNo": 1,
+            "runs": 17,
+            "overs": "1.0",
+            "playerId": "p-13"
+          }
+        ]
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786895890232",
+        "text": "OUT",
+        "subText": "WICKET! ☝️",
+        "colorType": "wicket",
+        "timestamp": 1786895890232
+      },
+      "result": "Match Abandoned due to Rain (No Result)",
+      "potmInfo": {
+        "playerId": "p-12",
+        "points": 6,
+        "summary": "6 runs (5b)"
+      }
+    },
+    {
+      "name": "Super Cricket Tri-Series 2026 - Match 1",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Super Strikers",
+      "tossChoice": "bat",
+      "seriesId": "series-1786895274019",
+      "openingStrikerId": "p-12",
+      "openingNonStrikerId": "p-13",
+      "openingBowlerId": "p-11",
+      "id": "match-1786895287065",
+      "status": "completed",
+      "currentInnings": 1,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 6,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 4,
+        "strikerId": "p-12",
+        "nonStrikerId": "p-13",
+        "currentBowlerId": "p-11",
+        "batsmenStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 3,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 3,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-11": {
+            "playerId": "p-11",
+            "overs": 0,
+            "balls": 4,
+            "maidens": 0,
+            "runsConceded": 6,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 1
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786895291384-ibbk",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 3,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895291384
+          },
+          {
+            "id": "ball-1786895292648-5ozh",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895292648
+          },
+          {
+            "id": "ball-1786895294682-ykrc",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895294682
+          },
+          {
+            "id": "ball-1786895295883-6gzf",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895295883
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786895291384-ibbk",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 3,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895291384
+          },
+          {
+            "id": "ball-1786895292648-5ozh",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 2,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895292648
+          },
+          {
+            "id": "ball-1786895294682-ykrc",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-13",
+            "nonStrikerId": "p-12",
+            "bowlerId": "p-11",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895294682
+          },
+          {
+            "id": "ball-1786895295883-6gzf",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-12",
+            "nonStrikerId": "p-13",
+            "bowlerId": "p-11",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786895295883
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": false,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786895295883",
+        "text": "0",
+        "subText": "DOT BALL 🎯",
+        "colorType": "dot",
+        "timestamp": 1786895295883
+      },
+      "result": "Match Abandoned due to Rain (No Result)",
+      "potmInfo": {
+        "playerId": "p-12",
+        "points": 3,
+        "summary": "3 runs (2b)"
+      }
+    },
     {
       "name": "Premier T20 Match",
       "venue": "Lords Cricket Ground",
@@ -2661,6 +4615,114 @@
   ],
   "series": [
     {
+      "id": "series-1786897516885",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786897558333"
+      ],
+      "status": "completed",
+      "playerOfSeriesId": "p-1",
+      "playerOfSeriesSummary": "78 Runs • 0 Wickets (89 MVP Pts)"
+    },
+    {
+      "id": "series-1786897165041",
+      "name": "Super",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786897197178"
+      ],
+      "status": "completed",
+      "playerOfSeriesId": "p-1",
+      "playerOfSeriesSummary": "78 Runs • 0 Wickets (89 MVP Pts)"
+    },
+    {
+      "id": "series-1786896898360",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786896922877"
+      ],
+      "status": "completed",
+      "playerOfSeriesId": "p-1",
+      "playerOfSeriesSummary": "78 Runs • 0 Wickets (89 MVP Pts)"
+    },
+    {
+      "id": "series-1786896117484",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [],
+      "status": "ongoing"
+    },
+    {
+      "id": "series-1786896110117",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [],
+      "status": "ongoing"
+    },
+    {
+      "id": "series-1786896005574",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786896057477"
+      ],
+      "status": "ongoing"
+    },
+    {
+      "id": "series-1786895991074",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [],
+      "status": "ongoing"
+    },
+    {
+      "id": "series-1786895838694",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786895851902"
+      ],
+      "status": "ongoing"
+    },
+    {
+      "id": "series-1786895274019",
+      "name": "Super Cricket Tri-Series 2026",
+      "format": "3-Match T20 Series",
+      "totalMatches": 3,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "matchIds": [
+        "match-1786895287065"
+      ],
+      "status": "ongoing"
+    },
+    {
       "id": "series-1",
       "name": "Premier T20 Championship 2026",
       "format": "3-Match Series",
@@ -2677,13 +4739,13 @@
       "playerOfSeriesSummary": "168 Runs • 2 Wickets (215 Series MVP Pts)"
     }
   ],
-  "activeMatchId": "match-1786894342119",
+  "activeMatchId": "match-1786897558333",
   "activeScorer": {
-    "deviceId": "dev-k4p0uin",
+    "deviceId": "dev-4n0cseb",
     "deviceName": "Laptop / PC",
-    "userName": "hhh",
-    "timestamp": 1786894571918,
-    "lastActive": 1786894571918
+    "userName": "kkk",
+    "timestamp": 1786897998828,
+    "lastActive": 1786897998828
   },
-  "syncTimestamp": 1786894375671
+  "syncTimestamp": 1786897950562
 }

@@ -188,6 +188,7 @@ export interface Match {
   result?: string;
   winnerTeam?: string;
   seriesId?: string;
+  matchCategory?: 'series' | 'individual';
   potmInfo?: MatchPOTM;
   dlsApplied?: boolean;
   dlsRevisedOvers?: number;
@@ -196,6 +197,13 @@ export interface Match {
   currentAlert?: MatchAlert | null;
   latestDeliveryBurst?: DeliveryBurst | null;
   timeline?: any[];
+}
+
+export interface SeriesBreakTimer {
+  seriesId: string;
+  nextMatchNo: number;
+  endTime: number;
+  durationMinutes: number;
 }
 
 export interface TournamentSeries {

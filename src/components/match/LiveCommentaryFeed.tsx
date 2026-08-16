@@ -280,7 +280,7 @@ export function formatBallCommentary(
 }
 
 export const LiveCommentaryFeed: React.FC = () => {
-  const { activeMatch, activeInnings, players } = useCricket();
+  const { activeMatch, activeInnings, players, seriesList, matches } = useCricket();
   
   // Persist commentary voice speaker across page refreshes
   const [isAudioEnabled, setIsAudioEnabled] = useState<boolean>(() => {
@@ -302,6 +302,7 @@ export const LiveCommentaryFeed: React.FC = () => {
 
   const lastSpokenBallId = useRef<string | null>(null);
   const lastSpokenResultId = useRef<string | null>(null);
+  const lastSpokenSeriesResultId = useRef<string | null>(null);
 
   // Audio commentary announcement for ball-by-ball events
   useEffect(() => {
@@ -324,7 +325,7 @@ export const LiveCommentaryFeed: React.FC = () => {
     }
   }, [activeInnings?.ballLogs, isAudioEnabled, players]);
 
-  // Audio announcement for Match Winner / End Result (e.g., "Match completed! Won by 10 runs by India!")
+  // Audio announcement for Match Winner / End Result (e.g., "India won by 10 runs!")
   useEffect(() => {
     if (!isAudioEnabled || !activeMatch || activeMatch.status !== 'completed' || !activeMatch.result) return;
     const resultKey = `result-${activeMatch.id}-${activeMatch.result}`;
@@ -342,6 +343,52 @@ export const LiveCommentaryFeed: React.FC = () => {
       window.speechSynthesis.speak(utterance);
     }
   }, [activeMatch?.status, activeMatch?.result, activeMatch?.id, isAudioEnabled]);
+
+  // Audio announcement for Series Completion (e.g. "Series won by Royal Titans!")
+  useEffect(() => {
+    if (!isAudioEnabled || !seriesList || seriesList.length === 0) return;
+
+    const activeSeriesId = activeMatch?.seriesId;
+    const targetSeries = seriesList.find(s => s.id === activeSeriesId) || seriesList.find(s => s.status === 'completed');
+    if (!targetSeries) return;
+
+    const sMatches = matches.filter(m => (m.seriesId === targetSeries.id || targetSeries.matchIds?.includes(m.id)) && m.status === 'completed');
+    const isCompleted = targetSeries.status === 'completed' || sMatches.length >= targetSeries.totalMatches;
+    if (!isCompleted) return;
+
+    let winsA = 0;
+    let winsB = 0;
+    sMatches.forEach(m => {
+      const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
+      if (winner === targetSeries.teamA) winsA++;
+      else if (winner === targetSeries.teamB) winsB++;
+    });
+
+    let seriesVoiceWording = '';
+    if (winsA > winsB) {
+      seriesVoiceWording = `Series won by ${targetSeries.teamA}!`;
+    } else if (winsB > winsA) {
+      seriesVoiceWording = `Series won by ${targetSeries.teamB}!`;
+    } else {
+      seriesVoiceWording = `Series drawn between ${targetSeries.teamA} and ${targetSeries.teamB}!`;
+    }
+
+    const seriesKey = `series-result-${targetSeries.id}-${seriesVoiceWording}`;
+
+    if (lastSpokenSeriesResultId.current !== seriesKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      lastSpokenSeriesResultId.current = seriesKey;
+
+      const timer = setTimeout(() => {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(seriesVoiceWording);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.05;
+        window.speechSynthesis.speak(utterance);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [seriesList, matches, activeMatch?.seriesId, isAudioEnabled]);
 
   if (!activeMatch || !activeInnings) return null;
 

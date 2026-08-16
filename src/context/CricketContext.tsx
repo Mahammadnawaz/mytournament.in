@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import type { Player, Match, InningsState, TournamentSeries } from '../types/cricket';
+import type { Player, Match, InningsState, TournamentSeries, SeriesBreakTimer } from '../types/cricket';
 import { INITIAL_PLAYERS, INITIAL_MATCHES, INITIAL_SERIES } from '../utils/initialData';
 import { processBall, aggregateMatchStatsToPlayers, calculateMatchPOTM, calculateSeriesMVP } from '../utils/cricketEngine';
 import type { ScoreBallParams } from '../utils/cricketEngine';
@@ -52,6 +52,9 @@ interface CricketContextType {
   finishMatch: (resultMessage?: string) => void;
   setActiveMatchId: (id: string | null) => void;
   resetToDemoData: () => void;
+  seriesBreakTimer: SeriesBreakTimer | null;
+  startSeriesBreak: (seriesId: string, nextMatchNo: number, durationMinutes: number) => void;
+  cancelSeriesBreak: () => void;
 }
 
 const CricketContext = createContext<CricketContextType | undefined>(undefined);
@@ -76,6 +79,35 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('cricket_series_v1');
     return saved ? JSON.parse(saved) : INITIAL_SERIES;
   });
+
+  const [seriesBreakTimer, setSeriesBreakTimer] = useState<SeriesBreakTimer | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cricpulse_series_break_timer');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.endTime > Date.now()) return parsed;
+        } catch (e) {}
+      }
+    }
+    return null;
+  });
+
+  const startSeriesBreak = (seriesId: string, nextMatchNo: number, durationMinutes: number) => {
+    const timer: SeriesBreakTimer = {
+      seriesId,
+      nextMatchNo,
+      durationMinutes,
+      endTime: Date.now() + durationMinutes * 60 * 1000,
+    };
+    setSeriesBreakTimer(timer);
+    localStorage.setItem('cricpulse_series_break_timer', JSON.stringify(timer));
+  };
+
+  const cancelSeriesBreak = () => {
+    setSeriesBreakTimer(null);
+    localStorage.removeItem('cricpulse_series_break_timer');
+  };
 
   const [activeMatchId, setActiveMatchId] = useState<string | null>(() => {
     return localStorage.getItem('cricket_active_match_v1') || null;
@@ -1035,6 +1067,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         finishMatch,
         setActiveMatchId: handleSetActiveMatchId,
         resetToDemoData,
+        seriesBreakTimer,
+        startSeriesBreak,
+        cancelSeriesBreak,
       }}
     >
       {children}
