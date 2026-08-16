@@ -692,11 +692,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         timestamp: Date.now(),
       };
     } else if (params.extraType === 'no-ball') {
-      const extraRuns = (params.extraRuns || 1) > 1 ? `+${(params.extraRuns || 1) - 1}` : '';
+      const extraRuns = (params.runsScored || 0) > 0 ? `+${params.runsScored}` : '';
       updatedMatch.latestDeliveryBurst = {
         id: `burst-${Date.now()}`,
-        text: `NB${extraRuns}`,
-        subText: `NO BALL (+${(params.runsScored || 0) + (params.extraRuns || 1)}) ⚠️`,
+        text: extraRuns ? `NB${extraRuns}` : 'NB',
+        subText: extraRuns ? `NO BALL ${extraRuns} ⚠️` : 'NO BALL ⚠️',
         colorType: 'noball',
         timestamp: Date.now(),
       };
@@ -912,6 +912,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const finishMatch = (resultMessage?: string) => {
     if (!activeMatch) return;
+    isLocalAction.current = true;
     const updatedMatch: Match = JSON.parse(JSON.stringify(activeMatch));
     updatedMatch.status = 'completed';
     if (resultMessage) updatedMatch.result = resultMessage;
@@ -924,14 +925,18 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setPlayers(updatedPlayers);
     setMatches(updatedMatches);
+    setActiveMatchId(null);
     localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    localStorage.removeItem('cricket_active_match_v1');
 
-    cloudSync.pushState({ players: updatedPlayers, matches: updatedMatches, series: seriesList, activeMatchId: null, activeScorer });
+    cloudSync.pushState({ players: updatedPlayers, matches: updatedMatches, series: seriesList, activeMatchId: null, activeScorer: null });
 
     api.updateMatch(updatedMatch);
+    api.setActiveMatchId(null);
     updatedPlayers.forEach(p => api.updatePlayer(p));
     broadcastSync();
+    releaseLocalActionLock(800);
   };
 
   const handleSetActiveMatchId = (id: string | null) => {

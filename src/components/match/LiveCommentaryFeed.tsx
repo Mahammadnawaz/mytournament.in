@@ -157,7 +157,7 @@ export function formatBallCommentary(
 
     const headline = 'NO BALL ⚠️ (FREE HIT)';
     const description = `No ball called! ${bowler} oversteps the crease. 1 run added and Free Hit awarded next delivery!`;
-    const speechText = `No ball plus 1`;
+    const speechText = `No ball`;
     return { headline, description, speechText };
   }
 
