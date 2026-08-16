@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { Trophy, Activity, CloudRain, ShieldAlert } from 'lucide-react';
+import { Trophy, Activity, CloudRain, ShieldAlert, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchPOTMModal from './MatchPOTMModal';
 import DLSModal from './DLSModal';
@@ -43,8 +43,15 @@ export const LiveScoreboard: React.FC = () => {
   }
 
   const { totalRuns, wickets, overs, balls, target } = activeInnings;
+  const maxOvers = activeMatch.dlsRevisedOvers || activeMatch.totalOvers;
   const oversFloat = overs + balls / 6;
   const currentRunRate = oversFloat > 0 ? (totalRuns / oversFloat).toFixed(2) : '0.00';
+  const crrNum = oversFloat > 0 ? totalRuns / oversFloat : 0;
+  
+  // Predicted score for total overs based on team's current scoring rate
+  const predictedScore = oversFloat > 0 
+    ? Math.round(crrNum * maxOvers) 
+    : (totalRuns > 0 ? totalRuns : Math.round(6 * maxOvers));
 
   let requiredRunRate = '0.00';
   let runsNeeded = 0;
@@ -53,7 +60,7 @@ export const LiveScoreboard: React.FC = () => {
 
   if (activeMatch.currentInnings === 2 && target) {
     runsNeeded = Math.max(0, target - totalRuns);
-    const totalMatchBalls = activeMatch.totalOvers * 6;
+    const totalMatchBalls = maxOvers * 6;
     const currentBallsBowled = overs * 6 + balls;
     remainingBalls = Math.max(0, totalMatchBalls - currentBallsBowled);
     const remainingOversFloat = remainingBalls / 6;
@@ -61,7 +68,7 @@ export const LiveScoreboard: React.FC = () => {
 
     // Calculate live DLS Par score for Innings 2
     const innings1Runs = activeMatch.innings1?.totalRuns || 100;
-    dlsParInfo = calculateDLSParScore(innings1Runs, activeMatch.totalOvers, oversFloat, wickets);
+    dlsParInfo = calculateDLSParScore(innings1Runs, maxOvers, oversFloat, wickets);
   }
 
   const handlePOTMClose = () => {
@@ -192,12 +199,24 @@ export const LiveScoreboard: React.FC = () => {
             </p>
           </div>
 
-          {/* Right Column: Run Rates & DLS Target Tracker */}
-          <div className="md:col-span-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 space-y-3 theme-runrate-panel">
+          {/* Right Column: Run Rates, Predictions & DLS Target Tracker */}
+          <div className="md:col-span-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 space-y-3 theme-runrate-panel shadow-inner">
             
+            {/* Current Run Rate */}
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-400 font-bold theme-crr-label">Current Run Rate (CRR):</span>
               <span className="text-emerald-400 font-black text-base font-mono theme-crr-value">{currentRunRate}</span>
+            </div>
+
+            {/* Predicted Score for Full Match Overs */}
+            <div className="flex justify-between items-center text-xs border-t border-slate-800/60 pt-2">
+              <span className="text-slate-400 font-bold flex items-center space-x-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
+                <span>Predicted Score ({maxOvers} ov):</span>
+              </span>
+              <span className="text-sky-400 font-black text-base font-mono">
+                {predictedScore}
+              </span>
             </div>
 
             {activeMatch.currentInnings === 2 && target && (
@@ -248,8 +267,16 @@ export const LiveScoreboard: React.FC = () => {
             )}
 
             {activeMatch.currentInnings === 1 && (
-              <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-2.5 text-center text-xs font-bold text-slate-300 theme-innings-subtext">
-                Setting target score for 2nd innings
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 space-y-1.5 text-xs">
+                <div className="flex justify-between items-center font-bold text-slate-300">
+                  <span>Projected Finish (@ CRR):</span>
+                  <span className="text-emerald-400 font-mono font-black">{predictedScore} runs</span>
+                </div>
+                <div className="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-800/80">
+                  <span>@ 8 RPO: <strong className="text-slate-200">{Math.round(totalRuns + Math.max(0, maxOvers - oversFloat) * 8)}</strong></span>
+                  <span>@ 10 RPO: <strong className="text-slate-200">{Math.round(totalRuns + Math.max(0, maxOvers - oversFloat) * 10)}</strong></span>
+                  <span>@ 12 RPO: <strong className="text-slate-200">{Math.round(totalRuns + Math.max(0, maxOvers - oversFloat) * 12)}</strong></span>
+                </div>
               </div>
             )}
 
