@@ -32,6 +32,19 @@ export const LiveCelebrationOverlay: React.FC = () => {
     return [];
   };
 
+  // Set initial mount bookmark on first render so only existing historical balls are silenced
+  useEffect(() => {
+    const initialBalls = ensureArray<BallLog>(activeInnings?.ballLogs);
+    if (initialBalls.length > 0) {
+      const initLatest = initialBalls[initialBalls.length - 1];
+      lastProcessedBallKeyRef.current = initLatest.id || `${activeInnings?.inningsNo}-${activeInnings?.overs}.${activeInnings?.balls}-${initLatest.timestamp || initLatest.totalRuns}-${initialBalls.length}`;
+    }
+    const timer = setTimeout(() => {
+      isInitialMount.current = false;
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators & Scorers
   useEffect(() => {
     if (activeMatch?.currentAlert && activeMatch.currentAlert.type === 'hat-trick') {
@@ -64,10 +77,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
     // Unique delivery signature
     const ballKey = latestBall.id || `${activeInnings.inningsNo}-${activeInnings.overs}.${activeInnings.balls}-${latestBall.timestamp || latestBall.totalRuns}-${ballLogs.length}`;
 
-    // On initial mount, bookmark the latest existing ball so old balls do not flash on page reload
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      lastProcessedBallKeyRef.current = ballKey;
+    // If initial loading phase and already bookmarked, skip
+    if (isInitialMount.current && lastProcessedBallKeyRef.current === ballKey) {
       return;
     }
 
@@ -238,40 +249,40 @@ export const LiveCelebrationOverlay: React.FC = () => {
     <>
       {/* ── LIVE SCORE ON SCREEN BURST ANIMATION (2.2s AUTO DISAPPEAR) ── */}
       {scoreBurst && (
-        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center p-4">
           <div className="flex flex-col items-center justify-center animate-score-pop-fade">
             <div
-              className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center font-black font-mono shadow-2xl border-4 backdrop-blur-md transition-transform ${
+              className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center font-black font-mono shadow-2xl border-4 backdrop-blur-md transition-transform ${
                 scoreBurst.colorType === 'six'
-                  ? 'bg-amber-500/95 border-amber-200 text-slate-950 shadow-amber-500/70 text-6xl sm:text-7xl animate-pulse ring-8 ring-amber-400/40 scale-105'
+                  ? 'bg-amber-500/95 border-amber-200 text-slate-950 shadow-amber-500/80 text-6xl sm:text-7xl animate-pulse ring-8 ring-amber-400/50 scale-110'
                   : scoreBurst.colorType === 'four'
-                  ? 'bg-emerald-500/95 border-emerald-200 text-slate-950 shadow-emerald-500/70 text-6xl sm:text-7xl animate-pulse ring-8 ring-emerald-400/40 scale-105'
+                  ? 'bg-emerald-500/95 border-emerald-200 text-slate-950 shadow-emerald-500/80 text-6xl sm:text-7xl animate-pulse ring-8 ring-emerald-400/50 scale-110'
                   : scoreBurst.colorType === 'three'
-                  ? 'bg-purple-600/95 border-purple-200 text-white shadow-purple-600/70 text-6xl sm:text-7xl ring-8 ring-purple-400/30'
+                  ? 'bg-purple-600/95 border-purple-200 text-white shadow-purple-600/80 text-6xl sm:text-7xl ring-8 ring-purple-400/40'
                   : scoreBurst.colorType === 'two'
-                  ? 'bg-cyan-500/95 border-cyan-200 text-slate-950 shadow-cyan-500/70 text-6xl sm:text-7xl ring-8 ring-cyan-400/30'
+                  ? 'bg-cyan-500/95 border-cyan-200 text-slate-950 shadow-cyan-500/80 text-6xl sm:text-7xl ring-8 ring-cyan-400/40'
                   : scoreBurst.colorType === 'one'
-                  ? 'bg-blue-600/95 border-blue-200 text-white shadow-blue-600/60 text-6xl sm:text-7xl ring-8 ring-blue-400/30'
+                  ? 'bg-blue-600/95 border-blue-200 text-white shadow-blue-600/70 text-6xl sm:text-7xl ring-8 ring-blue-400/40'
                   : scoreBurst.colorType === 'hattrick'
                   ? 'bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 border-amber-200 text-white shadow-rose-500/90 text-4xl sm:text-5xl ring-8 ring-amber-400/50 animate-bounce scale-110'
                   : scoreBurst.colorType === 'wicket'
-                  ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/80 text-5xl sm:text-6xl ring-8 ring-red-500/40 animate-pulse'
+                  ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/90 text-5xl sm:text-6xl ring-8 ring-red-500/50 animate-pulse'
                   : scoreBurst.colorType === 'wide'
-                  ? 'bg-orange-500/95 border-orange-200 text-slate-950 shadow-orange-500/70 text-5xl sm:text-6xl ring-8 ring-orange-400/30'
+                  ? 'bg-orange-500/95 border-orange-200 text-slate-950 shadow-orange-500/80 text-5xl sm:text-6xl ring-8 ring-orange-400/40'
                   : scoreBurst.colorType === 'noball'
-                  ? 'bg-yellow-400/95 border-yellow-100 text-slate-950 shadow-yellow-500/70 text-5xl sm:text-6xl ring-8 ring-yellow-400/40 animate-pulse'
+                  ? 'bg-yellow-400/95 border-yellow-100 text-slate-950 shadow-yellow-500/80 text-5xl sm:text-6xl ring-8 ring-yellow-400/50 animate-pulse'
                   : scoreBurst.colorType === 'byes'
-                  ? 'bg-indigo-600/95 border-indigo-200 text-white shadow-indigo-600/60 text-4xl sm:text-5xl ring-8 ring-indigo-400/30'
+                  ? 'bg-indigo-600/95 border-indigo-200 text-white shadow-indigo-600/70 text-4xl sm:text-5xl ring-8 ring-indigo-400/40'
                   : scoreBurst.colorType === 'legbyes'
-                  ? 'bg-teal-600/95 border-teal-200 text-white shadow-teal-600/60 text-4xl sm:text-5xl ring-8 ring-teal-400/30'
-                  : 'bg-slate-900/95 border-slate-700 text-white shadow-slate-950/70 text-5xl sm:text-6xl ring-4 ring-slate-800'
+                  ? 'bg-teal-600/95 border-teal-200 text-white shadow-teal-600/70 text-4xl sm:text-5xl ring-8 ring-teal-400/40'
+                  : 'bg-slate-900/95 border-slate-700 text-white shadow-slate-950/80 text-5xl sm:text-6xl ring-4 ring-slate-800'
               }`}
             >
               {scoreBurst.text}
             </div>
 
             {scoreBurst.subText && (
-              <span className="mt-2.5 px-4 py-1.5 rounded-full bg-slate-950/95 border border-slate-700 text-xs sm:text-sm font-black uppercase tracking-widest text-white shadow-2xl backdrop-blur-md">
+              <span className="mt-3 px-5 py-2 rounded-full bg-slate-950/95 border border-slate-700 text-sm sm:text-base font-black uppercase tracking-widest text-white shadow-2xl backdrop-blur-md">
                 {scoreBurst.subText}
               </span>
             )}

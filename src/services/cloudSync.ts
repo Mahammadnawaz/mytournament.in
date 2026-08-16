@@ -182,12 +182,12 @@ export const cloudSync = {
 
         // Check if another device holds an active, fresh lock (< 45 seconds old)
         const isFresh = currentLock && currentLock.timestamp && (Date.now() - currentLock.timestamp < 45000);
-        if (isFresh && currentLock.deviceId !== deviceId) {
+        if (isFresh && currentLock.deviceId && currentLock.deviceId !== deviceId) {
           return {
             success: false,
             isLocked: true,
             activeScorer: currentLock,
-            message: `🔒 Access Denied: Scoring controls are locked by ${currentLock.deviceName || 'another device'}. Only 1 device is allowed to score at a time.`,
+            message: `🔒 Scoring controls are locked by ${currentLock.deviceName || 'another device'}.`,
           };
         }
 
@@ -200,12 +200,9 @@ export const cloudSync = {
       }
     }
 
-    // Fallback to Express backend if Firebase not configured
-    const apiRes = await api.acquireScorerLock(deviceId, deviceName);
-    return {
-      ...apiRes,
-      activeScorer: apiRes.activeScorer ? { ...apiRes.activeScorer, timestamp: Date.now() } : undefined,
-    };
+    // Local/API fallback
+    const newLock = { deviceId, deviceName, timestamp: Date.now() };
+    return { success: true, activeScorer: newLock };
   },
 
   async releaseScorerLock(deviceId: string, force = false): Promise<boolean> {

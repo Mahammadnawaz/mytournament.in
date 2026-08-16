@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export const Navbar: React.FC = () => {
-  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer } = useCricket();
+  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer, deviceId } = useCricket();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -33,6 +33,8 @@ export const Navbar: React.FC = () => {
     { id: 'oceaniablue', label: '🌊 Oceania ODI Navy', color: 'bg-sky-950 border-sky-500 text-sky-300' },
     { id: 'daylight', label: '☀️ Daylight Mode', color: 'bg-slate-100 border-slate-400 text-slate-900' },
   ];
+
+  const isLockedByOther = Boolean(activeScorer && activeScorer.deviceId !== deviceId);
 
   return (
     <>
@@ -59,36 +61,32 @@ export const Navbar: React.FC = () => {
               {/* Role Mode Selector (Scorer vs Spectator) with Exclusive Lock */}
               <div className="flex items-center bg-slate-950/90 border border-slate-800 rounded-xl p-0.5 text-[11px] sm:text-xs font-black">
                 <button
-                  onClick={() => {
-                    if (activeScorer && !isScorer) {
-                      alert(
-                        `🔒 Access Denied: Scorer controls are currently locked by ${activeScorer.deviceName || 'another device'}.\n\nOnly one device can be the active scorer at a time. Please wait for the scorer to finish or switch to Spectator mode.`
-                      );
-                      return;
-                    }
-                    setUserRole('scorer');
+                  onClick={async () => {
+                    await setUserRole('scorer');
                   }}
-                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 ${
+                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center space-x-1.5 transition active:scale-95 ${
                     isScorer
                       ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                      : activeScorer && !isScorer
-                      ? 'text-amber-400 bg-amber-500/10 cursor-not-allowed opacity-85'
+                      : isLockedByOther
+                      ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                   title={
                     isScorer 
-                      ? 'Scorer Mode (You hold active scoring lock)' 
-                      : activeScorer 
-                      ? `Locked by ${activeScorer.deviceName} (Access Denied)` 
+                      ? 'Scorer Mode (Active)' 
+                      : isLockedByOther 
+                      ? `🔒 Locked by ${activeScorer?.deviceName || 'another device'} (Access Denied)` 
                       : 'Switch to Scorer Mode'
                   }
                 >
-                  {activeScorer && !isScorer ? (
-                    <Lock className="w-3 h-3 text-amber-400" />
+                  {isLockedByOther ? (
+                    <Lock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  ) : isScorer ? (
+                    <span className="w-2 h-2 rounded-full bg-slate-950" />
                   ) : (
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
                   )}
-                  <span>{activeScorer && !isScorer ? 'Locked' : 'Scorer'}</span>
+                  <span className="font-extrabold">{isLockedByOther ? 'Locked' : 'Scorer'}</span>
                 </button>
 
                 <button

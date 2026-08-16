@@ -24,9 +24,10 @@ interface CricketContextType {
   isScorer: boolean;
   isSpectator: boolean;
   isOnline: boolean;
+  deviceId: string;
   activeScorer: { deviceId: string; deviceName: string } | null;
-  setUserRole: (role: UserRole) => void;
-  releaseScorerLock: (force?: boolean) => void;
+  setUserRole: (role: UserRole, forceTakeover?: boolean) => Promise<void>;
+  releaseScorerLock: (force?: boolean) => Promise<void>;
   addPlayer: (player: Omit<Player, 'id' | 'stats'>) => void;
   updatePlayer: (player: Player) => void;
   deletePlayer: (id: string) => void;
@@ -77,13 +78,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [activeTab, setActiveTab] = useState<'scoring' | 'players' | 'scorecard' | 'analytics' | 'history' | 'series'>('scoring');
 
+  // Persistent device ID per browser/device
   const [deviceId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cricpulse_device_id');
-      if (saved) return saved;
-      const generated = 'dev-' + Math.random().toString(36).substring(2, 9);
-      localStorage.setItem('cricpulse_device_id', generated);
-      return generated;
+      let id = localStorage.getItem('cricpulse_device_id');
+      if (!id) {
+        id = 'dev-' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('cricpulse_device_id', id);
+      }
+      return id;
     }
     return 'dev-default';
   });
@@ -107,6 +110,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
 
+  // Scorer role is active when user selected scorer and lock is held or unassigned
   const isScorer = userRole === 'scorer' && (!activeScorer || activeScorer.deviceId === deviceId);
   const isSpectator = !isScorer;
 
@@ -115,7 +119,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const unsubscribe = cloudSync.subscribeScorerLock((lock) => {
       setActiveScorer(lock);
       if (lock && lock.deviceId !== deviceId && userRole === 'scorer') {
-        // Another device holds the lock, lock this device into spectator mode
+        // Another device holds the lock, switch to spectator
         setUserRoleState('spectator');
         localStorage.setItem('cricpulse_user_role', 'spectator');
       }
@@ -124,7 +128,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => unsubscribe();
   }, [deviceId, userRole]);
 
-  // Periodic heartbeat for active scorer to keep lock fresh
+  // Periodic heartbeat for active scorer to keep lock fresh every 10 seconds
   useEffect(() => {
     if (!isScorer) return;
 
@@ -133,7 +137,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const interval = setInterval(() => {
       cloudSync.heartbeatScorerLock(deviceId, devName);
-    }, 15000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [isScorer, deviceId]);
@@ -144,7 +148,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const lockRes = await cloudSync.acquireScorerLock(deviceId, devName);
 
       if (!lockRes.success) {
-        alert(lockRes.message || '🔒 Access Denied: Scorer controls are locked by another device. Only 1 device is allowed to score at a time.');
+        alert(
+          `🔒 Access Denied: Scoring controls are currently locked by ${lockRes.activeScorer?.deviceName || 'another device'}.\n\nOnly 1 device is allowed to score at a time. Please wait for the current scorer to release control.`
+        );
         setUserRoleState('spectator');
         localStorage.setItem('cricpulse_user_role', 'spectator');
         return;
@@ -799,6 +805,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isScorer,
         isSpectator,
         isOnline,
+        deviceId,
         activeScorer,
         setUserRole,
         releaseScorerLock,
