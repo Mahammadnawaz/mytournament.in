@@ -120,25 +120,20 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return null;
   });
 
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? (navigator.onLine ?? true) : true);
 
   const isLoggedIn = Boolean(userRole);
-  const isScorer = userRole === 'scorer' && (!activeScorer || activeScorer.deviceId === deviceId);
-  const isSpectator = userRole === 'spectator' || !isScorer;
+  const isScorer = userRole === 'scorer';
+  const isSpectator = userRole === 'spectator';
 
-  // Real-time Cloud Scorer Lock subscription: sync active scorer across all devices
+  // Real-time Cloud Scorer Lock subscription: sync active scorer status
   useEffect(() => {
     const unsubscribe = cloudSync.subscribeScorerLock((lock) => {
       setActiveScorer(lock);
-      if (lock && lock.deviceId !== deviceId && userRole === 'scorer') {
-        // Another device holds the lock, switch to spectator
-        setUserRoleState('spectator');
-        localStorage.setItem('cricpulse_user_role', 'spectator');
-      }
     });
 
     return () => unsubscribe();
-  }, [deviceId, userRole]);
+  }, [deviceId]);
 
   // Periodic heartbeat for active scorer to keep lock fresh every 4 seconds
   useEffect(() => {

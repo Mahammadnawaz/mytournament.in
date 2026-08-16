@@ -1,6 +1,188 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import { MessageSquare, Volume2, VolumeX, Radio } from 'lucide-react';
+import type { BallLog } from '../../types/cricket';
+
+// Cricket Shot Zone Placement Map
+const SHOT_ZONES: Record<string, string[]> = {
+  four: [
+    'crisply driven through extra cover',
+    'pulled powerfully past deep square leg',
+    'slashed through backward point',
+    'flicked exquisitely through mid-wicket',
+    'punched past mid-off to the boundary',
+    'steered deftly past the third man fielder',
+    'drilled straight down the ground',
+    'swept handsomely through fine leg',
+  ],
+  six: [
+    'smashed high and handsome over deep mid-wicket into the stands',
+    'lofted majestically over long-on for a monster maximum',
+    'launched over wide long-off with pure power',
+    'hooked deep over fine leg for six',
+    'hammered over extra cover into the crowd',
+    'muscled over deep square leg into the second tier',
+  ],
+  single: [
+    'worked into the gap on the on-side for a single',
+    'pushed down to long-on for one run',
+    'tapped towards cover-point and hustled for a quick single',
+    'nudged behind square on the leg side for a run',
+    'guided towards third man for an easy single',
+  ],
+  double: [
+    'placed nicely into the deep cover gap, coming back for the second',
+    'clipped through mid-wicket, running hard for a brace of runs',
+    'driven wide of long-off, comfortable two runs taken',
+    'flicked off the pads into the deep backward square region for two',
+  ],
+  three: [
+    'drilled through the covers, exceptional fielding stops the four, three runs saved',
+    'pulled into the deep vacant mid-wicket pocket, ran hard for three',
+  ],
+  dot: [
+    'defended solidly back to the bowler on a good length. No run',
+    'beaten outside off-stump with seam movement. Dot ball',
+    'pushed straight to cover, fielder intercepts quickly. No run',
+    'length delivery on middle stump, defended watchfully. Dot ball',
+    'left alone outside off-stump through to the wicketkeeper',
+  ],
+};
+
+function getPlacementByIndex(list: string[], seed: number): string {
+  return list[Math.abs(seed) % list.length];
+}
+
+export function formatBallCommentary(
+  ball: BallLog,
+  striker: string,
+  bowler: string
+): { headline: string; description: string; speechText: string } {
+  const seed = (ball.overNumber * 10) + ball.ballNumber + (ball.runsScored * 7);
+  const zone = ball.shotZone ? ` towards ${ball.shotZone}` : '';
+
+  // 1. WICKET
+  if (ball.isWicket) {
+    const wType = ball.wicketInfo?.type ? ball.wicketInfo.type.toUpperCase() : 'WICKET';
+    const detail = ball.wicketInfo?.description ? ` (${ball.wicketInfo.description})` : '';
+    const headline = `🔴 OUT! ${wType}`;
+    const description = `WICKET! ${bowler} strikes! ${striker} is dismissed${detail}. Huge breakthrough in over ${ball.overNumber + 1}!`;
+    const speechText = `Out! Wicket falls! ${bowler} dismisses ${striker} in over ${ball.overNumber + 1}!`;
+    return { headline, description, speechText };
+  }
+
+  // 2. WIDE BALL (with optional extra runs)
+  if (ball.extras?.type === 'wide') {
+    const extraRuns = ball.extras.runs || 1;
+    const totalRunsThisBall = ball.runsScored; // total runs from wide + bye runs
+
+    if (extraRuns > 1 || totalRunsThisBall > 1) {
+      const additional = totalRunsThisBall - 1;
+      const headline = `WIDE + ${additional} ${additional === 1 ? 'RUN' : 'RUNS'} ⚡`;
+      const description = `WIDE + ${additional} (${totalRunsThisBall} runs total)! ${bowler} strays way down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
+      const speechText = `Wide plus ${additional} run${additional > 1 ? 's' : ''}! ${totalRunsThisBall} runs added.`;
+      return { headline, description, speechText };
+    }
+
+    const headline = 'WIDE BALL ⚡';
+    const description = `Wide ball! ${bowler} sprays it well outside the tramlines. 1 extra run added to the total.`;
+    const speechText = `Wide ball from ${bowler}. One extra run.`;
+    return { headline, description, speechText };
+  }
+
+  // 3. NO BALL (with optional off-the-bat or extra runs)
+  if (ball.extras?.type === 'no-ball') {
+    const batRuns = ball.runsScored > 1 ? ball.runsScored - 1 : 0;
+
+    if (batRuns === 6) {
+      const headline = 'NO BALL + SIX! 🚀 (7 RUNS)';
+      const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(SHOT_ZONES.six, seed)}${zone}! Free Hit coming up!`;
+      const speechText = `No ball and a massive Six by ${striker}! Seven runs scored! Free Hit next!`;
+      return { headline, description, speechText };
+    }
+
+    if (batRuns === 4) {
+      const headline = 'NO BALL + FOUR! ⚡ (5 RUNS)';
+      const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(SHOT_ZONES.four, seed)}${zone} for four! Free Hit next!`;
+      const speechText = `No ball plus Four runs to ${striker}! Five runs in total. Free Hit coming up!`;
+      return { headline, description, speechText };
+    }
+
+    if (batRuns > 0) {
+      const headline = `NO BALL + ${batRuns} ${batRuns === 1 ? 'RUN' : 'RUNS'} (${batRuns + 1} TOTAL)`;
+      const description = `NO BALL + ${batRuns} runs! ${bowler} oversteps the bowling crease. Batsmen complete ${batRuns} run${batRuns > 1 ? 's' : ''}. Free Hit next!`;
+      const speechText = `No ball plus ${batRuns} run${batRuns > 1 ? 's' : ''}. Free hit next delivery.`;
+      return { headline, description, speechText };
+    }
+
+    const headline = 'NO BALL ⚠️ (FREE HIT)';
+    const description = `No ball called! ${bowler} oversteps the crease. 1 run added and Free Hit awarded next delivery!`;
+    const speechText = `No ball from ${bowler}! Free Hit awarded.`;
+    return { headline, description, speechText };
+  }
+
+  // 4. LEG BYES / BYES
+  if (ball.extras?.type === 'leg-bye' || ball.extras?.type === 'bye') {
+    const isLB = ball.extras.type === 'leg-bye';
+    const r = ball.runsScored || ball.extras.runs || 1;
+    const headline = `${isLB ? 'LEG BYES' : 'BYES'} + ${r} 🦵`;
+    const description = `${isLB ? 'Leg Byes' : 'Byes'} (${r} run${r > 1 ? 's' : ''})! Deflected into the vacant outfield as batsmen scramble through.`;
+    const speechText = `${isLB ? 'Leg bye' : 'Bye'}, ${r} run${r > 1 ? 's' : ''} taken.`;
+    return { headline, description, speechText };
+  }
+
+  // 5. SIX (6 RUNS) WITH BOUNDARY PLACEMENT
+  if (ball.runsScored === 6) {
+    const placement = getPlacementByIndex(SHOT_ZONES.six, seed);
+    const headline = 'SIX RUNS 🚀 MAXIMUM';
+    const description = `🚀 MAXIMUM SIX! ${striker} ${placement}${zone}! Clean strike into the stands!`;
+    const speechText = `Massive Six! ${striker} smashes it ${placement}!`;
+    return { headline, description, speechText };
+  }
+
+  // 6. FOUR (4 RUNS) WITH BOUNDARY PLACEMENT
+  if (ball.runsScored === 4) {
+    const placement = getPlacementByIndex(SHOT_ZONES.four, seed);
+    const headline = 'FOUR RUNS ⚡ BOUNDARY';
+    const description = `⚡ BOUNDARY FOUR! ${striker} ${placement}${zone}! Superb timing and placement to find the fence.`;
+    const speechText = `Four runs! ${striker} hits it ${placement}!`;
+    return { headline, description, speechText };
+  }
+
+  // 7. 3 RUNS
+  if (ball.runsScored === 3) {
+    const placement = getPlacementByIndex(SHOT_ZONES.three, seed);
+    const headline = '3 RUNS (HARD RUNNING)';
+    const description = `${striker} ${placement}${zone}. Great hustle between the wickets for three runs.`;
+    const speechText = `Three runs scored by ${striker}. Good running.`;
+    return { headline, description, speechText };
+  }
+
+  // 8. 2 RUNS
+  if (ball.runsScored === 2) {
+    const placement = getPlacementByIndex(SHOT_ZONES.double, seed);
+    const headline = '2 RUNS';
+    const description = `${striker} ${placement}${zone}. Back for a comfortable second run.`;
+    const speechText = `Two runs taken by ${striker}.`;
+    return { headline, description, speechText };
+  }
+
+  // 9. 1 RUN
+  if (ball.runsScored === 1) {
+    const placement = getPlacementByIndex(SHOT_ZONES.single, seed);
+    const headline = '1 RUN (SINGLE)';
+    const description = `${striker} ${placement}${zone}. Rotating the strike.`;
+    const speechText = `Single taken by ${striker}.`;
+    return { headline, description, speechText };
+  }
+
+  // 10. DOT BALL (0 RUNS)
+  const dotDesc = getPlacementByIndex(SHOT_ZONES.dot, seed);
+  const headline = 'DOT BALL 🎯';
+  const description = `${bowler} to ${striker}: ${dotDesc}.`;
+  const speechText = `Dot ball from ${bowler}.`;
+  return { headline, description, speechText };
+}
 
 export const LiveCommentaryFeed: React.FC = () => {
   const { activeMatch, activeInnings, players } = useCricket();
@@ -11,28 +193,17 @@ export const LiveCommentaryFeed: React.FC = () => {
   useEffect(() => {
     if (!isAudioEnabled || !activeInnings || activeInnings.ballLogs.length === 0) return;
     const latestBall = activeInnings.ballLogs[activeInnings.ballLogs.length - 1];
-    const ballKey = `${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.isWicket}`;
+    const ballKey = `${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.isWicket}-${latestBall.extras?.type}-${latestBall.extras?.runs}`;
 
     if (lastSpokenBallId.current !== ballKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       lastSpokenBallId.current = ballKey;
       const bStriker = players.find(p => p.id === latestBall.strikerId)?.name || 'Batsman';
       const bBowler = players.find(p => p.id === latestBall.bowlerId)?.name || 'Bowler';
       
-      let text = '';
-      if (latestBall.isWicket) {
-        text = `Out! Wicket falls! ${bStriker} is dismissed in over ${latestBall.overNumber + 1}!`;
-      } else if (latestBall.runsScored === 6) {
-        text = `Huge six by ${bStriker}! Smashed over the boundary ropes!`;
-      } else if (latestBall.runsScored === 4) {
-        text = `Four runs! Beautiful boundary struck by ${bStriker}.`;
-      } else if (latestBall.runsScored === 0) {
-        text = `Dot ball from ${bBowler}.`;
-      } else {
-        text = `${latestBall.runsScored} run${latestBall.runsScored > 1 ? 's' : ''} scored by ${bStriker}.`;
-      }
+      const { speechText } = formatBallCommentary(latestBall, bStriker, bBowler);
 
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(speechText);
       utterance.rate = 1.05;
       utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
@@ -60,7 +231,7 @@ export const LiveCommentaryFeed: React.FC = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
             </h3>
-            <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Real-time instant live match commentary feed</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Boundary placement, extras & shot-by-shot commentary feed</p>
           </div>
         </div>
 
@@ -69,7 +240,7 @@ export const LiveCommentaryFeed: React.FC = () => {
           onClick={() => setIsAudioEnabled(prev => !prev)}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
             isAudioEnabled
-              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20'
               : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border-slate-700/80'
           }`}
           title={isAudioEnabled ? 'Voice Commentary Active' : 'Enable Voice Commentary'}
@@ -80,17 +251,22 @@ export const LiveCommentaryFeed: React.FC = () => {
       </div>
 
       {/* Commentary Feed Body */}
-      <div className="p-4 sm:p-6 bg-slate-950/40 space-y-3 max-h-[380px] overflow-y-auto custom-scrollbar">
+      <div className="p-4 sm:p-6 bg-slate-950/40 space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
         {reversedLogs.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-xs space-y-1">
             <Radio className="w-6 h-6 mx-auto text-slate-600 animate-pulse" />
             <p className="font-semibold text-slate-400">Match in progress. Ready for the opening delivery.</p>
-            <p className="text-[11px] text-slate-600">Ball-by-ball commentary will stream here in real-time.</p>
+            <p className="text-[11px] text-slate-600">Ball-by-ball commentary with boundary placements will stream here in real-time.</p>
           </div>
         ) : (
           reversedLogs.map((ball, idx) => {
             const bStriker = players.find(p => p.id === ball.strikerId)?.name || 'Batsman';
             const bBowler = players.find(p => p.id === ball.bowlerId)?.name || 'Bowler';
+            const { headline, description } = formatBallCommentary(ball, bStriker, bBowler);
+
+            const isBoundary6 = ball.runsScored === 6;
+            const isBoundary4 = ball.runsScored === 4;
+            const isExtra = Boolean(ball.extras?.type && ball.extras.type !== 'none');
 
             return (
               <div
@@ -98,14 +274,16 @@ export const LiveCommentaryFeed: React.FC = () => {
                 className={`p-3.5 rounded-2xl border transition-all ${
                   ball.isWicket
                     ? 'bg-red-500/10 border-red-500/30'
-                    : ball.runsScored === 6
+                    : isBoundary6
                     ? 'bg-purple-500/10 border-purple-500/30'
-                    : ball.runsScored === 4
+                    : isBoundary4
                     ? 'bg-amber-500/10 border-amber-500/30'
+                    : isExtra
+                    ? 'bg-blue-500/10 border-blue-500/30'
                     : 'bg-slate-900/90 border-slate-800'
                 }`}
               >
-                <div className="flex items-center justify-between text-xs pb-1">
+                <div className="flex items-center justify-between text-xs pb-1.5">
                   <div className="flex items-center space-x-2 font-mono font-bold">
                     <span className="px-2 py-0.5 rounded-md bg-slate-800 text-emerald-400 text-[11px] border border-slate-700">
                       {ball.overNumber}.{ball.ballNumber}
@@ -117,31 +295,23 @@ export const LiveCommentaryFeed: React.FC = () => {
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                       ball.isWicket
                         ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
-                        : ball.runsScored === 6
+                        : isBoundary6
                         ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                        : ball.runsScored === 4
+                        : isBoundary4
                         ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                        : isExtra
+                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                         : ball.runsScored === 0
                         ? 'bg-slate-800 text-slate-400 border border-slate-700'
                         : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                     }`}
                   >
-                    {ball.isWicket ? 'WICKET' : ball.runsScored === 6 ? 'SIX 🚀' : ball.runsScored === 4 ? 'FOUR ⚡' : `${ball.runsScored} RUNS`}
+                    {headline}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-300 font-medium pt-1 leading-relaxed">
-                  {ball.isWicket
-                    ? `🔴 OUT! ${ball.wicketInfo?.type ? ball.wicketInfo.type.toUpperCase() : 'Wicket'}! ${bStriker} departs${ball.wicketInfo?.description ? ` - ${ball.wicketInfo.description}` : ''}.`
-                    : ball.runsScored === 6
-                    ? `🚀 MAXIMUM! Smashed high and handsome over the ropes by ${bStriker}! Fantastic power shot.`
-                    : ball.runsScored === 4
-                    ? `⚡ BOUNDARY! Driven cleanly through the field by ${bStriker} for four runs.`
-                    : ball.extras?.type && ball.extras.type !== 'none'
-                    ? `Extra: ${ball.extras.type.toUpperCase()} conceded (${ball.extras.runs || 1} run).`
-                    : ball.runsScored === 0
-                    ? `Defended solidly by ${bStriker}. Dot ball.`
-                    : `Pushed into the gap for ${ball.runsScored} run${ball.runsScored > 1 ? 's' : ''}.`}
+                <p className="text-xs text-slate-300 font-medium pt-0.5 leading-relaxed">
+                  {description}
                 </p>
               </div>
             );

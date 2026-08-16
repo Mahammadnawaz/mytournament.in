@@ -311,13 +311,13 @@ app.get('/api/sync', (req, res) => {
     series: db.series || [],
     activeMatchId: activeId || null,
     activeScorer: db.activeScorer || null,
-    timestamp: Date.now(),
+    timestamp: db.syncTimestamp || Date.now(),
   });
 });
 
 app.post('/api/sync', (req, res) => {
   const db = readDb();
-  const { players, matches, series, activeMatchId, activeScorer } = req.body;
+  const { players, matches, series, activeMatchId, activeScorer, timestamp } = req.body;
 
   if (players && Array.isArray(players) && players.length > 0) {
     db.players = players;
@@ -335,8 +335,10 @@ app.post('/api/sync', (req, res) => {
     db.activeScorer = activeScorer;
   }
 
+  const syncTime = timestamp || Date.now();
+  db.syncTimestamp = syncTime;
   writeDb(db);
-  res.json({ success: true, timestamp: Date.now() });
+  res.json({ success: true, timestamp: syncTime });
 });
 
 app.post('/api/active-match', (req, res) => {
