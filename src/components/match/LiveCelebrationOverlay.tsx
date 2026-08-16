@@ -67,6 +67,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
   // Detect live ball events from activeInnings.ballLogs exclusively for Spectators
   useEffect(() => {
+    if (isScorer) return;
+
     const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
     if (!activeInnings || ballLogs.length === 0) {
       return;
@@ -78,19 +80,19 @@ export const LiveCelebrationOverlay: React.FC = () => {
     // Unique delivery signature
     const ballKey = latestBall.id || `${activeInnings.inningsNo}-${activeInnings.overs}.${activeInnings.balls}-${latestBall.timestamp || latestBall.totalRuns}-${ballLogs.length}`;
 
-    // If initial loading phase and already bookmarked, skip
+    // If initial loading phase and already bookmarked, skip historical ball
     if (isInitialMount.current && lastProcessedBallKeyRef.current === ballKey) {
       return;
     }
 
-    // Skip if already processed
+    // Skip if already displayed
     if (lastProcessedBallKeyRef.current === ballKey) {
       return;
     }
 
     lastProcessedBallKeyRef.current = ballKey;
 
-    // 1. Duck Dismissal: Wicket with 0 runs
+    // Duck Dismissal: Wicket with 0 runs
     if (latestBall.isWicket && latestBall.wicketInfo) {
       const outBatsmanId = latestBall.wicketInfo.dismissedPlayerId || latestBall.strikerId;
       const outPlayer = players.find(p => p.id === outBatsmanId);
@@ -112,10 +114,6 @@ export const LiveCelebrationOverlay: React.FC = () => {
       }
     }
 
-    // 2. Score Popups on screen are exclusively for Spectator devices
-    if (isScorer) {
-      return;
-    }
     const bowlerBalls = ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
     const isHatTrick = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
 

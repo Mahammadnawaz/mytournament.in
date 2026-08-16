@@ -98,8 +98,27 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [activeScorer, setActiveScorer] = useState<{ deviceId: string; deviceName: string; userName?: string } | null>(null);
 
-  const [userRole, setUserRoleState] = useState<UserRole | null>(null);
-  const [userName, setUserNameState] = useState<string | null>(null);
+  const [userRole, setUserRoleState] = useState<UserRole | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlRole = params.get('role');
+      if (urlRole === 'spectator' || urlRole === 'scorer') {
+        return urlRole as UserRole;
+      }
+      const savedRole = localStorage.getItem('cricpulse_user_role') as UserRole;
+      if (savedRole === 'spectator' || savedRole === 'scorer') {
+        return savedRole;
+      }
+    }
+    return null;
+  });
+
+  const [userName, setUserNameState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cricpulse_user_name') || null;
+    }
+    return null;
+  });
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine ?? true);
 
