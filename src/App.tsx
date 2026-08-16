@@ -29,6 +29,12 @@ class TabErrorBoundary extends React.Component<{ children: React.ReactNode; tabN
     return { hasError: true };
   }
 
+  componentDidUpdate(prevProps: { tabName: string }) {
+    if (prevProps.tabName !== this.props.tabName) {
+      this.setState({ hasError: false });
+    }
+  }
+
   componentDidCatch(error: any, errorInfo: any) {
     console.error(`Tab ${this.props.tabName} rendering error:`, error, errorInfo);
   }

@@ -262,24 +262,24 @@ export const SeriesDashboard: React.FC = () => {
             {isTriSeries ? (
               <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
                 <select
-                  value={triSeriesFixture || `${selectedSeries.teamA}|||${selectedSeries.teamB}`}
+                  value={triSeriesFixture || `${teamAName}|||${teamBName}`}
                   onChange={(e) => setTriSeriesFixture(e.target.value)}
                   className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-300 font-extrabold text-xs outline-none cursor-pointer"
                 >
-                  <option value={`${selectedSeries.teamA}|||${selectedSeries.teamB}`}>
-                    🏏 Match Fixture: {selectedSeries.teamA} vs {selectedSeries.teamB}
+                  <option value={`${teamAName}|||${teamBName}`}>
+                    🏏 Match Fixture: {teamAName} vs {teamBName}
                   </option>
-                  <option value={`${selectedSeries.teamB}|||${teamCName}`}>
-                    🏏 Match Fixture: {selectedSeries.teamB} vs {teamCName}
+                  <option value={`${teamBName}|||${teamCName}`}>
+                    🏏 Match Fixture: {teamBName} vs {teamCName}
                   </option>
-                  <option value={`${teamCName}|||${selectedSeries.teamA}`}>
-                    🏏 Match Fixture: {teamCName} vs {selectedSeries.teamA}
+                  <option value={`${teamCName}|||${teamAName}`}>
+                    🏏 Match Fixture: {teamCName} vs {teamAName}
                   </option>
                 </select>
 
                 <button
                   onClick={() => {
-                    const fixture = triSeriesFixture || `${selectedSeries.teamA}|||${selectedSeries.teamB}`;
+                    const fixture = triSeriesFixture || `${teamAName}|||${teamBName}`;
                     const [tA, tB] = fixture.split('|||');
                     handleStartNextSeriesMatch(tA, tB);
                   }}
