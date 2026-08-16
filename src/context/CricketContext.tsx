@@ -729,7 +729,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
-    cloudSync.pushState({ players: finalPlayers, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+    cloudSync.pushState({ players: finalPlayers || players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
 
     api.updateMatch(updatedMatch);
     broadcastSync();

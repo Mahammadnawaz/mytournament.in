@@ -100,58 +100,58 @@ export function formatBallCommentary(
   if (ball.extras?.type === 'wide') {
     const extraRuns = ball.extras.runs || 1;
     const totalRunsThisBall = ball.runsScored; // total runs from wide + bye runs
+    const additional = totalRunsThisBall > 1 ? totalRunsThisBall - 1 : (extraRuns > 1 ? extraRuns - 1 : 0);
 
-    if (extraRuns > 1 || totalRunsThisBall > 1) {
-      const additional = totalRunsThisBall - 1;
-      const headline = `WIDE + ${additional} ${additional === 1 ? 'RUN' : 'RUNS'} ⚡`;
-      const description = `WIDE + ${additional} (${totalRunsThisBall} runs total)! ${bowler} strays down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
+    if (additional > 0) {
+      const headline = `WIDE + ${additional} ⚡`;
+      const description = `WIDE + ${additional} (${additional + 1} runs total)! ${bowler} strays down the leg side, keeper fumbles and batsmen sneak ${additional} extra run${additional > 1 ? 's' : ''}.`;
       const speechText = `Wide plus ${additional}`;
       return { headline, description, speechText };
     }
 
     const headline = 'WIDE BALL ⚡';
     const description = `Wide ball! ${bowler} sprays it outside the tramlines. 1 extra run added.`;
-    const speechText = `Wide plus 1`;
+    const speechText = `Wide ball`;
     return { headline, description, speechText };
   }
 
   // 3. NO BALL (with optional off-the-bat or extra runs)
   if (ball.extras?.type === 'no-ball') {
-    const batRuns = ball.runsScored > 1 ? ball.runsScored - 1 : 0;
+    const extraNum = ball.runsScored > 0 ? ball.runsScored : (ball.extras.runs > 1 ? ball.extras.runs - 1 : 0);
 
-    if (batRuns === 6) {
+    if (extraNum === 6) {
       if (clickedZone) {
         const { verb, prep } = getShotZoneAction(clickedZone, true);
-        const headline = `NO BALL + SIX! 🚀 (${clickedZone.toUpperCase()})`;
-        const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
+        const headline = `NO BALL + 6! 🚀 (${clickedZone.toUpperCase()})`;
+        const description = `NO BALL + 6 (7 runs total)! ${bowler} oversteps and ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
         const speechText = `No ball plus 6`;
         return { headline, description, speechText };
       }
-      const headline = 'NO BALL + SIX! 🚀 (7 RUNS)';
-      const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.six, seed)}! Free Hit coming up!`;
+      const headline = 'NO BALL + 6! 🚀 (7 RUNS)';
+      const description = `NO BALL + 6 (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.six, seed)}! Free Hit coming up!`;
       const speechText = `No ball plus 6`;
       return { headline, description, speechText };
     }
 
-    if (batRuns === 4) {
+    if (extraNum === 4) {
       if (clickedZone) {
         const { verb, prep } = getShotZoneAction(clickedZone, false);
-        const headline = `NO BALL + FOUR! ⚡ (${clickedZone.toUpperCase()})`;
-        const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
+        const headline = `NO BALL + 4! ⚡ (${clickedZone.toUpperCase()})`;
+        const description = `NO BALL + 4 (5 runs total)! High full toss / overstepping, ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
         const speechText = `No ball plus 4`;
         return { headline, description, speechText };
       }
-      const headline = 'NO BALL + FOUR! ⚡ (5 RUNS)';
-      const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.four, seed)} for four! Free Hit next!`;
+      const headline = 'NO BALL + 4! ⚡ (5 RUNS)';
+      const description = `NO BALL + 4 (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.four, seed)} for four! Free Hit next!`;
       const speechText = `No ball plus 4`;
       return { headline, description, speechText };
     }
 
-    if (batRuns > 0) {
+    if (extraNum > 0) {
       const zoneText = clickedZone ? ` towards ${clickedZone}` : '';
-      const headline = `NO BALL + ${batRuns} ${batRuns === 1 ? 'RUN' : 'RUNS'} (${batRuns + 1} TOTAL)`;
-      const description = `NO BALL + ${batRuns} runs! ${bowler} oversteps the bowling crease. ${striker} works it${zoneText} for ${batRuns} run${batRuns > 1 ? 's' : ''}. Free Hit next!`;
-      const speechText = `No ball plus ${batRuns}`;
+      const headline = `NO BALL + ${extraNum} ⚠️ (${extraNum + 1} TOTAL)`;
+      const description = `NO BALL + ${extraNum} runs! ${bowler} oversteps the bowling crease. ${striker} works it${zoneText} for ${extraNum} run${extraNum > 1 ? 's' : ''}. Free Hit next!`;
+      const speechText = `No ball plus ${extraNum}`;
       return { headline, description, speechText };
     }
 
@@ -241,7 +241,25 @@ export function formatBallCommentary(
 
 export const LiveCommentaryFeed: React.FC = () => {
   const { activeMatch, activeInnings, players } = useCricket();
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  
+  // Persist commentary voice speaker across page refreshes
+  const [isAudioEnabled, setIsAudioEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cricpulse_audio_commentary_enabled') === 'true';
+    }
+    return false;
+  });
+
+  const toggleAudio = () => {
+    setIsAudioEnabled(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cricpulse_audio_commentary_enabled', String(next));
+      }
+      return next;
+    });
+  };
+
   const lastSpokenBallId = useRef<string | null>(null);
 
   // Audio commentary announcement using SpeechSynthesis
@@ -292,7 +310,7 @@ export const LiveCommentaryFeed: React.FC = () => {
 
         {/* Audio Commentary Voice Toggle */}
         <button
-          onClick={() => setIsAudioEnabled(prev => !prev)}
+          onClick={toggleAudio}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
             isAudioEnabled
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20'

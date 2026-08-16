@@ -65,8 +65,18 @@ export const cloudSync = {
       return lightweightMatch;
     });
 
+    let cachedPlayers: Player[] = [];
+    try {
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem('cricket_players_v1');
+        if (raw) cachedPlayers = JSON.parse(raw);
+      }
+    } catch {
+      // Ignore
+    }
+
     const payload: CloudSyncData = {
-      players: data.players || [],
+      players: (data.players && data.players.length > 0) ? data.players : cachedPlayers,
       matches: lightweightMatches,
       series: data.series || [],
       activeMatchId: data.activeMatchId || null,
