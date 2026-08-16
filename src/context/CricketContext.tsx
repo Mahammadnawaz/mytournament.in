@@ -322,14 +322,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       lastSyncTimestamp.current = incomingTime;
 
-      if (syncData.players && syncData.players.length > 0) {
-        setPlayers(prev => {
-          const pMap = new Map(prev.map(p => [p.id, p]));
-          syncData.players.forEach((p: any) => pMap.set(p.id, p));
-          const merged = Array.from(pMap.values());
-          localStorage.setItem('cricket_players_v1', JSON.stringify(merged));
-          return merged;
-        });
+      if (syncData.players && Array.isArray(syncData.players)) {
+        setPlayers(syncData.players);
+        localStorage.setItem('cricket_players_v1', JSON.stringify(syncData.players));
       }
       if (syncData.matches && syncData.matches.length > 0) {
         setMatches(prev => {

@@ -107,7 +107,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, isScorer = false
         <div className="grid grid-cols-2 gap-2 py-3 border-t border-b border-slate-800/80 my-2 text-xs">
           
           {/* Batting Stats */}
-          <div className="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/60">
+          <div className="bg-slate-900/60 dark:bg-slate-950/70 p-2.5 rounded-xl border border-slate-700/50 dark:border-slate-800/60">
             <div className="flex items-center space-x-1 text-slate-300 font-bold mb-1">
               <Flame className="w-3.5 h-3.5 text-amber-400" />
               <span>Batting</span>
@@ -123,7 +123,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, isScorer = false
           </div>
 
           {/* Bowling Stats */}
-          <div className="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/60">
+          <div className="bg-slate-900/60 dark:bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/60">
             <div className="flex items-center space-x-1 text-slate-300 font-bold mb-1">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
               <span>Bowling</span>
