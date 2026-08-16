@@ -1,6 +1,19 @@
 import type { Player, Match, TournamentSeries } from '../types/cricket';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+
+const safeJson = async (res: Response) => {
+  if (!res.ok) return null;
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
 
 export const api = {
   // Check Backend Health
@@ -17,7 +30,7 @@ export const api = {
   async getPlayers(): Promise<Player[] | null> {
     try {
       const res = await fetch(`${API_BASE}/players`);
-      if (res.ok) return await res.json();
+      return await safeJson(res);
     } catch (err) {
       console.warn('Backend API unreachable, using local storage:', err);
     }
@@ -63,7 +76,7 @@ export const api = {
   async getMatches(): Promise<Match[] | null> {
     try {
       const res = await fetch(`${API_BASE}/matches`);
-      if (res.ok) return await res.json();
+      return await safeJson(res);
     } catch (err) {
       console.warn('Backend API unreachable, using local storage:', err);
     }
@@ -100,7 +113,7 @@ export const api = {
   async getSeries(): Promise<TournamentSeries[] | null> {
     try {
       const res = await fetch(`${API_BASE}/series`);
-      if (res.ok) return await res.json();
+      return await safeJson(res);
     } catch (err) {
       console.warn('Backend API unreachable, using local storage:', err);
     }
@@ -144,7 +157,7 @@ export const api = {
   } | null> {
     try {
       const res = await fetch(`${API_BASE}/sync`);
-      if (res.ok) return await res.json();
+      return await safeJson(res);
     } catch {
       // Backend offline or unreachable
     }
@@ -170,7 +183,7 @@ export const api = {
   } | null> {
     try {
       const res = await fetch(`${API_BASE}/scorer/status`);
-      if (res.ok) return await res.json();
+      return await safeJson(res);
     } catch {
       // Backend offline
     }
@@ -189,10 +202,12 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deviceId, deviceName, userName }),
       });
-      return await res.json();
+      const data = await safeJson(res);
+      if (data) return data;
     } catch {
-      return { success: true }; // Fallback offline mode
+      // Fallback offline mode
     }
+    return { success: true };
   },
 
   async releaseScorerLock(deviceId: string, force?: boolean): Promise<boolean> {
