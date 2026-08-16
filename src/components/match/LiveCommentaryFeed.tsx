@@ -3,15 +3,15 @@ import { useCricket } from '../../context/CricketContext';
 import { MessageSquare, Volume2, VolumeX, Radio } from 'lucide-react';
 import type { BallLog } from '../../types/cricket';
 
-// Cricket Shot Zone Placement Map
-const SHOT_ZONES: Record<string, string[]> = {
+// Fallback Cricket Shot Zone Placement Map
+const FALLBACK_SHOT_ZONES: Record<string, string[]> = {
   four: [
     'crisply driven through extra cover',
     'pulled powerfully past deep square leg',
     'slashed through backward point',
     'flicked exquisitely through mid-wicket',
     'punched past mid-off to the boundary',
-    'steered deftly past the third man fielder',
+    'steered deftly past third man',
     'drilled straight down the ground',
     'swept handsomely through fine leg',
   ],
@@ -41,10 +41,10 @@ const SHOT_ZONES: Record<string, string[]> = {
     'pulled into the deep vacant mid-wicket pocket, ran hard for three',
   ],
   dot: [
-    'defended solidly back to the bowler on a good length. No run',
+    'defended watchfully on a good length back to the bowler. No run',
     'beaten outside off-stump with seam movement. Dot ball',
     'pushed straight to cover, fielder intercepts quickly. No run',
-    'length delivery on middle stump, defended watchfully. Dot ball',
+    'length delivery on middle stump, defended solidly. Dot ball',
     'left alone outside off-stump through to the wicketkeeper',
   ],
 };
@@ -53,13 +53,38 @@ function getPlacementByIndex(list: string[], seed: number): string {
   return list[Math.abs(seed) % list.length];
 }
 
+function getShotZoneAction(shotZone: string, isSix: boolean): { verb: string; prep: string } {
+  const z = shotZone.toLowerCase();
+  if (isSix) {
+    if (z.includes('mid-wicket') || z.includes('midwicket')) return { verb: 'smashes it over', prep: 'into the stands' };
+    if (z.includes('long-on') || z.includes('long on')) return { verb: 'lofts it towering over', prep: 'for a massive six' };
+    if (z.includes('long-off') || z.includes('long off')) return { verb: 'launches it straight over', prep: 'into the crowd' };
+    if (z.includes('cover')) return { verb: 'strikes an inside-out loft over', prep: 'clearing the boundary rope' };
+    if (z.includes('fine leg') || z.includes('fine-leg')) return { verb: 'picks it up cleanly over', prep: 'all the way for six' };
+    if (z.includes('square leg')) return { verb: 'pulls it fiercely over', prep: 'into the upper tier' };
+    if (z.includes('third man') || z.includes('third-man')) return { verb: 'upper-cuts it high over', prep: 'for six' };
+    if (z.includes('point')) return { verb: 'slashes it high over', prep: 'into the stands' };
+    return { verb: 'smashes it over', prep: 'for a maximum six' };
+  } else {
+    if (z.includes('cover')) return { verb: 'drives crisply through', prep: 'for a glorious four' };
+    if (z.includes('point')) return { verb: 'slashes it past', prep: 'racing away to the boundary' };
+    if (z.includes('fine leg') || z.includes('fine-leg')) return { verb: 'flicks it exquisitely past', prep: 'to find the fence' };
+    if (z.includes('square leg')) return { verb: 'clips it cleanly through', prep: 'for a boundary' };
+    if (z.includes('mid-wicket') || z.includes('midwicket')) return { verb: 'pulls it with authority through', prep: 'to the rope' };
+    if (z.includes('third man') || z.includes('third-man')) return { verb: 'steers it deftly past', prep: 'for four runs' };
+    if (z.includes('long-on') || z.includes('long-off') || z.includes('straight')) return { verb: 'drills it down the ground towards', prep: 'for a bullet four' };
+    if (z.includes('mid-on') || z.includes('mid-off')) return { verb: 'punches it past', prep: 'to the boundary' };
+    return { verb: 'hits it cleanly through', prep: 'for four' };
+  }
+}
+
 export function formatBallCommentary(
   ball: BallLog,
   striker: string,
   bowler: string
 ): { headline: string; description: string; speechText: string } {
   const seed = (ball.overNumber * 10) + ball.ballNumber + (ball.runsScored * 7);
-  const zone = ball.shotZone ? ` towards ${ball.shotZone}` : '';
+  const clickedZone = ball.shotZone?.trim();
 
   // 1. WICKET
   if (ball.isWicket) {
@@ -95,22 +120,37 @@ export function formatBallCommentary(
     const batRuns = ball.runsScored > 1 ? ball.runsScored - 1 : 0;
 
     if (batRuns === 6) {
+      if (clickedZone) {
+        const { verb, prep } = getShotZoneAction(clickedZone, true);
+        const headline = `NO BALL + SIX! 🚀 (${clickedZone.toUpperCase()})`;
+        const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
+        const speechText = `No ball and a massive Six by ${striker} over ${clickedZone}! Seven runs scored! Free Hit next!`;
+        return { headline, description, speechText };
+      }
       const headline = 'NO BALL + SIX! 🚀 (7 RUNS)';
-      const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(SHOT_ZONES.six, seed)}${zone}! Free Hit coming up!`;
+      const description = `NO BALL + SIX (7 runs total)! ${bowler} oversteps and ${striker} punishes it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.six, seed)}! Free Hit coming up!`;
       const speechText = `No ball and a massive Six by ${striker}! Seven runs scored! Free Hit next!`;
       return { headline, description, speechText };
     }
 
     if (batRuns === 4) {
+      if (clickedZone) {
+        const { verb, prep } = getShotZoneAction(clickedZone, false);
+        const headline = `NO BALL + FOUR! ⚡ (${clickedZone.toUpperCase()})`;
+        const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} ${verb} ${clickedZone} ${prep}! Free Hit next!`;
+        const speechText = `No ball plus Four runs! ${striker} hits it through ${clickedZone}! Free Hit coming up!`;
+        return { headline, description, speechText };
+      }
       const headline = 'NO BALL + FOUR! ⚡ (5 RUNS)';
-      const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(SHOT_ZONES.four, seed)}${zone} for four! Free Hit next!`;
+      const description = `NO BALL + FOUR (5 runs total)! High full toss / overstepping, ${striker} hammers it ${getPlacementByIndex(FALLBACK_SHOT_ZONES.four, seed)} for four! Free Hit next!`;
       const speechText = `No ball plus Four runs to ${striker}! Five runs in total. Free Hit coming up!`;
       return { headline, description, speechText };
     }
 
     if (batRuns > 0) {
+      const zoneText = clickedZone ? ` towards ${clickedZone}` : '';
       const headline = `NO BALL + ${batRuns} ${batRuns === 1 ? 'RUN' : 'RUNS'} (${batRuns + 1} TOTAL)`;
-      const description = `NO BALL + ${batRuns} runs! ${bowler} oversteps the bowling crease. Batsmen complete ${batRuns} run${batRuns > 1 ? 's' : ''}. Free Hit next!`;
+      const description = `NO BALL + ${batRuns} runs! ${bowler} oversteps the bowling crease. ${striker} works it${zoneText} for ${batRuns} run${batRuns > 1 ? 's' : ''}. Free Hit next!`;
       const speechText = `No ball plus ${batRuns} run${batRuns > 1 ? 's' : ''}. Free hit next delivery.`;
       return { headline, description, speechText };
     }
@@ -125,59 +165,74 @@ export function formatBallCommentary(
   if (ball.extras?.type === 'leg-bye' || ball.extras?.type === 'bye') {
     const isLB = ball.extras.type === 'leg-bye';
     const r = ball.runsScored || ball.extras.runs || 1;
+    const zoneText = clickedZone ? ` through ${clickedZone}` : '';
     const headline = `${isLB ? 'LEG BYES' : 'BYES'} + ${r} 🦵`;
-    const description = `${isLB ? 'Leg Byes' : 'Byes'} (${r} run${r > 1 ? 's' : ''})! Deflected into the vacant outfield as batsmen scramble through.`;
+    const description = `${isLB ? 'Leg Byes' : 'Byes'} (${r} run${r > 1 ? 's' : ''})! Deflected${zoneText} into the outfield as batsmen scramble through.`;
     const speechText = `${isLB ? 'Leg bye' : 'Bye'}, ${r} run${r > 1 ? 's' : ''} taken.`;
     return { headline, description, speechText };
   }
 
-  // 5. SIX (6 RUNS) WITH BOUNDARY PLACEMENT
+  // 5. SIX (6 RUNS) WITH USER-CLICKED BOUNDARY PLACEMENT
   if (ball.runsScored === 6) {
-    const placement = getPlacementByIndex(SHOT_ZONES.six, seed);
+    if (clickedZone) {
+      const { verb, prep } = getShotZoneAction(clickedZone, true);
+      const headline = `SIX 🚀 (${clickedZone.toUpperCase()})`;
+      const description = `🚀 MAXIMUM SIX! ${striker} ${verb} ${clickedZone} ${prep}! Magnificent power hitting!`;
+      const speechText = `Massive Six! ${striker} ${verb} ${clickedZone}!`;
+      return { headline, description, speechText };
+    }
+    const placement = getPlacementByIndex(FALLBACK_SHOT_ZONES.six, seed);
     const headline = 'SIX RUNS 🚀 MAXIMUM';
-    const description = `🚀 MAXIMUM SIX! ${striker} ${placement}${zone}! Clean strike into the stands!`;
+    const description = `🚀 MAXIMUM SIX! ${striker} ${placement}! Clean strike into the stands!`;
     const speechText = `Massive Six! ${striker} smashes it ${placement}!`;
     return { headline, description, speechText };
   }
 
-  // 6. FOUR (4 RUNS) WITH BOUNDARY PLACEMENT
+  // 6. FOUR (4 RUNS) WITH USER-CLICKED BOUNDARY PLACEMENT
   if (ball.runsScored === 4) {
-    const placement = getPlacementByIndex(SHOT_ZONES.four, seed);
+    if (clickedZone) {
+      const { verb, prep } = getShotZoneAction(clickedZone, false);
+      const headline = `FOUR ⚡ (${clickedZone.toUpperCase()})`;
+      const description = `⚡ BOUNDARY FOUR! ${striker} ${verb} ${clickedZone} ${prep}! Perfectly timed.`;
+      const speechText = `Four runs! ${striker} ${verb} ${clickedZone}!`;
+      return { headline, description, speechText };
+    }
+    const placement = getPlacementByIndex(FALLBACK_SHOT_ZONES.four, seed);
     const headline = 'FOUR RUNS ⚡ BOUNDARY';
-    const description = `⚡ BOUNDARY FOUR! ${striker} ${placement}${zone}! Superb timing and placement to find the fence.`;
+    const description = `⚡ BOUNDARY FOUR! ${striker} ${placement}! Superb timing and placement to find the fence.`;
     const speechText = `Four runs! ${striker} hits it ${placement}!`;
     return { headline, description, speechText };
   }
 
   // 7. 3 RUNS
   if (ball.runsScored === 3) {
-    const placement = getPlacementByIndex(SHOT_ZONES.three, seed);
-    const headline = '3 RUNS (HARD RUNNING)';
-    const description = `${striker} ${placement}${zone}. Great hustle between the wickets for three runs.`;
-    const speechText = `Three runs scored by ${striker}. Good running.`;
+    const placement = clickedZone ? `towards ${clickedZone}` : getPlacementByIndex(FALLBACK_SHOT_ZONES.three, seed);
+    const headline = clickedZone ? `3 RUNS (${clickedZone.toUpperCase()})` : '3 RUNS (HARD RUNNING)';
+    const description = `${striker} drills it ${placement}. Great hustle between the wickets for three runs.`;
+    const speechText = `Three runs scored by ${striker} towards ${clickedZone || 'the outfield'}.`;
     return { headline, description, speechText };
   }
 
   // 8. 2 RUNS
   if (ball.runsScored === 2) {
-    const placement = getPlacementByIndex(SHOT_ZONES.double, seed);
-    const headline = '2 RUNS';
-    const description = `${striker} ${placement}${zone}. Back for a comfortable second run.`;
-    const speechText = `Two runs taken by ${striker}.`;
+    const placement = clickedZone ? `towards ${clickedZone}` : getPlacementByIndex(FALLBACK_SHOT_ZONES.double, seed);
+    const headline = clickedZone ? `2 RUNS (${clickedZone.toUpperCase()})` : '2 RUNS';
+    const description = `${striker} places it ${placement}. Back for a comfortable second run.`;
+    const speechText = `Two runs taken by ${striker} towards ${clickedZone || 'the gap'}.`;
     return { headline, description, speechText };
   }
 
   // 9. 1 RUN
   if (ball.runsScored === 1) {
-    const placement = getPlacementByIndex(SHOT_ZONES.single, seed);
-    const headline = '1 RUN (SINGLE)';
-    const description = `${striker} ${placement}${zone}. Rotating the strike.`;
-    const speechText = `Single taken by ${striker}.`;
+    const placement = clickedZone ? `towards ${clickedZone}` : getPlacementByIndex(FALLBACK_SHOT_ZONES.single, seed);
+    const headline = clickedZone ? `1 RUN (${clickedZone.toUpperCase()})` : '1 RUN (SINGLE)';
+    const description = `${striker} works it ${placement}. Rotating the strike.`;
+    const speechText = `Single taken by ${striker} towards ${clickedZone || 'the field'}.`;
     return { headline, description, speechText };
   }
 
   // 10. DOT BALL (0 RUNS)
-  const dotDesc = getPlacementByIndex(SHOT_ZONES.dot, seed);
+  const dotDesc = getPlacementByIndex(FALLBACK_SHOT_ZONES.dot, seed);
   const headline = 'DOT BALL 🎯';
   const description = `${bowler} to ${striker}: ${dotDesc}.`;
   const speechText = `Dot ball from ${bowler}.`;
@@ -193,7 +248,7 @@ export const LiveCommentaryFeed: React.FC = () => {
   useEffect(() => {
     if (!isAudioEnabled || !activeInnings || activeInnings.ballLogs.length === 0) return;
     const latestBall = activeInnings.ballLogs[activeInnings.ballLogs.length - 1];
-    const ballKey = `${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.isWicket}-${latestBall.extras?.type}-${latestBall.extras?.runs}`;
+    const ballKey = `${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.isWicket}-${latestBall.extras?.type}-${latestBall.extras?.runs}-${latestBall.shotZone || ''}`;
 
     if (lastSpokenBallId.current !== ballKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       lastSpokenBallId.current = ballKey;
@@ -231,7 +286,7 @@ export const LiveCommentaryFeed: React.FC = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
             </h3>
-            <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Boundary placement, extras & shot-by-shot commentary feed</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Real-time boundary placement & shot-by-shot commentary feed</p>
           </div>
         </div>
 
@@ -256,7 +311,7 @@ export const LiveCommentaryFeed: React.FC = () => {
           <div className="py-12 text-center text-slate-500 text-xs space-y-1">
             <Radio className="w-6 h-6 mx-auto text-slate-600 animate-pulse" />
             <p className="font-semibold text-slate-400">Match in progress. Ready for the opening delivery.</p>
-            <p className="text-[11px] text-slate-600">Ball-by-ball commentary with boundary placements will stream here in real-time.</p>
+            <p className="text-[11px] text-slate-600">Ball-by-ball commentary with clicked boundary placements will stream here live.</p>
           </div>
         ) : (
           reversedLogs.map((ball, idx) => {
