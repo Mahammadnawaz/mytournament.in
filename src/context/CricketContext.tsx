@@ -500,6 +500,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [activeMatchId]);
 
+  useEffect(() => {
+    if ((!activeMatchId || !matches.some(m => m.id === activeMatchId)) && matches.length > 0) {
+      const live = matches.find(m => m.status === 'live');
+      const targetId = live ? live.id : matches[0].id;
+      setActiveMatchId(targetId);
+      localStorage.setItem('cricket_active_match_v1', targetId);
+    }
+  }, [matches, activeMatchId]);
+
   const activeMatch = matches.find(m => m.id === activeMatchId) || matches.find(m => m.status === 'live') || matches[0] || null;
   const activeInnings = activeMatch 
     ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null

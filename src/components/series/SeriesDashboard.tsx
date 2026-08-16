@@ -12,6 +12,12 @@ export const SeriesDashboard: React.FC = () => {
   const [selectedSeriesId, setSelectedSeriesId] = useState<string>(seriesList[0]?.id || '');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  useEffect(() => {
+    if ((!selectedSeriesId || !seriesList.some(s => s.id === selectedSeriesId)) && seriesList.length > 0) {
+      setSelectedSeriesId(seriesList[0].id);
+    }
+  }, [seriesList, selectedSeriesId]);
+
   const [setupMatchParams, setSetupMatchParams] = useState<{
     seriesId: string;
     matchName: string;
@@ -113,8 +119,11 @@ export const SeriesDashboard: React.FC = () => {
     return h;
   }
 
-  const isTriSeries = Boolean(selectedSeries?.teamC || selectedSeries?.seriesType === 'triseries');
+  const teamAName = selectedSeries?.teamA || 'Team A';
+  const teamBName = selectedSeries?.teamB || 'Team B';
   const teamCName = selectedSeries?.teamC || 'Team C';
+
+  const isTriSeries = Boolean(selectedSeries?.teamC || selectedSeries?.seriesType === 'triseries');
 
   const [triSeriesFixture, setTriSeriesFixture] = useState<string>('');
 
@@ -148,23 +157,27 @@ export const SeriesDashboard: React.FC = () => {
     return { team: tName, p: played, w: wins, l: losses, t: ties, pts, nrr };
   };
 
-  const [h2hTeamA, setH2hTeamA] = useState<string>(selectedSeries?.teamA || 'Team A');
-  const [h2hTeamB, setH2hTeamB] = useState<string>(selectedSeries?.teamB || 'Team B');
+  const [h2hPair, setH2hPair] = useState<'AB' | 'BC' | 'CA'>('AB');
 
-  useEffect(() => {
-    if (selectedSeries) {
-      setH2hTeamA(selectedSeries.teamA);
-      setH2hTeamB(selectedSeries.teamB);
+  let activeH2HTeamA = teamAName;
+  let activeH2HTeamB = teamBName;
+  if (isTriSeries) {
+    if (h2hPair === 'BC') {
+      activeH2HTeamA = teamBName;
+      activeH2HTeamB = teamCName;
+    } else if (h2hPair === 'CA') {
+      activeH2HTeamA = teamCName;
+      activeH2HTeamB = teamAName;
     }
-  }, [selectedSeries?.id]);
+  }
 
-  const h2hA = selectedSeries ? buildH2H(h2hTeamA, h2hTeamB) : null;
-  const h2hB = selectedSeries ? buildH2H(h2hTeamB, h2hTeamA) : null;
+  const h2hA = selectedSeries ? buildH2H(activeH2HTeamA, activeH2HTeamB) : null;
+  const h2hB = selectedSeries ? buildH2H(activeH2HTeamB, activeH2HTeamA) : null;
 
   const pointsTableData = selectedSeries
     ? (isTriSeries
-        ? [buildTeamStats(selectedSeries.teamA), buildTeamStats(selectedSeries.teamB), buildTeamStats(teamCName)]
-        : [buildTeamStats(selectedSeries.teamA), buildTeamStats(selectedSeries.teamB)]
+        ? [buildTeamStats(teamAName), buildTeamStats(teamBName), buildTeamStats(teamCName)]
+        : [buildTeamStats(teamAName), buildTeamStats(teamBName)]
       ).sort((a, b) => b.pts !== a.pts ? b.pts - a.pts : Number(b.nrr) - Number(a.nrr))
     : [];
 
@@ -704,22 +717,22 @@ export const SeriesDashboard: React.FC = () => {
                 {isTriSeries && (
                   <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button
-                      onClick={() => { setH2hTeamA(selectedSeries.teamA); setH2hTeamB(selectedSeries.teamB); }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === selectedSeries.teamA && h2hTeamB === selectedSeries.teamB ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                      onClick={() => setH2hPair('AB')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hPair === 'AB' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
                     >
-                      {selectedSeries.teamA} vs {selectedSeries.teamB}
+                      {teamAName} vs {teamBName}
                     </button>
                     <button
-                      onClick={() => { setH2hTeamA(selectedSeries.teamB); setH2hTeamB(teamCName); }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === selectedSeries.teamB && h2hTeamB === teamCName ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                      onClick={() => setH2hPair('BC')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hPair === 'BC' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
                     >
-                      {selectedSeries.teamB} vs {teamCName}
+                      {teamBName} vs {teamCName}
                     </button>
                     <button
-                      onClick={() => { setH2hTeamA(teamCName); setH2hTeamB(selectedSeries.teamA); }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === teamCName && h2hTeamB === selectedSeries.teamA ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                      onClick={() => setH2hPair('CA')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hPair === 'CA' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
                     >
-                      {teamCName} vs {selectedSeries.teamA}
+                      {teamCName} vs {teamAName}
                     </button>
                   </div>
                 )}
@@ -728,9 +741,9 @@ export const SeriesDashboard: React.FC = () => {
               {/* Win Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-[11px] sm:text-xs font-black">
-                  <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{h2hTeamA}</span>
+                  <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{activeH2HTeamA}</span>
                   <span className="text-slate-400 font-extrabold text-[10px] uppercase tracking-widest px-2 flex-shrink-0">HEAD TO HEAD WINS</span>
-                  <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{h2hTeamB}</span>
+                  <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{activeH2HTeamB}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-lg sm:text-2xl font-black text-emerald-400 font-mono w-5 sm:w-6 text-right">{h2hA.wins}</span>
@@ -761,7 +774,7 @@ export const SeriesDashboard: React.FC = () => {
               <div className="grid grid-cols-3 gap-0 divide-x divide-slate-800 rounded-xl sm:rounded-2xl bg-slate-950/60 border border-slate-800 overflow-hidden">
 
                 <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 text-center">
-                  <p className="text-[10px] sm:text-xs font-extrabold text-emerald-400 truncate">{h2hTeamA}</p>
+                  <p className="text-[10px] sm:text-xs font-extrabold text-emerald-400 truncate">{activeH2HTeamA}</p>
                   <StatRow label="Win %" value={`${h2hA.winPct}%`} color="text-emerald-400" />
                   <StatRow label="Runs Scored" value={String(h2hA.runsScored)} color="text-white" />
                   <StatRow label="Runs Conceded" value={String(h2hA.runsConceded)} color="text-slate-300" />
@@ -785,7 +798,7 @@ export const SeriesDashboard: React.FC = () => {
                 </div>
 
                 <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 text-center">
-                  <p className="text-[10px] sm:text-xs font-extrabold text-blue-400 truncate">{h2hTeamB}</p>
+                  <p className="text-[10px] sm:text-xs font-extrabold text-blue-400 truncate">{activeH2HTeamB}</p>
                   <StatRow label="Win %" value={`${h2hB.winPct}%`} color="text-blue-400" />
                   <StatRow label="Runs Scored" value={String(h2hB.runsScored)} color="text-white" />
                   <StatRow label="Runs Conceded" value={String(h2hB.runsConceded)} color="text-slate-300" />
