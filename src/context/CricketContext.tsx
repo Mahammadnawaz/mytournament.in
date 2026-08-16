@@ -1104,6 +1104,43 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (updatedMatch.innings1) {
         updatedMatch.innings1.isCompleted = true;
       }
+      const battingTeamName = updatedMatch.innings1?.bowlingTeam || updatedMatch.teamB.name;
+      const bowlingTeamName = updatedMatch.innings1?.battingTeam || updatedMatch.teamA.name;
+      const targetRuns = (updatedMatch.innings1?.totalRuns || 0) + 1;
+
+      const battingTeamObj = battingTeamName === updatedMatch.teamA.name ? updatedMatch.teamA : updatedMatch.teamB;
+      const bowlingTeamObj = bowlingTeamName === updatedMatch.teamA.name ? updatedMatch.teamA : updatedMatch.teamB;
+
+      const strikerId = battingTeamObj.playerIds[0] || players[0]?.id || '';
+      const nonStrikerId = battingTeamObj.playerIds[1] || players[1]?.id || '';
+      const bowlerId = bowlingTeamObj.playerIds[bowlingTeamObj.playerIds.length - 1] || players[2]?.id || '';
+
+      updatedMatch.currentInnings = 2;
+      updatedMatch.innings2 = {
+        inningsNo: 2,
+        battingTeam: battingTeamName,
+        bowlingTeam: bowlingTeamName,
+        totalRuns: 0,
+        wickets: 0,
+        overs: 0,
+        balls: 0,
+        target: targetRuns,
+        strikerId,
+        nonStrikerId,
+        currentBowlerId: bowlerId,
+        batsmenStats: {
+          [strikerId]: { playerId: strikerId, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+          [nonStrikerId]: { playerId: nonStrikerId, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false }
+        },
+        bowlerStats: {
+          [bowlerId]: { playerId: bowlerId, overs: 0, balls: 0, maidens: 0, runsConceded: 0, wickets: 0, wides: 0, noBalls: 0, dots: 0 }
+        },
+        ballLogs: [],
+        recentBalls: [],
+        extrasTotal: { wides: 0, noBalls: 0, byes: 0, legByes: 0, total: 0 },
+        isCompleted: false,
+        fow: [],
+      };
     } else {
       if (updatedMatch.innings2) {
         updatedMatch.innings2.isCompleted = true;
