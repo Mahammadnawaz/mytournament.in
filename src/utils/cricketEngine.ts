@@ -365,12 +365,10 @@ export function calculateSeriesMVP(
   allMatches: Match[]
 ): { leaderboard: SeriesPlayerMVP[]; potS?: { playerId: string; points: number; summary: string } } {
   const seriesMatches = allMatches.filter(m => {
+    if (m.matchCategory === 'individual' && !m.seriesId) return false;
+    if (m.seriesId) return m.seriesId === series.id;
     if (series.matchIds?.includes(m.id)) return true;
-    if (m.seriesId === series.id) return true;
-    return (
-      (m.teamA.name === series.teamA && m.teamB.name === series.teamB) ||
-      (m.teamA.name === series.teamB && m.teamB.name === series.teamA)
-    );
+    return false;
   });
 
   const mvpMap = new Map<string, SeriesPlayerMVP>();

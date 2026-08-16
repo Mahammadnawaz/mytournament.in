@@ -82,12 +82,26 @@ export const cloudSync = {
       // Ignore
     }
 
+    let existingBreakTimer = null;
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('cricpulse_series_break_timer');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.endTime > Date.now()) existingBreakTimer = parsed;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     const payload: CloudSyncData = {
       players: (data.players && data.players.length > 0) ? data.players : cachedPlayers,
       matches: lightweightMatches,
       series: data.series || [],
       activeMatchId: data.activeMatchId || null,
       activeScorer: data.activeScorer || null,
+      seriesBreakTimer: data.seriesBreakTimer !== undefined ? data.seriesBreakTimer : existingBreakTimer,
       timestamp: Date.now(),
     };
 

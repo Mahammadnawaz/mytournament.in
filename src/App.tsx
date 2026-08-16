@@ -30,7 +30,10 @@ const MainContent: React.FC = () => {
     teamB?: string;
   } | null>(null);
 
-  const [breakRemainingSecs, setBreakRemainingSecs] = useState<number>(0);
+  const [breakRemainingSecs, setBreakRemainingSecs] = useState<number>(() => {
+    if (!seriesBreakTimer) return 0;
+    return Math.max(0, Math.floor((seriesBreakTimer.endTime - Date.now()) / 1000));
+  });
 
   useEffect(() => {
     if (!seriesBreakTimer) {
@@ -41,7 +44,7 @@ const MainContent: React.FC = () => {
     const updateTimer = () => {
       const remaining = Math.max(0, Math.floor((seriesBreakTimer.endTime - Date.now()) / 1000));
       setBreakRemainingSecs(remaining);
-      if (remaining === 0) {
+      if (remaining <= 0) {
         cancelSeriesBreak();
       }
     };
@@ -56,8 +59,10 @@ const MainContent: React.FC = () => {
   }
 
   const renderScoringTab = () => {
+    const currentRemainingSecs = seriesBreakTimer ? Math.max(0, Math.floor((seriesBreakTimer.endTime - Date.now()) / 1000)) : breakRemainingSecs;
+
     // Inter-Match Break Banner (visible to SPECTATORS & SCORERS on Home Screen)
-    const breakBanner = seriesBreakTimer && breakRemainingSecs > 0 ? (
+    const breakBanner = seriesBreakTimer && currentRemainingSecs > 0 ? (
       <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-0.5 rounded-3xl shadow-2xl animate-pulse my-4">
         <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -73,7 +78,7 @@ const MainContent: React.FC = () => {
               <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1 flex items-center space-x-3">
                 <span>Break Remaining:</span>
                 <span className="font-mono text-emerald-400 text-2xl sm:text-3xl font-black bg-slate-900 px-3.5 py-1 rounded-xl border border-slate-800">
-                  {Math.floor(breakRemainingSecs / 60).toString().padStart(2, '0')}:{(breakRemainingSecs % 60).toString().padStart(2, '0')}
+                  {Math.floor(currentRemainingSecs / 60).toString().padStart(2, '0')}:{(currentRemainingSecs % 60).toString().padStart(2, '0')}
                 </span>
               </h3>
               <p className="text-xs text-slate-300 font-medium mt-0.5">
@@ -258,39 +263,45 @@ const MainContent: React.FC = () => {
       activeMatch.innings1?.isCompleted &&
       !activeMatch.innings2;
 
-    const linkedSeries = activeMatch.seriesId 
+    const linkedSeries = (activeMatch.seriesId 
       ? seriesList.find(s => s.id === activeMatch.seriesId)
-      : seriesList.find(s => s.matchIds?.includes(activeMatch.id));
+      : seriesList.find(s => s.matchIds?.includes(activeMatch.id))) ||
+      seriesList.find(s => (s.teamA === activeMatch.teamA.name && s.teamB === activeMatch.teamB.name) || (s.teamA === activeMatch.teamB.name && s.teamB === activeMatch.teamA.name)) ||
+      seriesList.find(s => s.status === 'ongoing') ||
+      seriesList[0];
 
     const seriesMatches = linkedSeries
       ? matches.filter(m => {
-          if (m.matchCategory === 'individual' && !m.seriesId) return false;
+          if (m.matchCategory === 'individual') return false;
           if (m.seriesId) return m.seriesId === linkedSeries.id;
           if (linkedSeries.matchIds?.includes(m.id)) return true;
           return false;
         })
       : [];
 
-    const completedCount = seriesMatches.filter(m => m.status === 'completed').length;
     const totalSeriesMatches = linkedSeries?.totalMatches || 3;
+    const completedCount = Math.min(totalSeriesMatches, seriesMatches.filter(m => m.status === 'completed').length);
     const nextMatchNo = Math.min(totalSeriesMatches, completedCount + 1);
 
     let teamAWins = 0;
     let teamBWins = 0;
     if (linkedSeries) {
-      seriesMatches.forEach(m => {
+      seriesMatches.filter(m => m.status === 'completed').forEach(m => {
         const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
         if (winner === linkedSeries.teamA) teamAWins++;
         else if (winner === linkedSeries.teamB) teamBWins++;
       });
     }
 
-    const { leaderboard } = linkedSeries ? calculateSeriesMVP(linkedSeries, matches) : { leaderboard: [] };
+    const { leaderboard } = linkedSeries ? calculateSeriesMVP(linkedSeries, seriesMatches) : { leaderboard: [] };
     const topMvpStats = leaderboard[0];
     const seriesMVPPlayer = topMvpStats ? players.find(p => p.id === topMvpStats.playerId) : undefined;
 
     return (
       <div className="space-y-6">
+        {/* Live Inter-Match Break Banner (ALWAYS FIRST AT TOP OF HOME PAGE) */}
+        {breakBanner}
+
         {/* Hero Scoreboard */}
         <LiveScoreboard />
 
@@ -305,65 +316,6 @@ const MainContent: React.FC = () => {
 
         {/* Live Commentary Feed & Winner Banner */}
         <LiveCommentaryFeed />
-
-        {/* Live Inter-Match Break Banner */}
-        {seriesBreakTimer && breakRemainingSecs > 0 && (
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-0.5 rounded-3xl shadow-2xl animate-pulse my-4">
-            <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 flex items-center justify-center shrink-0">
-                  <Coffee className="w-8 h-8 text-amber-400" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-400/20 text-indigo-300 text-xs font-black uppercase tracking-widest border border-indigo-400/30">
-                      INTER-MATCH BREAK IN PROGRESS ({seriesBreakTimer.durationMinutes} MINS)
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1 flex items-center space-x-3">
-                    <span>Break Remaining:</span>
-                    <span className="font-mono text-emerald-400 text-2xl sm:text-3xl font-black bg-slate-900 px-3.5 py-1 rounded-xl border border-slate-800">
-                      {Math.floor(breakRemainingSecs / 60).toString().padStart(2, '0')}:{(breakRemainingSecs % 60).toString().padStart(2, '0')}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-300 font-medium mt-0.5">
-                    Teams are taking a strategy break before Match {seriesBreakTimer.nextMatchNo} starts.
-                  </p>
-                </div>
-              </div>
-
-              {isScorer && (
-                <div className="flex items-center space-x-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => {
-                      const targetSeries = seriesList.find(s => s.id === seriesBreakTimer.seriesId);
-                      cancelSeriesBreak();
-                      if (targetSeries) {
-                        setSetupMatchParams({
-                          seriesId: targetSeries.id,
-                          matchName: `${targetSeries.name} - Match ${seriesBreakTimer.nextMatchNo}`,
-                          teamA: targetSeries.teamA,
-                          teamB: targetSeries.teamB,
-                        });
-                        setShowSetupModal(true);
-                      }
-                    }}
-                    className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5"
-                  >
-                    <Play className="w-4 h-4 fill-current" />
-                    <span>End Break & Start Match {seriesBreakTimer.nextMatchNo} Now ➔</span>
-                  </button>
-                  <button
-                    onClick={cancelSeriesBreak}
-                    className="px-3.5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Next Series Match Prompt Action Banner */}
         {activeMatch.status === 'completed' && linkedSeries && completedCount < totalSeriesMatches && !seriesBreakTimer && isScorer && (

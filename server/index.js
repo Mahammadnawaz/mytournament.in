@@ -324,13 +324,14 @@ app.get('/api/sync', (req, res) => {
     series: db.series || [],
     activeMatchId: activeId || null,
     activeScorer: activeScorer,
+    seriesBreakTimer: db.seriesBreakTimer || null,
     timestamp: db.syncTimestamp || Date.now(),
   });
 });
 
 app.post('/api/sync', (req, res) => {
   const db = readDb();
-  const { players, matches, series, activeMatchId, activeScorer, timestamp } = req.body;
+  const { players, matches, series, activeMatchId, activeScorer, seriesBreakTimer, timestamp } = req.body;
 
   if (players && Array.isArray(players) && players.length > 0) {
     const pMap = new Map((db.players || []).map(p => [p.id, p]));
@@ -352,6 +353,9 @@ app.post('/api/sync', (req, res) => {
   }
   if (activeScorer !== undefined) {
     db.activeScorer = activeScorer;
+  }
+  if (seriesBreakTimer !== undefined) {
+    db.seriesBreakTimer = seriesBreakTimer;
   }
 
   const syncTime = timestamp || Date.now();

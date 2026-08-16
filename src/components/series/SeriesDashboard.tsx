@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { TournamentSeries } from '../../types/cricket';
 import { calculateSeriesMVP } from '../../utils/cricketEngine';
-import { Trophy, Plus, Award, Check, X, Star, Calendar, Swords, Play, Table, Activity } from 'lucide-react';
+import { Trophy, Plus, Award, Check, X, Star, Calendar, Swords, Play, Table, Activity, Coffee } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchSetupModal from '../match/MatchSetupModal';
 
 export const SeriesDashboard: React.FC = () => {
-  const { seriesList, matches, players, completeSeries, setActiveTab, setActiveMatchId, isScorer } = useCricket();
+  const { seriesList, matches, players, completeSeries, setActiveTab, setActiveMatchId, isScorer, startSeriesBreak, cancelSeriesBreak, seriesBreakTimer } = useCricket();
 
   const [selectedSeriesId, setSelectedSeriesId] = useState<string>(seriesList[0]?.id || '');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -30,9 +30,22 @@ export const SeriesDashboard: React.FC = () => {
     ? (liveSeriesMatch.currentInnings === 1 ? liveSeriesMatch.innings1 : liveSeriesMatch.innings2)
     : null;
 
-  // Calculate Series MVP table and Player of Series
+  // Calculate Series matches & win counts (strictly linked to selected series)
+  const seriesMatches = selectedSeries
+    ? matches.filter(m => {
+        if (m.matchCategory === 'individual') return false;
+        if (m.seriesId) return m.seriesId === selectedSeries.id;
+        if (selectedSeries.matchIds?.includes(m.id)) return true;
+        return false;
+      })
+    : [];
+
+  const completedSeriesMatches = seriesMatches.filter(m => m.status === 'completed');
+  const completedCount = Math.min(selectedSeries?.totalMatches || 3, completedSeriesMatches.length);
+
+  // Calculate Series MVP table and Player of Series for ONLY the selected series matches
   const { leaderboard, potS } = selectedSeries
-    ? calculateSeriesMVP(selectedSeries, matches)
+    ? calculateSeriesMVP(selectedSeries, seriesMatches)
     : { leaderboard: [], potS: undefined };
 
   const potSPlayer = potS
@@ -43,28 +56,18 @@ export const SeriesDashboard: React.FC = () => {
 
   const topPerformer = leaderboard[0];
 
-  // Calculate Series matches & win counts (strictly linked to series ID or matchIds list)
-  const seriesMatches = selectedSeries
-    ? matches.filter(m => {
-        if (m.matchCategory === 'individual' && !m.seriesId) return false;
-        if (m.seriesId) return m.seriesId === selectedSeries.id;
-        if (selectedSeries.matchIds?.includes(m.id)) return true;
-        return false;
-      })
-    : [];
-
   let teamAWins = 0;
   let teamBWins = 0;
   let tiesCount = 0;
 
-  seriesMatches.forEach(m => {
+  completedSeriesMatches.forEach(m => {
     const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
     if (winner === selectedSeries?.teamA) teamAWins++;
     else if (winner === selectedSeries?.teamB) teamBWins++;
     else if (m.result?.toLowerCase().includes('tied') || m.result?.toLowerCase().includes('draw')) tiesCount++;
   });
 
-  const isSeriesCompleted = selectedSeries?.status === 'completed' || seriesMatches.length >= (selectedSeries?.totalMatches || 0);
+  const isSeriesCompleted = selectedSeries?.status === 'completed' || completedCount >= (selectedSeries?.totalMatches || 0);
 
   // ── Head-to-Head computation ──────────────────────────────────
   interface H2HStats {
@@ -348,8 +351,8 @@ export const SeriesDashboard: React.FC = () => {
               <span className="font-extrabold text-amber-400 text-sm uppercase tracking-wider">
                 {selectedSeries.format}
               </span>
-              <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-bold">
-                Matches Played: {seriesMatches.length} / {selectedSeries.totalMatches}
+              <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-bold font-mono">
+                Matches Played: {completedCount} / {selectedSeries.totalMatches}
               </span>
             </div>
 
@@ -394,24 +397,65 @@ export const SeriesDashboard: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start md:self-auto pt-1 md:pt-0">
-                {/* PROMINENT START NEXT MATCH BUTTON */}
+                {/* PROMINENT START NEXT MATCH BUTTON & BREAK BUTTONS */}
                 {isScorer && !isSeriesCompleted && (
-                  <button
-                    onClick={handleStartNextSeriesMatch}
-                    className="flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm transition shadow-xl shadow-emerald-500/30 active:scale-95 animate-pulse"
-                  >
-                    <Play className="w-5 h-5 fill-current text-slate-950" />
-                    <span>▶️ Start Match {seriesMatches.length + 1} of Series ➔</span>
-                  </button>
-                )}
+                  <>
+                    {seriesBreakTimer ? (
+                      <div className="flex items-center space-x-2 bg-indigo-950/90 border border-indigo-500/50 px-4 py-2.5 rounded-2xl shadow-lg">
+                        <Coffee className="w-4 h-4 text-amber-400 animate-bounce" />
+                        <span className="text-xs font-black text-indigo-200 uppercase tracking-wide">
+                          Break Active ({seriesBreakTimer.durationMinutes}m)
+                        </span>
+                        <button
+                          onClick={cancelSeriesBreak}
+                          className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-lg text-[10px] font-extrabold border border-red-500/30 transition"
+                        >
+                          Cancel Break
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleStartNextSeriesMatch}
+                          className="flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-500/30 active:scale-95 animate-pulse"
+                        >
+                          <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-slate-950" />
+                          <span>▶️ Start Match {completedCount + 1} of Series ➔</span>
+                        </button>
 
-                {isScorer && !isSeriesCompleted && (
-                  <button
-                    onClick={handleCompleteSeriesTrigger}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition"
-                  >
-                    Declare Complete
-                  </button>
+                        <button
+                          onClick={() => startSeriesBreak(selectedSeries.id, completedCount + 1, 15)}
+                          className="flex items-center space-x-1.5 px-3.5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 active:scale-95 shadow-md"
+                        >
+                          <Coffee className="w-4 h-4 text-amber-400" />
+                          <span>15 Min Break ☕</span>
+                        </button>
+
+                        <button
+                          onClick={() => startSeriesBreak(selectedSeries.id, completedCount + 1, 30)}
+                          className="flex items-center space-x-1.5 px-3.5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 active:scale-95 shadow-md"
+                        >
+                          <Coffee className="w-4 h-4 text-amber-400" />
+                          <span>30 Min Break ☕</span>
+                        </button>
+
+                        <button
+                          onClick={() => startSeriesBreak(selectedSeries.id, completedCount + 1, 45)}
+                          className="flex items-center space-x-1.5 px-3.5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 active:scale-95 shadow-md"
+                        >
+                          <Coffee className="w-4 h-4 text-amber-400" />
+                          <span>45 Min Break ☕</span>
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      onClick={handleCompleteSeriesTrigger}
+                      className="px-3.5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-400 font-bold text-xs transition border border-slate-800"
+                    >
+                      Declare Complete
+                    </button>
+                  </>
                 )}
 
                 {isSeriesCompleted && (

@@ -425,14 +425,24 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
 
-    // 1. Initial snapshot pull on load/refresh: guarantee latest score from cloud
+    if (channel) {
+      channel.onmessage = (evt) => {
+        if (evt.data?.type === 'SYNC') {
+          cloudSync.pullLatest().then(data => {
+            if (data) applyIncomingSync(data);
+          });
+        }
+      };
+    }
+
+    // 1. Initial snapshot pull on load/refresh
     cloudSync.pullLatest().then(data => {
       if (data) {
         applyIncomingSync(data);
       }
     });
 
-    // 2. Real-time subscription: Sync live score, balls, wickets, commentary instantly to spectators
+    // 2. Real-time subscription: Firebase WebSocket
     let unsubscribe = () => {};
     if (!isScorer) {
       unsubscribe = cloudSync.subscribe((syncData) => {
@@ -440,8 +450,19 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
+    // 3. Fast 1-second interval polling for spectator screens
+    let pollInterval: any = null;
+    if (!isScorer) {
+      pollInterval = setInterval(() => {
+        cloudSync.pullLatest().then(data => {
+          if (data) applyIncomingSync(data);
+        });
+      }, 1000);
+    }
+
     return () => {
       unsubscribe();
+      if (pollInterval) clearInterval(pollInterval);
       if (channel) channel.close();
     };
   }, [isScorer]);
@@ -624,23 +645,26 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       innings1: initialInnings,
     };
 
-    // If attached to a series, update series matchIds
+    let updatedSeriesList = seriesList;
     if (newMatch.seriesId) {
-      setSeriesList(prev => prev.map(s => {
+      updatedSeriesList = seriesList.map(s => {
         if (s.id === newMatch.seriesId) {
-          const updatedSeries = { ...s, matchIds: [...s.matchIds, newMatch.id] };
+          const matchIds = s.matchIds ? (s.matchIds.includes(newMatch.id) ? s.matchIds : [...s.matchIds, newMatch.id]) : [newMatch.id];
+          const updatedSeries = { ...s, matchIds };
           api.updateSeries(updatedSeries);
           return updatedSeries;
         }
         return s;
-      }));
+      });
+      setSeriesList(updatedSeriesList);
+      localStorage.setItem('cricket_series_v1', JSON.stringify(updatedSeriesList));
     }
 
     const updatedMatches = [newMatch, ...matches];
     isLocalAction.current = true;
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
-    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: newMatch.id, activeScorer });
+    cloudSync.pushState({ players, matches: updatedMatches, series: updatedSeriesList, activeMatchId: newMatch.id, activeScorer });
     api.addMatch(newMatch);
     api.setActiveMatchId(newMatch.id);
     setActiveMatchId(newMatch.id);
