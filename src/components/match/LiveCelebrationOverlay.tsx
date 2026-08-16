@@ -13,7 +13,7 @@ export interface ScoreBurstEvent {
   id: string;
   text: string;
   subText?: string;
-  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'extra';
+  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'wide' | 'noball' | 'byes' | 'legbyes';
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
@@ -57,11 +57,11 @@ export const LiveCelebrationOverlay: React.FC = () => {
       }
     }
 
-    // 2. Determine Score Burst Number & Celebration for Spectators & Scorers
+    // 2. Determine Score Burst Number & Celebration for All Devices (0, 1, 2, 3, 4, 6, OUT, WIDE, NOBALL, BYES, LEGBYES)
     if (latestBall.isWicket) {
       setScoreBurst({
         id: `burst-${Date.now()}`,
-        text: 'W',
+        text: 'OUT',
         subText: 'WICKET! ☝️',
         colorType: 'wicket',
       });
@@ -113,30 +113,52 @@ export const LiveCelebrationOverlay: React.FC = () => {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '3',
-        subText: '3 RUNS ⚡',
+        subText: '3 RUNS (TRIPLE) ⚡',
         colorType: 'three',
       });
     } else if (latestBall.runsScored === 2) {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '2',
-        subText: '2 RUNS 🏃‍♂️',
+        subText: '2 RUNS (DOUBLE) 🏃‍♂️',
         colorType: 'two',
       });
     } else if (latestBall.runsScored === 1) {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '1',
-        subText: '1 RUN (SINGLE)',
+        subText: '1 RUN (SINGLE) 🏏',
         colorType: 'one',
       });
-    } else if (latestBall.extras && latestBall.extras.type !== 'none') {
-      const extraLabel = latestBall.extras.type === 'wide' ? 'WD' : latestBall.extras.type === 'no-ball' ? 'NB' : 'EXT';
+    } else if (latestBall.extras && latestBall.extras.type === 'wide') {
+      const extraRuns = latestBall.extras.runs > 1 ? `+${latestBall.extras.runs - 1}` : '';
       setScoreBurst({
         id: `burst-${Date.now()}`,
-        text: `${extraLabel}+${latestBall.totalRuns}`,
-        subText: latestBall.extras.type === 'wide' ? 'WIDE BALL (+1)' : latestBall.extras.type === 'no-ball' ? 'NO BALL (+1)' : 'EXTRA',
-        colorType: 'extra',
+        text: `WD${extraRuns}`,
+        subText: `WIDE BALL (+${latestBall.totalRuns}) ↔️`,
+        colorType: 'wide',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'no-ball') {
+      const extraRuns = latestBall.extras.runs > 1 ? `+${latestBall.extras.runs - 1}` : '';
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `NB${extraRuns}`,
+        subText: `NO BALL (+${latestBall.totalRuns}) ⚠️`,
+        colorType: 'noball',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'bye') {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `B+${latestBall.totalRuns}`,
+        subText: `BYES (+${latestBall.totalRuns}) 🛡️`,
+        colorType: 'byes',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'leg-bye') {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `LB+${latestBall.totalRuns}`,
+        subText: `LEG BYES (+${latestBall.totalRuns}) 🦵`,
+        colorType: 'legbyes',
       });
     } else {
       setScoreBurst({
@@ -171,9 +193,15 @@ export const LiveCelebrationOverlay: React.FC = () => {
                   : scoreBurst.colorType === 'one'
                   ? 'bg-blue-600/95 border-blue-200 text-white shadow-blue-600/60 text-6xl sm:text-7xl ring-8 ring-blue-400/30'
                   : scoreBurst.colorType === 'wicket'
-                  ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/70 text-6xl sm:text-7xl ring-8 ring-red-500/40 animate-pulse'
-                  : scoreBurst.colorType === 'extra'
-                  ? 'bg-amber-500/90 border-amber-300 text-slate-950 shadow-amber-500/50 text-4xl sm:text-5xl ring-8 ring-amber-400/30'
+                  ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/80 text-5xl sm:text-6xl ring-8 ring-red-500/40 animate-pulse'
+                  : scoreBurst.colorType === 'wide'
+                  ? 'bg-orange-500/95 border-orange-200 text-slate-950 shadow-orange-500/70 text-5xl sm:text-6xl ring-8 ring-orange-400/30'
+                  : scoreBurst.colorType === 'noball'
+                  ? 'bg-yellow-400/95 border-yellow-100 text-slate-950 shadow-yellow-500/70 text-5xl sm:text-6xl ring-8 ring-yellow-400/40 animate-pulse'
+                  : scoreBurst.colorType === 'byes'
+                  ? 'bg-indigo-600/95 border-indigo-200 text-white shadow-indigo-600/60 text-4xl sm:text-5xl ring-8 ring-indigo-400/30'
+                  : scoreBurst.colorType === 'legbyes'
+                  ? 'bg-teal-600/95 border-teal-200 text-white shadow-teal-600/60 text-4xl sm:text-5xl ring-8 ring-teal-400/30'
                   : 'bg-slate-900/95 border-slate-700 text-white shadow-slate-950/70 text-5xl sm:text-6xl ring-4 ring-slate-800'
               }`}
             >
