@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
-import { Trophy, Activity, CloudRain, ShieldAlert, TrendingUp, History } from 'lucide-react';
+import { Trophy, Activity, CloudRain, ShieldAlert, TrendingUp, History, Megaphone } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import MatchPOTMModal from './MatchPOTMModal';
 import DLSModal from './DLSModal';
@@ -8,7 +8,7 @@ import EndMatchModal from './EndMatchModal';
 import { calculateDLSParScore } from '../../utils/dlsEngine';
 
 export const LiveScoreboard: React.FC = () => {
-  const { activeMatch, activeInnings, setActiveTab, isScorer, matches, setActiveMatchId } = useCricket();
+  const { activeMatch, activeInnings, setActiveTab, isScorer, matches, setActiveMatchId, declareCurrentInnings } = useCricket();
 
   const [showPOTM, setShowPOTM] = useState(false);
   const [showDLSModal, setShowDLSModal] = useState(false);
@@ -157,14 +157,30 @@ export const LiveScoreboard: React.FC = () => {
             )}
 
             {isScorer && activeMatch.status === 'live' && (
-              <button
-                onClick={() => setShowEndMatchModal(true)}
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] transition active:scale-95 shadow-sm"
-                title="Conclude match early or call off due to rain/draw"
-              >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                <span>End Match / Call Off</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    const teamName = activeInnings?.battingTeam || 'Current Team';
+                    if (window.confirm(`Are you sure you want to DECLARE Innings ${activeMatch.currentInnings} for ${teamName}?`)) {
+                      declareCurrentInnings();
+                    }
+                  }}
+                  className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-[11px] transition active:scale-95 shadow-sm"
+                  title="Declare current innings early"
+                >
+                  <Megaphone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Declare Innings 📢</span>
+                </button>
+
+                <button
+                  onClick={() => setShowEndMatchModal(true)}
+                  className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] transition active:scale-95 shadow-sm"
+                  title="Conclude match early or call off due to rain/draw"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>End Match / Call Off</span>
+                </button>
+              </>
             )}
 
             {isScorer && (

@@ -18,9 +18,13 @@ export interface ScoreBurstEvent {
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
-  const { activeMatch, activeInnings, players } = useCricket();
+  const { activeMatch, activeInnings, players, activeTab } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
+
+  if (activeTab !== 'scoring' && (activeTab as any) !== 'home' && activeTab !== undefined) {
+    return null;
+  }
   // Helper to ensure array conversion
   const ensureArray = <T,>(val: any): T[] => {
     if (!val) return [];

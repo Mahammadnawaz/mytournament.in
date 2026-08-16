@@ -49,6 +49,7 @@ interface CricketContextType {
   swapStriker: () => void;
   startSecondInnings: (strikerId: string, nonStrikerId: string, bowlerId: string) => void;
   applyDLSTarget: (revisedTarget: number, revisedOvers: number) => void;
+  declareCurrentInnings: () => void;
   finishMatch: (resultMessage?: string) => void;
   setActiveMatchId: (id: string | null) => void;
   resetToDemoData: () => void;
@@ -1081,6 +1082,61 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     releaseLocalActionLock(800);
   };
 
+  const declareCurrentInnings = () => {
+    if (!activeMatch || !activeInnings || activeMatch.status !== 'live') return;
+
+    isLocalAction.current = true;
+    const updatedMatch: Match = JSON.parse(JSON.stringify(activeMatch));
+
+    if (activeMatch.currentInnings === 1) {
+      if (updatedMatch.innings1) {
+        updatedMatch.innings1.isCompleted = true;
+      }
+    } else {
+      if (updatedMatch.innings2) {
+        updatedMatch.innings2.isCompleted = true;
+      }
+      updatedMatch.status = 'completed';
+      const inn1 = updatedMatch.innings1?.totalRuns || 0;
+      const inn2 = updatedMatch.innings2?.totalRuns || 0;
+      if (inn1 > inn2) {
+        const margin = inn1 - inn2;
+        updatedMatch.result = `${updatedMatch.innings1?.battingTeam} won by ${margin} runs (Declared)`;
+        updatedMatch.winnerTeam = updatedMatch.innings1?.battingTeam;
+      } else if (inn2 > inn1) {
+        const wktsRemaining = 10 - (updatedMatch.innings2?.wickets || 0);
+        updatedMatch.result = `${updatedMatch.innings2?.battingTeam} won by ${wktsRemaining} wickets (Declared)`;
+        updatedMatch.winnerTeam = updatedMatch.innings2?.battingTeam;
+      } else {
+        updatedMatch.result = `Match Tied (Declared)`;
+      }
+
+      const potm = calculateMatchPOTM(updatedMatch);
+      if (potm) updatedMatch.potmInfo = potm;
+
+      const finalPlayers = aggregateMatchStatsToPlayers(players, updatedMatch);
+      setPlayers(finalPlayers);
+      localStorage.setItem('cricket_players_v1', JSON.stringify(finalPlayers));
+    }
+
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+
+    const syncPayload = {
+      players,
+      matches: updatedMatches,
+      series: seriesList,
+      activeMatchId: updatedMatch.id,
+      activeScorer,
+      timestamp: Date.now(),
+    };
+    cloudSync.pushState(syncPayload);
+    api.updateMatch(updatedMatch);
+    broadcastSync(syncPayload);
+    releaseLocalActionLock(500);
+  };
+
   const handleSetActiveMatchId = (id: string | null) => {
     setActiveMatchId(id);
     api.setActiveMatchId(id);
@@ -1137,6 +1193,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         swapStriker,
         startSecondInnings,
         applyDLSTarget,
+        declareCurrentInnings,
         finishMatch,
         setActiveMatchId: handleSetActiveMatchId,
         resetToDemoData,

@@ -10,12 +10,12 @@
       "jerseyNumber": 18,
       "avatarUrl": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 36,
-        "inningsBatted": 35,
-        "totalRuns": 1222,
-        "ballsFaced": 865,
+        "matches": 37,
+        "inningsBatted": 36,
+        "totalRuns": 1223,
+        "ballsFaced": 866,
         "highestScore": 122,
-        "notOuts": 17,
+        "notOuts": 18,
         "fours": 107,
         "sixes": 41,
         "inningsBowled": 6,
@@ -38,7 +38,7 @@
       "jerseyNumber": 45,
       "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 37,
+        "matches": 38,
         "inningsBatted": 33,
         "totalRuns": 1249,
         "ballsFaced": 869,
@@ -318,7 +318,7 @@
       "jerseyNumber": 63,
       "avatarUrl": "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 32,
+        "matches": 33,
         "inningsBatted": 31,
         "totalRuns": 905,
         "ballsFaced": 551,
@@ -326,10 +326,10 @@
         "notOuts": 14,
         "fours": 79,
         "sixes": 45,
-        "inningsBowled": 7,
+        "inningsBowled": 8,
         "oversBowled": 2,
-        "ballsBowled": 30,
-        "runsConceded": 68,
+        "ballsBowled": 31,
+        "runsConceded": 69,
         "wicketsTaken": 0,
         "bestBowlingWickets": 0,
         "bestBowlingRuns": 0,
@@ -346,7 +346,7 @@
       "jerseyNumber": 62,
       "avatarUrl": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=150&auto=format&fit=crop&q=80",
       "stats": {
-        "matches": 31,
+        "matches": 32,
         "inningsBatted": 28,
         "totalRuns": 945,
         "ballsFaced": 581,
@@ -618,6 +618,218 @@
     }
   ],
   "matches": [
+    {
+      "name": "International Tri-Series Cup 2026 - Match 2",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Royal Titans",
+      "tossChoice": "bowl",
+      "seriesId": "series-1786902341335",
+      "matchCategory": "series",
+      "openingStrikerId": "p-12",
+      "openingNonStrikerId": "p-13",
+      "openingBowlerId": "p-11",
+      "id": "match-1786903998272",
+      "status": "completed",
+      "currentInnings": 2,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 0,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 0,
+        "strikerId": "p-12",
+        "nonStrikerId": "p-13",
+        "currentBowlerId": "p-11",
+        "batsmenStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 0,
+            "balls": 0,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 0,
+            "balls": 0,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-11": {
+            "playerId": "p-11",
+            "overs": 0,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 0,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [],
+        "recentBalls": [],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "innings2": {
+        "inningsNo": 2,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 1,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 1,
+        "target": 1,
+        "strikerId": "p-2",
+        "nonStrikerId": "p-1",
+        "currentBowlerId": "p-12",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 1,
+            "balls": 1,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 0,
+            "balls": 0,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-12": {
+            "playerId": "p-12",
+            "overs": 0,
+            "balls": 1,
+            "maidens": 0,
+            "runsConceded": 1,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786904014523-hxvm",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786904014523
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786904014523-hxvm",
+            "matchId": "current",
+            "inningsNo": 2,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-12",
+            "runsScored": 1,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786904014523
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 0,
+          "byes": 0,
+          "legByes": 0,
+          "total": 0
+        },
+        "isCompleted": true,
+        "fow": []
+      },
+      "result": "Royal Titans won by 10 wickets!",
+      "winnerTeam": "Royal Titans",
+      "potmInfo": {
+        "playerId": "p-1",
+        "points": 1,
+        "summary": "1 runs (1b)"
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786904014528",
+        "text": "1",
+        "subText": "1 RUN (SINGLE) 🏏",
+        "colorType": "one",
+        "timestamp": 1786904014528
+      }
+    },
     {
       "name": "International Tri-Series Cup 2026 - Match 1",
       "venue": "Lords Cricket Ground",
@@ -5861,6 +6073,18 @@
   ],
   "series": [
     {
+      "id": "series-1786903893419",
+      "name": "International Tri-Series Cup 2026",
+      "seriesType": "triseries",
+      "format": "Tri-Series (3 Teams)",
+      "totalMatches": 7,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "teamC": "Thunder Warriors",
+      "matchIds": [],
+      "status": "ongoing"
+    },
+    {
       "id": "series-1786902746608",
       "name": "International Tri-Series Cup 2026",
       "seriesType": "triseries",
@@ -5906,7 +6130,8 @@
       "teamB": "Super Strikers",
       "teamC": "Thunder Warriors",
       "matchIds": [
-        "match-1786902374703"
+        "match-1786902374703",
+        "match-1786903998272"
       ],
       "status": "completed",
       "playerOfSeriesId": "p-1",
@@ -6064,14 +6289,14 @@
       "playerOfSeriesSummary": "168 Runs • 2 Wickets (215 Series MVP Pts)"
     }
   ],
-  "activeMatchId": "match-1786902374703",
+  "activeMatchId": "match-1786903998272",
   "activeScorer": {
     "deviceId": "dev-4n0cseb",
     "deviceName": "Laptop / PC",
     "userName": "kkk",
-    "timestamp": 1786903391034,
-    "lastActive": 1786903391034
+    "timestamp": 1786904343031,
+    "lastActive": 1786904343031
   },
-  "syncTimestamp": 1786902746663,
+  "syncTimestamp": 1786904015300,
   "seriesBreakTimer": null
 }

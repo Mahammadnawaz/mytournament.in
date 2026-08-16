@@ -480,10 +480,6 @@ const MainContent: React.FC = () => {
           <span className="text-slate-600">Built with React, TypeScript & Tailwind CSS</span>
         </div>
       </footer>
-
-      {showSetupModal && (
-        <MatchSetupModal onClose={() => setShowSetupModal(false)} />
-      )}
     </div>
   );
 };

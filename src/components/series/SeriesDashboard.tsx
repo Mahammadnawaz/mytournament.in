@@ -84,9 +84,9 @@ export const SeriesDashboard: React.FC = () => {
 
   function buildH2H(teamName: string, opponent: string): H2HStats {
     const h: H2HStats = { played: 0, wins: 0, losses: 0, draws: 0, runsScored: 0, runsConceded: 0, highestScore: 0, lowestScore: Infinity, winPct: 0 };
-    seriesMatches.forEach(m => {
-      const isTeamA = m.teamA.name === teamName || m.teamB.name === teamName;
-      if (!isTeamA) return;
+    completedSeriesMatches.forEach(m => {
+      const isHeadToHead = (m.teamA.name === teamName && m.teamB.name === opponent) || (m.teamA.name === opponent && m.teamB.name === teamName);
+      if (!isHeadToHead) return;
       h.played += 1;
 
       const battedInnings = [m.innings1, m.innings2].filter(i => i?.battingTeam === teamName);
@@ -116,6 +116,8 @@ export const SeriesDashboard: React.FC = () => {
   const isTriSeries = Boolean(selectedSeries?.teamC || selectedSeries?.seriesType === 'triseries');
   const teamCName = selectedSeries?.teamC || 'Team C';
 
+  const [triSeriesFixture, setTriSeriesFixture] = useState<string>('');
+
   const buildTeamStats = (tName: string) => {
     let played = 0;
     let wins = 0;
@@ -130,8 +132,8 @@ export const SeriesDashboard: React.FC = () => {
       if (!isTeamA && !isTeamB) return;
 
       played++;
-      const batInn = isTeamA ? m.innings1 : m.innings2;
-      const bowlInn = isTeamA ? m.innings2 : m.innings1;
+      const batInn = [m.innings1, m.innings2].find(i => i?.battingTeam === tName);
+      const bowlInn = [m.innings1, m.innings2].find(i => i?.bowlingTeam === tName);
       if (batInn) runsScored += batInn.totalRuns;
       if (bowlInn) runsConceded += bowlInn.totalRuns;
 
@@ -244,13 +246,45 @@ export const SeriesDashboard: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => handleStartNextSeriesMatch()}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5 shrink-0 active:scale-95"
-            >
-              <Play className="w-4 h-4 fill-current text-slate-950" />
-              <span>▶️ Start Match {seriesMatches.length + 1} of Series ➔</span>
-            </button>
+            {isTriSeries ? (
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                <select
+                  value={triSeriesFixture || `${selectedSeries.teamA}|||${selectedSeries.teamB}`}
+                  onChange={(e) => setTriSeriesFixture(e.target.value)}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-amber-300 font-extrabold text-xs outline-none cursor-pointer"
+                >
+                  <option value={`${selectedSeries.teamA}|||${selectedSeries.teamB}`}>
+                    🏏 Match Fixture: {selectedSeries.teamA} vs {selectedSeries.teamB}
+                  </option>
+                  <option value={`${selectedSeries.teamB}|||${teamCName}`}>
+                    🏏 Match Fixture: {selectedSeries.teamB} vs {teamCName}
+                  </option>
+                  <option value={`${teamCName}|||${selectedSeries.teamA}`}>
+                    🏏 Match Fixture: {teamCName} vs {selectedSeries.teamA}
+                  </option>
+                </select>
+
+                <button
+                  onClick={() => {
+                    const fixture = triSeriesFixture || `${selectedSeries.teamA}|||${selectedSeries.teamB}`;
+                    const [tA, tB] = fixture.split('|||');
+                    handleStartNextSeriesMatch(tA, tB);
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5 shrink-0 active:scale-95"
+                >
+                  <Play className="w-4 h-4 fill-current text-slate-950" />
+                  <span>Start Match {seriesMatches.length + 1} ➔</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleStartNextSeriesMatch()}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5 shrink-0 active:scale-95"
+              >
+                <Play className="w-4 h-4 fill-current text-slate-950" />
+                <span>▶️ Start Match {seriesMatches.length + 1} of Series ➔</span>
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1118,7 +1152,7 @@ const CreateSeriesModal: React.FC<{
               className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-lg shadow-amber-500/20 transition active:scale-95"
             >
               <Check className="w-4 h-4" />
-              <span>Create Tri-Series →</span>
+              <span>{seriesType === 'bilateral' ? 'Start the Bilateral series →' : 'Start the Tri series →'}</span>
             </button>
           </div>
         </form>
