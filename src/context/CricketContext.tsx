@@ -501,15 +501,18 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [activeMatchId]);
 
   useEffect(() => {
-    if ((!activeMatchId || !matches.some(m => m.id === activeMatchId)) && matches.length > 0) {
-      const live = matches.find(m => m.status === 'live');
-      const targetId = live ? live.id : matches[0].id;
-      setActiveMatchId(targetId);
-      localStorage.setItem('cricket_active_match_v1', targetId);
+    const liveMatch = matches.find(m => m.status === 'live');
+    if (liveMatch) {
+      setActiveMatchId(liveMatch.id);
+      localStorage.setItem('cricket_active_match_v1', liveMatch.id);
+    } else if (activeMatchId && !matches.some(m => m.id === activeMatchId)) {
+      setActiveMatchId(null);
+      localStorage.removeItem('cricket_active_match_v1');
     }
-  }, [matches, activeMatchId]);
+  }, [matches]);
 
-  const activeMatch = matches.find(m => m.id === activeMatchId) || matches.find(m => m.status === 'live') || matches[0] || null;
+  const liveMatch = matches.find(m => m.status === 'live');
+  const activeMatch = liveMatch || (activeMatchId ? matches.find(m => m.id === activeMatchId) : null) || null;
   const activeInnings = activeMatch 
     ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null
     : null;

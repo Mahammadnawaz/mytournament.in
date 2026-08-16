@@ -459,16 +459,7 @@ const MainContent: React.FC = () => {
           </div>
         )}
 
-        {/* Completed Match Full Scorecard - Stays on Home Screen until next match starts */}
-        {activeMatch.status === 'completed' && (
-          <div className="space-y-4 pt-4 border-t border-slate-800">
-            <h3 className="text-xl font-extrabold text-white flex items-center space-x-2">
-              <Trophy className="w-6 h-6 text-amber-400" />
-              <span>Final Match Scorecard & Summary</span>
-            </h3>
-            <MatchScorecard />
-          </div>
-        )}
+
 
         {/* 2nd Innings Transition Modal - Strictly for Scorer Only */}
         {needsInnings2Setup && isScorer && <InningsTransitionModal />}
