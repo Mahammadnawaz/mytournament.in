@@ -619,6 +619,268 @@
   ],
   "matches": [
     {
+      "name": "Premier T20 Match",
+      "venue": "Lords Cricket Ground",
+      "date": "2026-08-16",
+      "totalOvers": 5,
+      "teamA": {
+        "name": "Royal Titans",
+        "playerIds": [
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11"
+        ]
+      },
+      "teamB": {
+        "name": "Super Strikers",
+        "playerIds": [
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22"
+        ]
+      },
+      "tossWinner": "Super Strikers",
+      "tossChoice": "bowl",
+      "openingStrikerId": "p-1",
+      "openingNonStrikerId": "p-2",
+      "openingBowlerId": "p-22",
+      "id": "match-1786889252036",
+      "status": "live",
+      "currentInnings": 1,
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 8,
+        "wickets": 0,
+        "overs": 0,
+        "balls": 0,
+        "strikerId": "p-1",
+        "nonStrikerId": "p-2",
+        "currentBowlerId": "p-22",
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 2,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 2,
+            "balls": 1,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-22": {
+            "playerId": "p-22",
+            "overs": 0,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 8,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 4,
+            "dots": 0
+          }
+        },
+        "ballLogs": [
+          {
+            "id": "ball-1786889256937-xipl",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889256937
+          },
+          {
+            "id": "ball-1786889266105-ln39",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889266105
+          },
+          {
+            "id": "ball-1786889274822-4z6a",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889274822
+          },
+          {
+            "id": "ball-1786889295055-iggg",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889295055
+          }
+        ],
+        "recentBalls": [
+          {
+            "id": "ball-1786889256937-xipl",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889256937
+          },
+          {
+            "id": "ball-1786889266105-ln39",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889266105
+          },
+          {
+            "id": "ball-1786889274822-4z6a",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889274822
+          },
+          {
+            "id": "ball-1786889295055-iggg",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786889295055
+          }
+        ],
+        "extrasTotal": {
+          "wides": 0,
+          "noBalls": 4,
+          "byes": 0,
+          "legByes": 0,
+          "total": 4
+        },
+        "isCompleted": false,
+        "fow": []
+      },
+      "currentAlert": null,
+      "latestDeliveryBurst": {
+        "id": "burst-1786889295055",
+        "text": "1",
+        "subText": "1 RUN (SINGLE) 🏏",
+        "colorType": "one",
+        "timestamp": 1786889295055
+      }
+    },
+    {
       "id": "m-sample-1",
       "name": "Grand Final - Premier League T20",
       "venue": "Lords Cricket Ground",
@@ -687,5 +949,14 @@
       "playerOfSeriesId": "p-1",
       "playerOfSeriesSummary": "168 Runs • 2 Wickets (215 Series MVP Pts)"
     }
-  ]
+  ],
+  "activeMatchId": "match-1786889252036",
+  "activeScorer": {
+    "deviceId": "dev-k4p0uin",
+    "deviceName": "Laptop / PC",
+    "userName": "hhh",
+    "timestamp": 1786889355747,
+    "lastActive": 1786889355747
+  },
+  "syncTimestamp": 1786889295074
 }

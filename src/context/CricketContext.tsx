@@ -729,11 +729,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         timestamp: Date.now(),
       };
     } else if (params.extraType === 'no-ball') {
-      const extraRuns = (params.runsScored || 0) > 0 ? `+${params.runsScored}` : '';
+      const totalNbRuns = (params.runsScored || 0) + 1;
       updatedMatch.latestDeliveryBurst = {
         id: `burst-${Date.now()}`,
-        text: extraRuns ? `NB${extraRuns}` : 'NB',
-        subText: extraRuns ? `NO BALL ${extraRuns} ⚠️` : 'NO BALL ⚠️',
+        text: `NB+${totalNbRuns}`,
+        subText: `NO BALL (${totalNbRuns} RUNS TOTAL) ⚠️`,
         colorType: 'noball',
         timestamp: Date.now(),
       };

@@ -32,7 +32,7 @@ export const OverTimeline: React.FC<OverTimelineProps> = ({ recentBalls }) => {
   const getBallLabel = (ball: BallLog) => {
     if (ball.isWicket) return 'W';
     if (ball.extras.type === 'wide') return `Wd${ball.totalRuns > 1 ? '+' + (ball.totalRuns - 1) : ''}`;
-    if (ball.extras.type === 'no-ball') return `NB${ball.totalRuns > 1 ? '+' + (ball.totalRuns - 1) : ''}`;
+    if (ball.extras.type === 'no-ball') return `NB${ball.runsScored > 0 ? '+' + ball.runsScored : ''}`;
     if (ball.extras.type === 'bye') return `${ball.extras.runs}B`;
     if (ball.extras.type === 'leg-bye') return `${ball.extras.runs}LB`;
     return ball.runsScored.toString();

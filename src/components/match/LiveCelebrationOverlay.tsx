@@ -242,11 +242,11 @@ export const LiveCelebrationOverlay: React.FC = () => {
         colorType: 'wide',
       });
     } else if (latestBall.extras && latestBall.extras.type === 'no-ball') {
-      const extraRuns = latestBall.extras.runs > 1 ? `+${latestBall.extras.runs - 1}` : '';
+      const totalNb = latestBall.totalRuns || ((latestBall.runsScored || 0) + 1);
       setScoreBurst({
         id: `burst-${Date.now()}`,
-        text: `NB${extraRuns}`,
-        subText: `NO BALL (+${latestBall.totalRuns}) ⚠️`,
+        text: `NB+${totalNb}`,
+        subText: `NO BALL (${totalNb} RUNS TOTAL) ⚠️`,
         colorType: 'noball',
       });
     } else if (latestBall.extras && latestBall.extras.type === 'bye') {
