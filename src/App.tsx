@@ -16,7 +16,7 @@ import MatchHistory from './components/scorecard/MatchHistory';
 import MatchAnalytics from './components/analytics/MatchAnalytics';
 import SeriesDashboard from './components/series/SeriesDashboard';
 import LiveCelebrationOverlay from './components/match/LiveCelebrationOverlay';
-import { Plus, Swords, RotateCw } from 'lucide-react';
+import { Plus, Swords, RotateCw, Trophy } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData } = useCricket();
@@ -28,7 +28,7 @@ const MainContent: React.FC = () => {
   }
 
   const renderScoringTab = () => {
-    if (!activeMatch || activeMatch.status !== 'live') {
+    if (!activeMatch) {
       return (
         <div className="theme-bg-card border rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto my-8 shadow-2xl space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
@@ -75,14 +75,27 @@ const MainContent: React.FC = () => {
         {/* Hero Scoreboard */}
         <LiveScoreboard />
 
-        {/* Pitch Card & Controls */}
+        {/* Pitch Card & Live Scoring Controls */}
         {activeMatch.status === 'live' && activeInnings && !needsInnings2Setup && (
           <>
             <OverTimeline recentBalls={activeInnings.recentBalls} />
             <ScoringControlPanel />
             <LivePitchCard onChangeBowlerClick={() => setShowBowlerModal(true)} />
-            <LiveCommentaryFeed />
           </>
+        )}
+
+        {/* Live Commentary Feed & Winner Banner */}
+        <LiveCommentaryFeed />
+
+        {/* Completed Match Full Scorecard - Stays on Home Screen until next match starts */}
+        {activeMatch.status === 'completed' && (
+          <div className="space-y-4 pt-4 border-t border-slate-800">
+            <h3 className="text-xl font-extrabold text-white flex items-center space-x-2">
+              <Trophy className="w-6 h-6 text-amber-400" />
+              <span>Final Match Scorecard & Summary</span>
+            </h3>
+            <MatchScorecard />
+          </div>
         )}
 
         {/* 2nd Innings Transition Modal - Strictly for Scorer Only */}

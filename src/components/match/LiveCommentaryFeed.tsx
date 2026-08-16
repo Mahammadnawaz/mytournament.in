@@ -324,17 +324,19 @@ export const LiveCommentaryFeed: React.FC = () => {
     }
   }, [activeInnings?.ballLogs, isAudioEnabled, players]);
 
-  // Audio announcement for Match Winner / End Result (e.g., "Match Completed! India won by 3 wickets!")
+  // Audio announcement for Match Winner / End Result (e.g., "Match completed! Won by 10 runs by India!")
   useEffect(() => {
     if (!isAudioEnabled || !activeMatch || activeMatch.status !== 'completed' || !activeMatch.result) return;
     const resultKey = `result-${activeMatch.id}-${activeMatch.result}`;
 
     if (lastSpokenResultId.current !== resultKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       lastSpokenResultId.current = resultKey;
-      const speechText = `Match Completed! ${activeMatch.result}`;
+      
+      const res = activeMatch.result; // e.g. "India won by 10 runs"
+      const spokenVoiceText = `${res}!`;
 
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(speechText);
+      const utterance = new SpeechSynthesisUtterance(spokenVoiceText);
       utterance.rate = 1.0;
       utterance.pitch = 1.05;
       window.speechSynthesis.speak(utterance);

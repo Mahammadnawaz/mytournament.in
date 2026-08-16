@@ -21,9 +21,6 @@ export const LiveCelebrationOverlay: React.FC = () => {
   const { activeMatch, activeInnings, players } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
-  const isInitialMount = useRef(true);
-  const lastProcessedBallKeyRef = useRef<string | null>(null);
-
   // Helper to ensure array conversion
   const ensureArray = <T,>(val: any): T[] => {
     if (!val) return [];
@@ -32,25 +29,23 @@ export const LiveCelebrationOverlay: React.FC = () => {
     return [];
   };
 
-  // Set initial mount bookmark on first render so only existing historical balls are silenced
-  useEffect(() => {
-    const initialBalls = ensureArray<BallLog>(activeInnings?.ballLogs);
-    if (initialBalls.length > 0) {
-      const initLatest = initialBalls[initialBalls.length - 1];
-      lastProcessedBallKeyRef.current = initLatest.id || `${activeInnings?.inningsNo}-${activeInnings?.overs}.${activeInnings?.balls}-${initLatest.timestamp || initLatest.totalRuns}-${initialBalls.length}`;
-    }
-    const timer = setTimeout(() => {
-      isInitialMount.current = false;
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
-
+  const mountedAtRef = useRef<number>(Date.now());
+  const lastProcessedBallKeyRef = useRef<string | null>(null);
   const lastBurstTimestampRef = useRef<number>(0);
 
   // 1. Direct Real-Time Delivery Score Pop Trigger from Sync for All Users
   useEffect(() => {
+    if (activeMatch?.status === 'completed') return; // Silence score pop bursts for completed matches
+
     const burst = activeMatch?.latestDeliveryBurst;
     if (!burst || !burst.timestamp) return;
+
+    // Ignore delivery burst created before/upon page mount (historical / refresh)
+    if (burst.timestamp < mountedAtRef.current - 1500) {
+      lastBurstTimestampRef.current = burst.timestamp;
+      return;
+    }
+
     if (lastBurstTimestampRef.current === burst.timestamp) return;
 
     lastBurstTimestampRef.current = burst.timestamp;
@@ -69,11 +64,15 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
     const timer = setTimeout(() => setScoreBurst(null), 2200);
     return () => clearTimeout(timer);
-  }, [activeMatch?.latestDeliveryBurst?.timestamp]);
+  }, [activeMatch?.latestDeliveryBurst?.timestamp, activeMatch?.status]);
 
   // Sync real-time alerts (e.g. Hat-Trick) from Sync activeMatch.currentAlert for All Users
   useEffect(() => {
+    if (activeMatch?.status === 'completed') return;
+
     if (activeMatch?.currentAlert && activeMatch.currentAlert.type === 'hat-trick') {
+      if (activeMatch.currentAlert.timestamp < mountedAtRef.current - 1500) return;
+
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.2, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.8, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
       confetti({ particleCount: 140, spread: 120, origin: { y: 0.4 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
@@ -88,10 +87,11 @@ export const LiveCelebrationOverlay: React.FC = () => {
       const timer = setTimeout(() => setScoreBurst(null), 3000);
       return () => clearTimeout(timer);
     }
-  }, [activeMatch?.currentAlert?.timestamp]);
+  }, [activeMatch?.currentAlert?.timestamp, activeMatch?.status]);
 
   // Detect live ball events from activeInnings.ballLogs for All Users
   useEffect(() => {
+    if (activeMatch?.status === 'completed') return; // Silence score pops for completed matches
 
     const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
     if (!activeInnings || ballLogs.length === 0) {
@@ -104,13 +104,14 @@ export const LiveCelebrationOverlay: React.FC = () => {
     // Unique delivery signature
     const ballKey = latestBall.id || `${activeInnings.inningsNo}-${activeInnings.overs}.${activeInnings.balls}-${latestBall.timestamp || latestBall.totalRuns}-${ballLogs.length}`;
 
-    // If initial loading phase and already bookmarked, skip historical ball
-    if (isInitialMount.current && lastProcessedBallKeyRef.current === ballKey) {
+    // Skip if already processed
+    if (lastProcessedBallKeyRef.current === ballKey) {
       return;
     }
 
-    // Skip if already displayed
-    if (lastProcessedBallKeyRef.current === ballKey) {
+    // Silence historical/past ball logs upon refresh or initial page load
+    if (latestBall.timestamp && latestBall.timestamp < mountedAtRef.current - 1500) {
+      lastProcessedBallKeyRef.current = ballKey;
       return;
     }
 
