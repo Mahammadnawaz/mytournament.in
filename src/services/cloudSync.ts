@@ -15,6 +15,50 @@ export interface CloudSyncData {
 // Global in-memory cache to prevent unnecessary state overwrites
 let lastSyncedTimestamp = 0;
 
+const ensureArray = <T>(val: any): T[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') return Object.values(val);
+  return [];
+};
+
+export const sanitizeMatch = (match: any): Match => {
+  if (!match) return match;
+  const m = { ...match };
+  if (m.teamA) m.teamA = { ...m.teamA, playerIds: ensureArray(m.teamA.playerIds) };
+  if (m.teamB) m.teamB = { ...m.teamB, playerIds: ensureArray(m.teamB.playerIds) };
+  if (m.timeline) m.timeline = ensureArray(m.timeline);
+
+  const sanitizeInnings = (inn: any) => {
+    if (!inn) return inn;
+    return {
+      ...inn,
+      ballLogs: ensureArray(inn.ballLogs),
+      recentBalls: ensureArray(inn.recentBalls),
+      fow: ensureArray(inn.fow),
+      batsmenStats: inn.batsmenStats || {},
+      bowlerStats: inn.bowlerStats || {},
+      extrasTotal: inn.extrasTotal || { wides: 0, noBalls: 0, byes: 0, legByes: 0, total: 0 },
+    };
+  };
+
+  if (m.innings1) m.innings1 = sanitizeInnings(m.innings1);
+  if (m.innings2) m.innings2 = sanitizeInnings(m.innings2);
+  return m as Match;
+};
+
+export const sanitizeSyncData = (data: any): CloudSyncData => {
+  if (!data) return data;
+  return {
+    players: ensureArray(data.players),
+    matches: ensureArray(data.matches).map(sanitizeMatch),
+    series: ensureArray(data.series),
+    activeMatchId: data.activeMatchId || null,
+    activeScorer: data.activeScorer || null,
+    timestamp: data.timestamp || Date.now(),
+  };
+};
+
 export const cloudSync = {
   // Push full state update to Cloud (Firebase RTDB + Express API)
   async pushState(data: Partial<CloudSyncData>): Promise<boolean> {
@@ -67,9 +111,12 @@ export const cloudSync = {
         const unsubscribe = onValue(syncRef, (snapshot) => {
           if (!snapshot.exists() || !snapshot.val()) return;
           const val = snapshot.val();
-          if (val && val.timestamp && val.timestamp > lastSyncedTimestamp) {
-            lastSyncedTimestamp = val.timestamp;
-            onUpdate(val);
+          if (val) {
+            const sanitized = sanitizeSyncData(val);
+            if (!sanitized.timestamp || sanitized.timestamp >= lastSyncedTimestamp) {
+              lastSyncedTimestamp = sanitized.timestamp;
+              onUpdate(sanitized);
+            }
           }
         });
         return unsubscribe;
@@ -83,14 +130,8 @@ export const cloudSync = {
       try {
         const syncData = await api.getSync();
         if (syncData) {
-          onUpdate({
-            players: syncData.players || [],
-            matches: syncData.matches || [],
-            series: syncData.series || [],
-            activeMatchId: syncData.activeMatchId || null,
-            activeScorer: syncData.activeScorer || null,
-            timestamp: syncData.timestamp || Date.now(),
-          });
+          const sanitized = sanitizeSyncData(syncData);
+          onUpdate(sanitized);
         }
       } catch {
         // Offline
@@ -107,7 +148,7 @@ export const cloudSync = {
         const syncRef = ref(db, 'cricpulse_live_state');
         const snap = await get(syncRef);
         if (snap.exists()) {
-          return snap.val();
+          return sanitizeSyncData(snap.val());
         }
       } catch (err) {
         console.warn('Error pulling from Firebase:', err);
@@ -117,14 +158,7 @@ export const cloudSync = {
     try {
       const res = await api.getSync();
       if (res) {
-        return {
-          players: res.players || [],
-          matches: res.matches || [],
-          series: res.series || [],
-          activeMatchId: res.activeMatchId || null,
-          activeScorer: res.activeScorer || null,
-          timestamp: res.timestamp || Date.now(),
-        };
+        return sanitizeSyncData(res);
       }
     } catch {
       // Backend offline

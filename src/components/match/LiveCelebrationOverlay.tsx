@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCricket } from '../../context/CricketContext';
+import type { BallLog } from '../../types/cricket';
 import confetti from 'canvas-confetti';
 
 export interface DuckEvent {
@@ -20,7 +21,16 @@ export const LiveCelebrationOverlay: React.FC = () => {
   const { activeMatch, activeInnings, players } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
-  const lastProcessedBallIdRef = useRef<string | null>(null);
+  const isInitialMount = useRef(true);
+  const lastProcessedBallKeyRef = useRef<string | null>(null);
+
+  // Helper to ensure array conversion
+  const ensureArray = <T,>(val: any): T[] => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'object') return Object.values(val);
+    return [];
+  };
 
   // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators & Scorers
   useEffect(() => {
@@ -41,24 +51,38 @@ export const LiveCelebrationOverlay: React.FC = () => {
     }
   }, [activeMatch?.currentAlert?.timestamp]);
 
-  // Detect live ball events from activeInnings.ballLogs
+  // Detect live ball events from activeInnings.ballLogs for ALL devices (Scorer and Spectators)
   useEffect(() => {
-    if (!activeInnings || !activeInnings.ballLogs || activeInnings.ballLogs.length === 0) {
+    const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
+    if (!activeInnings || ballLogs.length === 0) {
       return;
     }
 
-    const latestBall = activeInnings.ballLogs[activeInnings.ballLogs.length - 1];
-    if (!latestBall || latestBall.id === lastProcessedBallIdRef.current) {
+    const latestBall = ballLogs[ballLogs.length - 1];
+    if (!latestBall) return;
+
+    // Unique delivery signature
+    const ballKey = latestBall.id || `${activeInnings.inningsNo}-${activeInnings.overs}.${activeInnings.balls}-${latestBall.timestamp || latestBall.totalRuns}-${ballLogs.length}`;
+
+    // On initial mount, bookmark the latest existing ball so old balls do not flash on page reload
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      lastProcessedBallKeyRef.current = ballKey;
       return;
     }
 
-    lastProcessedBallIdRef.current = latestBall.id;
+    // Skip if already processed
+    if (lastProcessedBallKeyRef.current === ballKey) {
+      return;
+    }
+
+    lastProcessedBallKeyRef.current = ballKey;
 
     // 1. Duck Dismissal: Wicket with 0 runs
     if (latestBall.isWicket && latestBall.wicketInfo) {
       const outBatsmanId = latestBall.wicketInfo.dismissedPlayerId || latestBall.strikerId;
       const outPlayer = players.find(p => p.id === outBatsmanId);
-      const outBatsmanStats = activeInnings.batsmenStats[outBatsmanId];
+      const outBatsmanStats = activeInnings.batsmenStats?.[outBatsmanId];
       
       const isDuck = outBatsmanStats && outBatsmanStats.runs === 0;
       if (isDuck) {
@@ -77,7 +101,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
     }
 
     // 2. Determine Score Burst Number & Celebration for All Devices (0, 1, 2, 3, 4, 6, OUT, HAT-TRICK, WIDE, NOBALL, BYES, LEGBYES)
-    const bowlerBalls = activeInnings.ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
+    const bowlerBalls = ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
     const isHatTrick = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
 
     if (isHatTrick) {
@@ -208,7 +232,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
     const timer = setTimeout(() => setScoreBurst(null), 2200);
     return () => clearTimeout(timer);
 
-  }, [activeInnings?.ballLogs?.length, players, activeInnings]);
+  }, [activeInnings?.ballLogs, activeInnings?.totalRuns, activeInnings?.overs, activeInnings?.balls, players]);
 
   return (
     <>
