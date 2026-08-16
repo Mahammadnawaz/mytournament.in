@@ -226,7 +226,7 @@ app.put('/api/series/:id', (req, res) => {
 });
 
 // --- EXCLUSIVE SCORER LOCK SYSTEM ---
-const LOCK_EXPIRY_MS = 60 * 1000; // 60 seconds of inactivity without heartbeat
+const LOCK_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes of inactivity without heartbeat
 
 app.get('/api/scorer/status', (req, res) => {
   const db = readDb();
@@ -312,12 +312,18 @@ app.get('/api/sync', (req, res) => {
     if (liveMatch) activeId = liveMatch.id;
   }
 
+  const now = Date.now();
+  let activeScorer = db.activeScorer || null;
+  if (activeScorer && (now - (activeScorer.lastActive || activeScorer.timestamp || 0) > LOCK_EXPIRY_MS)) {
+    activeScorer = null;
+  }
+
   res.json({
     players: db.players || [],
     matches: db.matches || [],
     series: db.series || [],
     activeMatchId: activeId || null,
-    activeScorer: db.activeScorer || null,
+    activeScorer: activeScorer,
     timestamp: db.syncTimestamp || Date.now(),
   });
 });

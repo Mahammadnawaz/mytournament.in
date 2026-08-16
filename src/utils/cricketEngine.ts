@@ -74,7 +74,7 @@ export function processBall(
     extraPenalty = 1; // 1 penalty run for No Ball
   } else if (extraType === 'wide') {
     isLegalBall = false;
-    extraPenalty = Math.max(1, extraRuns || 1);
+    extraPenalty = 1 + (extraRuns || 0); // 1 wide penalty + extra runs taken
   } else if (extraType === 'bye' || extraType === 'leg-bye') {
     extraPenalty = Math.max(1, extraRuns || 1);
   }

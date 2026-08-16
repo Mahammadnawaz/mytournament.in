@@ -46,12 +46,17 @@ export const sanitizeMatch = (match: any): Match => {
 
 export const sanitizeSyncData = (data: any): CloudSyncData => {
   if (!data) return data;
+  const now = Date.now();
+  let activeScorer = data.activeScorer || null;
+  if (activeScorer && activeScorer.timestamp && (now - activeScorer.timestamp > 10 * 60 * 1000)) {
+    activeScorer = null;
+  }
   return {
     players: ensureArray(data.players),
     matches: ensureArray(data.matches).map(sanitizeMatch),
     series: ensureArray(data.series),
     activeMatchId: data.activeMatchId || null,
-    activeScorer: data.activeScorer || null,
+    activeScorer,
     timestamp: data.timestamp || Date.now(),
   };
 };

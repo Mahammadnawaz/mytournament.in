@@ -350,7 +350,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       }
       if (syncData.activeScorer !== undefined) {
-        setActiveScorer(syncData.activeScorer);
+        if (isScorer && !syncData.activeScorer) {
+          // Keep local scorer lock active if user is scorer
+        } else {
+          setActiveScorer(syncData.activeScorer);
+        }
       }
 
       if (syncData.activeMatchId) {
@@ -706,11 +710,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         timestamp: Date.now(),
       };
     } else if (params.extraType === 'wide') {
-      const extraRuns = (params.extraRuns || 1) > 1 ? `+${(params.extraRuns || 1) - 1}` : '';
+      const extraRuns = (params.extraRuns || 0) > 0 ? `+${params.extraRuns}` : '';
       updatedMatch.latestDeliveryBurst = {
         id: `burst-${Date.now()}`,
-        text: `WD${extraRuns}`,
-        subText: `WIDE BALL (+${params.extraRuns || 1}) ↔️`,
+        text: extraRuns ? `WD${extraRuns}` : 'WD',
+        subText: extraRuns ? `WIDE ${extraRuns} ↔️` : 'WIDE BALL ↔️',
         colorType: 'wide',
         timestamp: Date.now(),
       };
