@@ -504,14 +504,36 @@ const MainContent: React.FC = () => {
       <LiveCelebrationOverlay />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24 sm:pb-8">
-        <TabErrorBoundary tabName={activeTab || 'scoring'}>
-          {(activeTab === 'scoring' || (activeTab as any) === 'home' || !activeTab) && renderScoringTab()}
-          {activeTab === 'series' && <SeriesDashboard />}
-          {activeTab === 'players' && <PlayerDirectory />}
-          {activeTab === 'scorecard' && <MatchScorecard />}
-          {activeTab === 'analytics' && <MatchAnalytics />}
-          {activeTab === 'history' && <MatchHistory />}
-        </TabErrorBoundary>
+        {(activeTab === 'scoring' || (activeTab as any) === 'home' || !activeTab) && (
+          <TabErrorBoundary tabName="scoring">
+            {renderScoringTab()}
+          </TabErrorBoundary>
+        )}
+        {activeTab === 'series' && (
+          <TabErrorBoundary tabName="series">
+            <SeriesDashboard />
+          </TabErrorBoundary>
+        )}
+        {activeTab === 'players' && (
+          <TabErrorBoundary tabName="players">
+            <PlayerDirectory />
+          </TabErrorBoundary>
+        )}
+        {activeTab === 'scorecard' && (
+          <TabErrorBoundary tabName="scorecard">
+            <MatchScorecard />
+          </TabErrorBoundary>
+        )}
+        {activeTab === 'analytics' && (
+          <TabErrorBoundary tabName="analytics">
+            <MatchAnalytics />
+          </TabErrorBoundary>
+        )}
+        {activeTab === 'history' && (
+          <TabErrorBoundary tabName="history">
+            <MatchHistory />
+          </TabErrorBoundary>
+        )}
       </main>
 
       {/* Footer */}
