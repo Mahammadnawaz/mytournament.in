@@ -679,6 +679,40 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         colorType: 'wicket',
         timestamp: Date.now(),
       };
+    } else if (params.extraType === 'no-ball') {
+      const extraRuns = (params.runsScored || 0) > 0 ? `+${params.runsScored}` : '';
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `NB${extraRuns}`,
+        subText: extraRuns ? `NO BALL ${extraRuns} RUNS ⚠️` : 'NO BALL ⚠️',
+        colorType: 'noball',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'wide') {
+      const extraRuns = (params.extraRuns || 0) > 0 ? `+${params.extraRuns}` : '';
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: extraRuns ? `WD${extraRuns}` : 'WD',
+        subText: extraRuns ? `WIDE ${extraRuns} ↔️` : 'WIDE BALL ↔️',
+        colorType: 'wide',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'bye') {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `B+${params.extraRuns || 1}`,
+        subText: `BYES (+${params.extraRuns || 1}) 🛡️`,
+        colorType: 'byes',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'leg-bye') {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `LB+${params.extraRuns || 1}`,
+        subText: `LEG BYES (+${params.extraRuns || 1}) 🦵`,
+        colorType: 'legbyes',
+        timestamp: Date.now(),
+      };
     } else if (params.runsScored === 6) {
       updatedMatch.latestDeliveryBurst = {
         id: `burst-${Date.now()}`,
@@ -717,40 +751,6 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         text: '1',
         subText: '1 RUN (SINGLE) 🏏',
         colorType: 'one',
-        timestamp: Date.now(),
-      };
-    } else if (params.extraType === 'wide') {
-      const extraRuns = (params.extraRuns || 0) > 0 ? `+${params.extraRuns}` : '';
-      updatedMatch.latestDeliveryBurst = {
-        id: `burst-${Date.now()}`,
-        text: extraRuns ? `WD${extraRuns}` : 'WD',
-        subText: extraRuns ? `WIDE ${extraRuns} ↔️` : 'WIDE BALL ↔️',
-        colorType: 'wide',
-        timestamp: Date.now(),
-      };
-    } else if (params.extraType === 'no-ball') {
-      const totalNbRuns = (params.runsScored || 0) + 1;
-      updatedMatch.latestDeliveryBurst = {
-        id: `burst-${Date.now()}`,
-        text: `NB+${totalNbRuns}`,
-        subText: `NO BALL (${totalNbRuns} RUNS TOTAL) ⚠️`,
-        colorType: 'noball',
-        timestamp: Date.now(),
-      };
-    } else if (params.extraType === 'bye') {
-      updatedMatch.latestDeliveryBurst = {
-        id: `burst-${Date.now()}`,
-        text: `B+${params.extraRuns || 1}`,
-        subText: `BYES (+${params.extraRuns || 1}) 🛡️`,
-        colorType: 'byes',
-        timestamp: Date.now(),
-      };
-    } else if (params.extraType === 'leg-bye') {
-      updatedMatch.latestDeliveryBurst = {
-        id: `burst-${Date.now()}`,
-        text: `LB+${params.extraRuns || 1}`,
-        subText: `LEG BYES (+${params.extraRuns || 1}) 🦵`,
-        colorType: 'legbyes',
         timestamp: Date.now(),
       };
     } else {

@@ -667,9 +667,9 @@
         "inningsNo": 1,
         "battingTeam": "Royal Titans",
         "bowlingTeam": "Super Strikers",
-        "totalRuns": 8,
+        "totalRuns": 74,
         "wickets": 0,
-        "overs": 0,
+        "overs": 1,
         "balls": 0,
         "strikerId": "p-1",
         "nonStrikerId": "p-2",
@@ -677,17 +677,17 @@
         "batsmenStats": {
           "p-1": {
             "playerId": "p-1",
-            "runs": 2,
-            "balls": 3,
+            "runs": 33,
+            "balls": 15,
             "fours": 0,
-            "sixes": 0,
+            "sixes": 2,
             "isOut": false
           },
           "p-2": {
             "playerId": "p-2",
-            "runs": 2,
-            "balls": 1,
-            "fours": 0,
+            "runs": 18,
+            "balls": 13,
+            "fours": 2,
             "sixes": 0,
             "isOut": false
           }
@@ -695,14 +695,14 @@
         "bowlerStats": {
           "p-22": {
             "playerId": "p-22",
-            "overs": 0,
+            "overs": 1,
             "balls": 0,
             "maidens": 0,
-            "runsConceded": 8,
+            "runsConceded": 74,
             "wickets": 0,
-            "wides": 0,
-            "noBalls": 4,
-            "dots": 0
+            "wides": 1,
+            "noBalls": 22,
+            "dots": 6
           }
         },
         "ballLogs": [
@@ -781,11 +781,9 @@
             "isWicket": false,
             "isLegalBall": false,
             "timestamp": 1786889295055
-          }
-        ],
-        "recentBalls": [
+          },
           {
-            "id": "ball-1786889256937-xipl",
+            "id": "ball-1786890343164-imrf",
             "matchId": "current",
             "inningsNo": 1,
             "overNumber": 0,
@@ -801,16 +799,92 @@
             "totalRuns": 2,
             "isWicket": false,
             "isLegalBall": false,
-            "timestamp": 1786889256937
+            "timestamp": 1786890343164
           },
           {
-            "id": "ball-1786889266105-ln39",
+            "id": "ball-1786890348461-hxk8",
             "matchId": "current",
             "inningsNo": 1,
             "overNumber": 0,
             "ballNumber": 0,
             "strikerId": "p-1",
             "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890348461
+          },
+          {
+            "id": "ball-1786890351960-q7g3",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890351960
+          },
+          {
+            "id": "ball-1786890436982-6phj",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890436982
+          },
+          {
+            "id": "ball-1786890441051-s1md",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890441051
+          },
+          {
+            "id": "ball-1786890445515-yr3q",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
             "bowlerId": "p-22",
             "runsScored": 0,
             "extras": {
@@ -820,10 +894,124 @@
             "totalRuns": 1,
             "isWicket": false,
             "isLegalBall": false,
-            "timestamp": 1786889266105
+            "timestamp": 1786890445515
           },
           {
-            "id": "ball-1786889274822-4z6a",
+            "id": "ball-1786890448218-ftf0",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 5,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890448218
+          },
+          {
+            "id": "ball-1786890450917-jusx",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 2,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 3,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890450917
+          },
+          {
+            "id": "ball-1786890453434-5dcr",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 3,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 4,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890453434
+          },
+          {
+            "id": "ball-1786890456050-ofhf",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 4,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 5,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890456050
+          },
+          {
+            "id": "ball-1786890458701-1wci",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 6,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 7,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890458701
+          },
+          {
+            "id": "ball-1786890583739-q7ri",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 1,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 2,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890583739
+          },
+          {
+            "id": "ball-1786890586588-i3rh",
             "matchId": "current",
             "inningsNo": 1,
             "overNumber": 0,
@@ -839,10 +1027,10 @@
             "totalRuns": 3,
             "isWicket": false,
             "isLegalBall": false,
-            "timestamp": 1786889274822
+            "timestamp": 1786890586588
           },
           {
-            "id": "ball-1786889295055-iggg",
+            "id": "ball-1786890589085-ih3s",
             "matchId": "current",
             "inningsNo": 1,
             "overNumber": 0,
@@ -850,34 +1038,244 @@
             "strikerId": "p-1",
             "nonStrikerId": "p-2",
             "bowlerId": "p-22",
-            "runsScored": 1,
+            "runsScored": 3,
             "extras": {
               "type": "no-ball",
               "runs": 1
             },
-            "totalRuns": 2,
+            "totalRuns": 4,
             "isWicket": false,
             "isLegalBall": false,
-            "timestamp": 1786889295055
+            "timestamp": 1786890589085
+          },
+          {
+            "id": "ball-1786890591506-wop8",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890591506
+          },
+          {
+            "id": "ball-1786890594037-7s65",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 4,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 5,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890594037
+          },
+          {
+            "id": "ball-1786890597328-rokh",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 0,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "wide",
+              "runs": 1
+            },
+            "totalRuns": 1,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890597328
+          },
+          {
+            "id": "ball-1786890599476-pd6e",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 1,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890599476
+          },
+          {
+            "id": "ball-1786890602136-4z5n",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890602136
+          },
+          {
+            "id": "ball-1786890605191-auvi",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 5,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 6,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890605191
+          },
+          {
+            "id": "ball-1786890607544-1ajg",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 2,
+            "strikerId": "p-1",
+            "nonStrikerId": "p-2",
+            "bowlerId": "p-22",
+            "runsScored": 6,
+            "extras": {
+              "type": "no-ball",
+              "runs": 1
+            },
+            "totalRuns": 7,
+            "isWicket": false,
+            "isLegalBall": false,
+            "timestamp": 1786890607544
+          },
+          {
+            "id": "ball-1786890669094-gc1v",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 3,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890669094
+          },
+          {
+            "id": "ball-1786890688566-pi94",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 4,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890688566
+          },
+          {
+            "id": "ball-1786890694711-1rt3",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 5,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890694711
+          },
+          {
+            "id": "ball-1786890701332-2n2p",
+            "matchId": "current",
+            "inningsNo": 1,
+            "overNumber": 0,
+            "ballNumber": 6,
+            "strikerId": "p-2",
+            "nonStrikerId": "p-1",
+            "bowlerId": "p-22",
+            "runsScored": 0,
+            "extras": {
+              "type": "none",
+              "runs": 0
+            },
+            "totalRuns": 0,
+            "isWicket": false,
+            "isLegalBall": true,
+            "timestamp": 1786890701332
           }
         ],
+        "recentBalls": [],
         "extrasTotal": {
-          "wides": 0,
-          "noBalls": 4,
+          "wides": 1,
+          "noBalls": 22,
           "byes": 0,
           "legByes": 0,
-          "total": 4
+          "total": 23
         },
         "isCompleted": false,
         "fow": []
       },
       "currentAlert": null,
       "latestDeliveryBurst": {
-        "id": "burst-1786889295055",
-        "text": "1",
-        "subText": "1 RUN (SINGLE) 🏏",
-        "colorType": "one",
-        "timestamp": 1786889295055
+        "id": "burst-1786890701333",
+        "text": "0",
+        "subText": "DOT BALL 🎯",
+        "colorType": "dot",
+        "timestamp": 1786890701333
       }
     },
     {
@@ -955,8 +1353,8 @@
     "deviceId": "dev-k4p0uin",
     "deviceName": "Laptop / PC",
     "userName": "hhh",
-    "timestamp": 1786889770738,
-    "lastActive": 1786889770738
+    "timestamp": 1786890707483,
+    "lastActive": 1786890707483
   },
-  "syncTimestamp": 1786889295074
+  "syncTimestamp": 1786890701387
 }

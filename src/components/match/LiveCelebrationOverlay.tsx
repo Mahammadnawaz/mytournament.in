@@ -18,7 +18,7 @@ export interface ScoreBurstEvent {
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
-  const { activeMatch, activeInnings, players, isScorer } = useCricket();
+  const { activeMatch, activeInnings, players } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
   const isInitialMount = useRef(true);
@@ -47,9 +47,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
   const lastBurstTimestampRef = useRef<number>(0);
 
-  // 1. Direct Real-Time Delivery Score Pop Trigger from Firebase for Spectators
+  // 1. Direct Real-Time Delivery Score Pop Trigger from Sync for All Users
   useEffect(() => {
-    if (isScorer) return;
     const burst = activeMatch?.latestDeliveryBurst;
     if (!burst || !burst.timestamp) return;
     if (lastBurstTimestampRef.current === burst.timestamp) return;
@@ -70,11 +69,10 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
     const timer = setTimeout(() => setScoreBurst(null), 2200);
     return () => clearTimeout(timer);
-  }, [activeMatch?.latestDeliveryBurst?.timestamp, isScorer]);
+  }, [activeMatch?.latestDeliveryBurst?.timestamp]);
 
-  // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators
+  // Sync real-time alerts (e.g. Hat-Trick) from Sync activeMatch.currentAlert for All Users
   useEffect(() => {
-    if (isScorer) return;
     if (activeMatch?.currentAlert && activeMatch.currentAlert.type === 'hat-trick') {
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.2, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
       confetti({ particleCount: 90, spread: 80, origin: { x: 0.8, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
@@ -90,11 +88,10 @@ export const LiveCelebrationOverlay: React.FC = () => {
       const timer = setTimeout(() => setScoreBurst(null), 3000);
       return () => clearTimeout(timer);
     }
-  }, [activeMatch?.currentAlert?.timestamp, isScorer]);
+  }, [activeMatch?.currentAlert?.timestamp]);
 
-  // Detect live ball events from activeInnings.ballLogs exclusively for Spectators
+  // Detect live ball events from activeInnings.ballLogs for All Users
   useEffect(() => {
-    if (isScorer) return;
 
     const ballLogs = ensureArray<BallLog>(activeInnings?.ballLogs);
     if (!activeInnings || ballLogs.length === 0) {
@@ -168,6 +165,36 @@ export const LiveCelebrationOverlay: React.FC = () => {
         subText: 'WICKET! ☝️',
         colorType: 'wicket',
       });
+    } else if (latestBall.extras && latestBall.extras.type === 'no-ball') {
+      const extraRuns = (latestBall.runsScored || 0) > 0 ? `+${latestBall.runsScored}` : '';
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `NB${extraRuns}`,
+        subText: extraRuns ? `NO BALL ${extraRuns} RUNS ⚠️` : 'NO BALL ⚠️',
+        colorType: 'noball',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'wide') {
+      const extraRuns = latestBall.extras.runs > 1 ? `+${latestBall.extras.runs - 1}` : '';
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `WD${extraRuns}`,
+        subText: `WIDE BALL (+${latestBall.totalRuns}) ↔️`,
+        colorType: 'wide',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'bye') {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `B+${latestBall.totalRuns}`,
+        subText: `BYES (+${latestBall.totalRuns}) 🛡️`,
+        colorType: 'byes',
+      });
+    } else if (latestBall.extras && latestBall.extras.type === 'leg-bye') {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: `LB+${latestBall.totalRuns}`,
+        subText: `LEG BYES (+${latestBall.totalRuns}) 🦵`,
+        colorType: 'legbyes',
+      });
     } else if (latestBall.runsScored === 6) {
       // Golden Maximum Six Celebration
       confetti({
@@ -233,22 +260,6 @@ export const LiveCelebrationOverlay: React.FC = () => {
         subText: '1 RUN (SINGLE) 🏏',
         colorType: 'one',
       });
-    } else if (latestBall.extras && latestBall.extras.type === 'wide') {
-      const extraRuns = latestBall.extras.runs > 1 ? `+${latestBall.extras.runs - 1}` : '';
-      setScoreBurst({
-        id: `burst-${Date.now()}`,
-        text: `WD${extraRuns}`,
-        subText: `WIDE BALL (+${latestBall.totalRuns}) ↔️`,
-        colorType: 'wide',
-      });
-    } else if (latestBall.extras && latestBall.extras.type === 'no-ball') {
-      const totalNb = latestBall.totalRuns || ((latestBall.runsScored || 0) + 1);
-      setScoreBurst({
-        id: `burst-${Date.now()}`,
-        text: `NB+${totalNb}`,
-        subText: `NO BALL (${totalNb} RUNS TOTAL) ⚠️`,
-        colorType: 'noball',
-      });
     } else if (latestBall.extras && latestBall.extras.type === 'bye') {
       setScoreBurst({
         id: `burst-${Date.now()}`,
@@ -307,7 +318,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
                   ? 'bg-indigo-600/95 border-indigo-200 text-white shadow-indigo-600/70 text-4xl sm:text-5xl ring-8 ring-indigo-400/40'
                   : scoreBurst.colorType === 'legbyes'
                   ? 'bg-teal-600/95 border-teal-200 text-white shadow-teal-600/70 text-4xl sm:text-5xl ring-8 ring-teal-400/40'
-                  : 'bg-slate-900/95 border-slate-700 text-white shadow-slate-950/80 text-5xl sm:text-6xl ring-4 ring-slate-800'
+                  : 'bg-slate-950 border-4 border-slate-200 text-emerald-400 shadow-2xl shadow-emerald-950/90 text-6xl sm:text-7xl ring-8 ring-emerald-500/40 animate-pulse'
               }`}
             >
               {scoreBurst.text}
