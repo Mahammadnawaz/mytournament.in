@@ -897,9 +897,10 @@ export const SeriesDashboard: React.FC = () => {
           </div>
 
           {/* Series Matches List */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-emerald-400" />
+          {/* Series Matches List */}
+          <div className="theme-bg-card border theme-border rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 className="text-base font-extrabold theme-text-main flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-emerald-500" />
               <span>Series Matches ({seriesMatches.length})</span>
             </h3>
 
@@ -908,31 +909,33 @@ export const SeriesDashboard: React.FC = () => {
                 const potmPlayer = m.potmInfo ? players.find(p => p.id === m.potmInfo?.playerId) : undefined;
 
                 return (
-                  <div key={m.id} className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+                  <div key={m.id} className="theme-bg-card border theme-border rounded-2xl p-4 space-y-3 shadow-md">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-400">{m.date} • {m.venue}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold">
-                        COMPLETED
+                      <span className="font-bold theme-text-sub">{m.date} • {m.venue}</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[10px] font-extrabold">
+                        {m.status.toUpperCase()}
                       </span>
                     </div>
 
-                    <h4 className="font-black text-white text-base">
+                    <h4 className="font-black theme-text-main text-base sm:text-lg">
                       {m.teamA.name} vs {m.teamB.name}
                     </h4>
 
                     {m.result && (
-                      <p className="text-xs font-bold text-amber-400">{m.result}</p>
+                      <p className="text-xs font-extrabold text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 inline-block">
+                        🏆 {m.result}
+                      </p>
                     )}
 
                     {potmPlayer && (
-                      <div className="potm-player-row bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 flex items-center space-x-3 text-xs shadow-sm">
-                        <Award className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                      <div className="potm-player-row bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center space-x-3 text-xs shadow-sm">
+                        <Award className="w-6 h-6 text-amber-500 flex-shrink-0" />
                         <div>
-                          <span className="text-[10px] uppercase font-black text-amber-500 block">
+                          <span className="text-[10px] uppercase font-black text-amber-500 block tracking-wider">
                             Player of the Match (POTM)
                           </span>
-                          <span className="potm-player-name font-bold text-white text-xs sm:text-sm">{potmPlayer.name}</span>
-                          <span className="potm-summary-text text-slate-400 block text-[11px] font-medium">{m.potmInfo?.summary}</span>
+                          <span className="potm-player-name font-black theme-text-main text-xs sm:text-sm">{potmPlayer.name}</span>
+                          <span className="potm-summary-text theme-text-sub block text-[11px] font-semibold mt-0.5">{m.potmInfo?.summary}</span>
                         </div>
                       </div>
                     )}

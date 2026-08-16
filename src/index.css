@@ -201,9 +201,13 @@ html.theme-daylight {
 
   /* Card and Panel background overrides */
   .bg-slate-900,
+  .bg-slate-900\/95,
   .bg-slate-900\/90,
   .bg-slate-900\/80,
+  .bg-slate-900\/75,
+  .bg-slate-900\/70,
   .bg-slate-900\/60,
+  .bg-slate-900\/50,
   .card-pro {
     background-color: #ffffff !important;
     border-color: var(--border-card) !important;
@@ -212,18 +216,33 @@ html.theme-daylight {
   }
 
   .bg-slate-950,
-  .bg-slate-950\/80,
-  .bg-slate-950\/60,
   .bg-slate-950\/95,
-  .bg-slate-950\/90 {
+  .bg-slate-950\/90,
+  .bg-slate-950\/85,
+  .bg-slate-950\/80,
+  .bg-slate-950\/75,
+  .bg-slate-950\/70,
+  .bg-slate-950\/65,
+  .bg-slate-950\/60,
+  .bg-slate-950\/50,
+  .bg-slate-950\/40,
+  .bg-slate-950\/30,
+  .bg-slate-950\/20 {
     background-color: #f8fafc !important;
     border-color: var(--border-card) !important;
     color: #0f172a !important;
   }
 
   .bg-slate-800,
+  .bg-slate-800\/95,
+  .bg-slate-800\/90,
   .bg-slate-800\/80,
-  .bg-slate-800\/60 {
+  .bg-slate-800\/70,
+  .bg-slate-800\/60,
+  .bg-slate-800\/50,
+  .bg-slate-800\/40,
+  .bg-slate-800\/30,
+  .bg-slate-800\/20 {
     background-color: #f1f5f9 !important;
     border-color: #cbd5e1 !important;
     color: #0f172a !important;
