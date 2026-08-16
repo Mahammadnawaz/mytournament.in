@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { TournamentSeries } from '../../types/cricket';
 import { calculateSeriesMVP } from '../../utils/cricketEngine';
@@ -113,20 +113,58 @@ export const SeriesDashboard: React.FC = () => {
     return h;
   }
 
-  const h2hA = selectedSeries ? buildH2H(selectedSeries.teamA, selectedSeries.teamB) : null;
-  const h2hB = selectedSeries ? buildH2H(selectedSeries.teamB, selectedSeries.teamA) : null;
+  const isTriSeries = Boolean(selectedSeries?.teamC || selectedSeries?.seriesType === 'triseries');
+  const teamCName = selectedSeries?.teamC || 'Team C';
 
-  // Compute Net Run Rate approximation
-  const nrrA = h2hA && h2hA.played > 0 ? ((h2hA.runsScored - h2hA.runsConceded) / (h2hA.played * 5)).toFixed(2) : '0.00';
-  const nrrB = h2hB && h2hB.played > 0 ? ((h2hB.runsScored - h2hB.runsConceded) / (h2hB.played * 5)).toFixed(2) : '0.00';
+  const buildTeamStats = (tName: string) => {
+    let played = 0;
+    let wins = 0;
+    let losses = 0;
+    let ties = 0;
+    let runsScored = 0;
+    let runsConceded = 0;
 
-  const ptsA = teamAWins * 2 + tiesCount * 1;
-  const ptsB = teamBWins * 2 + tiesCount * 1;
+    completedSeriesMatches.forEach(m => {
+      const isTeamA = m.teamA.name === tName;
+      const isTeamB = m.teamB.name === tName;
+      if (!isTeamA && !isTeamB) return;
 
-  const pointsTableData = [
-    { team: selectedSeries?.teamA || 'Team A', p: seriesMatches.length, w: teamAWins, l: teamBWins, t: tiesCount, pts: ptsA, nrr: nrrA },
-    { team: selectedSeries?.teamB || 'Team B', p: seriesMatches.length, w: teamBWins, l: teamAWins, t: tiesCount, pts: ptsB, nrr: nrrB },
-  ].sort((a, b) => b.pts !== a.pts ? b.pts - a.pts : Number(b.nrr) - Number(a.nrr));
+      played++;
+      const batInn = isTeamA ? m.innings1 : m.innings2;
+      const bowlInn = isTeamA ? m.innings2 : m.innings1;
+      if (batInn) runsScored += batInn.totalRuns;
+      if (bowlInn) runsConceded += bowlInn.totalRuns;
+
+      const winner = m.winnerTeam || (m.result?.includes(' won by ') ? m.result.split(' won by ')[0].trim() : undefined);
+      if (winner === tName) wins++;
+      else if (m.result?.toLowerCase().includes('tied') || m.result?.toLowerCase().includes('draw')) ties++;
+      else if (winner) losses++;
+    });
+
+    const pts = wins * 2 + ties * 1;
+    const nrr = played > 0 ? ((runsScored - runsConceded) / (played * 5)).toFixed(2) : '0.00';
+    return { team: tName, p: played, w: wins, l: losses, t: ties, pts, nrr };
+  };
+
+  const [h2hTeamA, setH2hTeamA] = useState<string>(selectedSeries?.teamA || 'Team A');
+  const [h2hTeamB, setH2hTeamB] = useState<string>(selectedSeries?.teamB || 'Team B');
+
+  useEffect(() => {
+    if (selectedSeries) {
+      setH2hTeamA(selectedSeries.teamA);
+      setH2hTeamB(selectedSeries.teamB);
+    }
+  }, [selectedSeries?.id]);
+
+  const h2hA = selectedSeries ? buildH2H(h2hTeamA, h2hTeamB) : null;
+  const h2hB = selectedSeries ? buildH2H(h2hTeamB, h2hTeamA) : null;
+
+  const pointsTableData = selectedSeries
+    ? (isTriSeries
+        ? [buildTeamStats(selectedSeries.teamA), buildTeamStats(selectedSeries.teamB), buildTeamStats(teamCName)]
+        : [buildTeamStats(selectedSeries.teamA), buildTeamStats(selectedSeries.teamB)]
+      ).sort((a, b) => b.pts !== a.pts ? b.pts - a.pts : Number(b.nrr) - Number(a.nrr))
+    : [];
 
   const handleCompleteSeriesTrigger = () => {
     if (!selectedSeries) return;
@@ -138,14 +176,16 @@ export const SeriesDashboard: React.FC = () => {
     });
   };
 
-  const handleStartNextSeriesMatch = () => {
+  const handleStartNextSeriesMatch = (customTeamA?: string, customTeamB?: string) => {
     if (!selectedSeries) return;
     const matchNumber = seriesMatches.length + 1;
+    const tA = customTeamA || selectedSeries.teamA;
+    const tB = customTeamB || selectedSeries.teamB;
     setSetupMatchParams({
       seriesId: selectedSeries.id,
       matchName: `${selectedSeries.name} - Match ${matchNumber}`,
-      teamA: selectedSeries.teamA,
-      teamB: selectedSeries.teamB,
+      teamA: tA,
+      teamB: tB,
     });
   };
 
@@ -199,13 +239,13 @@ export const SeriesDashboard: React.FC = () => {
                   {selectedSeries.name} • Match {seriesMatches.length + 1} of {selectedSeries.totalMatches}
                 </span>
                 <h4 className="text-sm sm:text-base font-extrabold text-white">
-                  Ready to launch Match {seriesMatches.length + 1} ({selectedSeries.teamA} vs {selectedSeries.teamB})?
+                  Ready to launch Match {seriesMatches.length + 1}?
                 </h4>
               </div>
             </div>
 
             <button
-              onClick={handleStartNextSeriesMatch}
+              onClick={() => handleStartNextSeriesMatch()}
               className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center space-x-1.5 shrink-0 active:scale-95"
             >
               <Play className="w-4 h-4 fill-current text-slate-950" />
@@ -416,7 +456,7 @@ export const SeriesDashboard: React.FC = () => {
                     ) : (
                       <>
                         <button
-                          onClick={handleStartNextSeriesMatch}
+                          onClick={() => handleStartNextSeriesMatch()}
                           className="flex items-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-500/30 active:scale-95 animate-pulse"
                         >
                           <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-slate-950" />
@@ -618,21 +658,45 @@ export const SeriesDashboard: React.FC = () => {
           </div>
 
           {/* ── HEAD-TO-HEAD STATS CARD ──────────────────────────── */}
-          {h2hA && h2hB && seriesMatches.length > 0 && (
+          {h2hA && h2hB && (
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-5">
 
-              <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
-                <Swords className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-                <h3 className="text-sm sm:text-base font-extrabold text-white">Head-to-Head Stats</h3>
-                <span className="ml-auto text-[10px] sm:text-xs text-slate-500 font-medium">{seriesMatches.length} match{seriesMatches.length > 1 ? 'es' : ''}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Swords className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+                  <h3 className="text-sm sm:text-base font-extrabold text-white">Head-to-Head Comparison</h3>
+                </div>
+
+                {isTriSeries && (
+                  <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button
+                      onClick={() => { setH2hTeamA(selectedSeries.teamA); setH2hTeamB(selectedSeries.teamB); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === selectedSeries.teamA && h2hTeamB === selectedSeries.teamB ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      {selectedSeries.teamA} vs {selectedSeries.teamB}
+                    </button>
+                    <button
+                      onClick={() => { setH2hTeamA(selectedSeries.teamB); setH2hTeamB(teamCName); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === selectedSeries.teamB && h2hTeamB === teamCName ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      {selectedSeries.teamB} vs {teamCName}
+                    </button>
+                    <button
+                      onClick={() => { setH2hTeamA(teamCName); setH2hTeamB(selectedSeries.teamA); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${h2hTeamA === teamCName && h2hTeamB === selectedSeries.teamA ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      {teamCName} vs {selectedSeries.teamA}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Win Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-[11px] sm:text-xs font-black">
-                  <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{selectedSeries.teamA}</span>
+                  <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{h2hTeamA}</span>
                   <span className="text-slate-400 font-extrabold text-[10px] uppercase tracking-widest px-2 flex-shrink-0">HEAD TO HEAD WINS</span>
-                  <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{selectedSeries.teamB}</span>
+                  <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{h2hTeamB}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-lg sm:text-2xl font-black text-emerald-400 font-mono w-5 sm:w-6 text-right">{h2hA.wins}</span>
@@ -663,7 +727,7 @@ export const SeriesDashboard: React.FC = () => {
               <div className="grid grid-cols-3 gap-0 divide-x divide-slate-800 rounded-xl sm:rounded-2xl bg-slate-950/60 border border-slate-800 overflow-hidden">
 
                 <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 text-center">
-                  <p className="text-[10px] sm:text-xs font-extrabold text-emerald-400 truncate">{selectedSeries.teamA}</p>
+                  <p className="text-[10px] sm:text-xs font-extrabold text-emerald-400 truncate">{h2hTeamA}</p>
                   <StatRow label="Win %" value={`${h2hA.winPct}%`} color="text-emerald-400" />
                   <StatRow label="Runs Scored" value={String(h2hA.runsScored)} color="text-white" />
                   <StatRow label="Runs Conceded" value={String(h2hA.runsConceded)} color="text-slate-300" />
@@ -687,7 +751,7 @@ export const SeriesDashboard: React.FC = () => {
                 </div>
 
                 <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 text-center">
-                  <p className="text-[10px] sm:text-xs font-extrabold text-blue-400 truncate">{selectedSeries.teamB}</p>
+                  <p className="text-[10px] sm:text-xs font-extrabold text-blue-400 truncate">{h2hTeamB}</p>
                   <StatRow label="Win %" value={`${h2hB.winPct}%`} color="text-blue-400" />
                   <StatRow label="Runs Scored" value={String(h2hB.runsScored)} color="text-white" />
                   <StatRow label="Runs Conceded" value={String(h2hB.runsConceded)} color="text-slate-300" />
@@ -876,23 +940,38 @@ const CreateSeriesModal: React.FC<{
 }> = ({ onClose, onSeriesCreated }) => {
   const { createSeries } = useCricket();
 
-  const [name, setName] = useState('Super Cricket Tri-Series 2026');
-  const [format, setFormat] = useState('3-Match T20 Series');
-  const [totalMatches, setTotalMatches] = useState<number | string>(3);
+  const [seriesType, setSeriesType] = useState<'bilateral' | 'triseries'>('triseries');
+  const [name, setName] = useState('International Tri-Series Cup 2026');
+  const [format, setFormat] = useState('Tri-Series (3 Teams)');
+  const [totalMatches, setTotalMatches] = useState<number | string>(7);
   const [teamA, setTeamA] = useState('Royal Titans');
   const [teamB, setTeamB] = useState('Super Strikers');
+  const [teamC, setTeamC] = useState('Thunder Warriors');
+
+  const handleTypeToggle = (type: 'bilateral' | 'triseries') => {
+    setSeriesType(type);
+    if (type === 'triseries') {
+      setFormat('Tri-Series (3 Teams)');
+      setTotalMatches(7);
+    } else {
+      setFormat('3-Match T20 Series');
+      setTotalMatches(3);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !teamA.trim() || !teamB.trim()) return;
 
-    const newSeries = {
+    const newSeries: TournamentSeries = {
       id: `series-${Date.now()}`,
       name: name.trim(),
+      seriesType,
       format: format.trim(),
-      totalMatches: Math.max(1, Number(totalMatches) || 3),
+      totalMatches: Math.max(1, Number(totalMatches) || (seriesType === 'triseries' ? 7 : 3)),
       teamA: teamA.trim(),
       teamB: teamB.trim(),
+      teamC: seriesType === 'triseries' ? teamC.trim() : undefined,
       matchIds: [],
       status: 'ongoing' as const,
     };
@@ -919,11 +998,43 @@ const CreateSeriesModal: React.FC<{
           </div>
           <div>
             <h2 className="text-xl font-extrabold text-white">Create Series / Tournament</h2>
-            <p className="text-xs text-slate-400">Set up tournament format & team pairings</p>
+            <p className="text-xs text-slate-400">Choose Bilateral or 3-Team Tri-Series format</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+          {/* Series Format Type Selector */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Series Type Classification</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleTypeToggle('triseries')}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center space-x-2 ${
+                  seriesType === 'triseries'
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-md ring-1 ring-amber-500/30'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span>Tri-Series (3 Teams)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTypeToggle('bilateral')}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center space-x-2 ${
+                  seriesType === 'bilateral'
+                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-md ring-1 ring-emerald-500/30'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Swords className="w-4 h-4 text-emerald-400" />
+                <span>Bilateral (2 Teams)</span>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1">Series Name *</label>
             <input
@@ -937,7 +1048,7 @@ const CreateSeriesModal: React.FC<{
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Format</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Format Label</label>
               <input
                 type="text"
                 value={format}
@@ -953,33 +1064,45 @@ const CreateSeriesModal: React.FC<{
                 max="50"
                 value={totalMatches}
                 onChange={(e) => setTotalMatches(e.target.value)}
-                placeholder="e.g. 3, 5"
+                placeholder="e.g. 3, 7"
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs font-bold outline-none"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid ${seriesType === 'triseries' ? 'grid-cols-3' : 'grid-cols-2'} gap-2.5`}>
             <div>
-              <label className="block text-xs font-semibold text-emerald-400 mb-1">Team A Name</label>
+              <label className="block text-xs font-semibold text-emerald-400 mb-1">Team A Name *</label>
               <input
                 type="text"
                 required
                 value={teamA}
                 onChange={(e) => setTeamA(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-blue-400 mb-1">Team B Name</label>
+              <label className="block text-xs font-semibold text-blue-400 mb-1">Team B Name *</label>
               <input
                 type="text"
                 required
                 value={teamB}
                 onChange={(e) => setTeamB(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
               />
             </div>
+            {seriesType === 'triseries' && (
+              <div>
+                <label className="block text-xs font-semibold text-cyan-400 mb-1">Team C Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={teamC}
+                  onChange={(e) => setTeamC(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
+                />
+              </div>
+            )}
           </div>
 
           <div className="pt-3 flex justify-end space-x-3">
@@ -995,7 +1118,7 @@ const CreateSeriesModal: React.FC<{
               className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-lg shadow-amber-500/20 transition active:scale-95"
             >
               <Check className="w-4 h-4" />
-              <span>Create & Launch Setup →</span>
+              <span>Create Tri-Series →</span>
             </button>
           </div>
         </form>

@@ -368,10 +368,15 @@ export function calculateSeriesMVP(
     if (m.matchCategory === 'individual' && !m.seriesId) return false;
     if (m.seriesId) return m.seriesId === series.id;
     if (series.matchIds?.includes(m.id)) return true;
+    if (!m.seriesId && m.matchCategory !== 'individual') {
+      const teams = [series.teamA, series.teamB, series.teamC].filter(Boolean);
+      return teams.includes(m.teamA.name) && teams.includes(m.teamB.name);
+    }
     return false;
   });
 
   const mvpMap = new Map<string, SeriesPlayerMVP>();
+  const playerMatchesMap = new Map<string, Set<string>>();
 
   seriesMatches.forEach(m => {
     const processInnings = (innings?: InningsState) => {
@@ -397,7 +402,9 @@ export function calculateSeriesMVP(
           mvpPoints: 0,
         };
 
-        if (b.balls > 0 || b.isOut) entry.matchesPlayed += 1;
+        if (!playerMatchesMap.has(b.playerId)) playerMatchesMap.set(b.playerId, new Set());
+        if (b.balls > 0 || b.isOut) playerMatchesMap.get(b.playerId)!.add(m.id);
+
         entry.runs += b.runs;
         entry.ballsFaced += b.balls;
         entry.fours += b.fours;
@@ -435,6 +442,9 @@ export function calculateSeriesMVP(
         };
 
         if (bw.overs > 0 || bw.balls > 0) {
+          if (!playerMatchesMap.has(bw.playerId)) playerMatchesMap.set(bw.playerId, new Set());
+          playerMatchesMap.get(bw.playerId)!.add(m.id);
+
           entry.wickets += bw.wickets;
           entry.oversBowled += bw.overs + bw.balls / 6;
           entry.runsConceded += bw.runsConceded;
@@ -453,6 +463,10 @@ export function calculateSeriesMVP(
 
     processInnings(m.innings1);
     processInnings(m.innings2);
+  });
+
+  mvpMap.forEach((entry, pid) => {
+    entry.matchesPlayed = playerMatchesMap.get(pid)?.size || 0;
   });
 
   const leaderboard = Array.from(mvpMap.values()).sort((a, b) => b.mvpPoints - a.mvpPoints);

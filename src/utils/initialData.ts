@@ -344,13 +344,26 @@ export const INITIAL_MATCHES: Match[] = [
 
 export const INITIAL_SERIES: TournamentSeries[] = [
   {
+    id: 'series-triseries-1',
+    name: 'International T20 Tri-Series Cup 2026',
+    seriesType: 'triseries',
+    format: 'Tri-Series (3 Teams)',
+    totalMatches: 7,
+    teamA: 'India',
+    teamB: 'Australia',
+    teamC: 'England',
+    matchIds: ['m-sample-1'],
+    status: 'ongoing',
+  },
+  {
     id: 'series-1',
     name: 'Premier T20 Championship 2026',
+    seriesType: 'bilateral',
     format: '3-Match Series',
     totalMatches: 3,
     teamA: 'Royal Titans',
     teamB: 'Super Strikers',
-    matchIds: ['m-sample-1'],
+    matchIds: [],
     status: 'completed',
     winnerTeam: 'Royal Titans',
     seriesResult: 'Royal Titans won the series 2-1',

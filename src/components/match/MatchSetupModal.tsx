@@ -18,7 +18,12 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   initialTeamA,
   initialTeamB,
 }) => {
-  const { players, createMatch } = useCricket();
+  const { players, createMatch, seriesList } = useCricket();
+
+  const attachedSeries = initialSeriesId ? seriesList.find(s => s.id === initialSeriesId) : undefined;
+  const seriesTeams = attachedSeries 
+    ? [attachedSeries.teamA, attachedSeries.teamB, attachedSeries.teamC].filter(Boolean) as string[]
+    : [];
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -28,8 +33,24 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   const [venue, setVenue] = useState('Lords Cricket Ground');
   const [totalOvers, setTotalOvers] = useState<number | string>(5);
 
-  const [teamAName, setTeamAName] = useState(initialTeamA || 'Royal Titans');
-  const [teamBName, setTeamBName] = useState(initialTeamB || 'Super Strikers');
+  const [teamAName, setTeamAName] = useState(initialTeamA || (seriesTeams[0] || 'Royal Titans'));
+  const [teamBName, setTeamBName] = useState(initialTeamB || (seriesTeams[1] || 'Super Strikers'));
+
+  const handleSelectTeamA = (newTeamA: string) => {
+    setTeamAName(newTeamA);
+    if (newTeamA === teamBName) {
+      const available = seriesTeams.find(t => t !== newTeamA);
+      if (available) setTeamBName(available);
+    }
+  };
+
+  const handleSelectTeamB = (newTeamB: string) => {
+    setTeamBName(newTeamB);
+    if (newTeamB === teamAName) {
+      const available = seriesTeams.find(t => t !== newTeamB);
+      if (available) setTeamAName(available);
+    }
+  };
 
   // Toss State: No winner initially!
   const [_tossCall, setTossCall] = useState<'HEADS' | 'TAILS'>('HEADS');
@@ -252,27 +273,65 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
               </div>
             </div>
 
-            {/* Teams */}
+            {/* Teams Selection */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-emerald-400 mb-1 uppercase">Team A</label>
-                <input
-                  type="text"
-                  required
-                  value={teamAName}
-                  onChange={(e) => setTeamAName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
-                />
+                <label className="block text-xs font-bold text-emerald-400 mb-1 uppercase">Playing Team A *</label>
+                {seriesTeams.length > 0 ? (
+                  <select
+                    value={teamAName}
+                    onChange={(e) => handleSelectTeamA(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-extrabold text-sm outline-none cursor-pointer"
+                  >
+                    {seriesTeams.map(t => (
+                      <option 
+                        key={`ta-${t}`} 
+                        value={t} 
+                        disabled={t === teamBName}
+                        className={t === teamBName ? 'text-slate-600 bg-slate-900' : 'text-emerald-400 font-bold'}
+                      >
+                        {t} {t === teamBName ? '🚫 (Selected in Team B)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    value={teamAName}
+                    onChange={(e) => setTeamAName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
+                  />
+                )}
               </div>
               <div>
-                <label className="block text-xs font-bold text-blue-400 mb-1 uppercase">Team B</label>
-                <input
-                  type="text"
-                  required
-                  value={teamBName}
-                  onChange={(e) => setTeamBName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
-                />
+                <label className="block text-xs font-bold text-blue-400 mb-1 uppercase">Playing Team B *</label>
+                {seriesTeams.length > 0 ? (
+                  <select
+                    value={teamBName}
+                    onChange={(e) => handleSelectTeamB(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-extrabold text-sm outline-none cursor-pointer"
+                  >
+                    {seriesTeams.map(t => (
+                      <option 
+                        key={`tb-${t}`} 
+                        value={t} 
+                        disabled={t === teamAName}
+                        className={t === teamAName ? 'text-slate-600 bg-slate-900' : 'text-blue-400 font-bold'}
+                      >
+                        {t} {t === teamAName ? '🚫 (Selected in Team A)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    value={teamBName}
+                    onChange={(e) => setTeamBName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold outline-none"
+                  />
+                )}
               </div>
             </div>
 

@@ -209,10 +209,12 @@ export interface SeriesBreakTimer {
 export interface TournamentSeries {
   id: string;
   name: string; // e.g. "Premier T20 Cup 2026"
-  format: string; // e.g. "3-Match Series"
+  seriesType?: 'bilateral' | 'triseries';
+  format: string; // e.g. "3-Match Series" or "Tri-Series (6 Matches + Final)"
   totalMatches: number;
   teamA: string;
   teamB: string;
+  teamC?: string;
   matchIds: string[];
   status: 'ongoing' | 'completed';
   winnerTeam?: string;
