@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCricket } from '../../context/CricketContext';
+import { cloudSync } from '../../services/cloudSync';
 import { Trophy, Activity, Lock, Shield, Eye, Flame, ChevronRight, X, AlertCircle, User } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -15,11 +16,25 @@ export const LoginPage: React.FC = () => {
   const isScorerLockedByOther = Boolean(activeScorer && activeScorer.deviceId !== deviceId);
   const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || 'another scorer';
 
-  const handleOpenScorerModal = () => {
+  const handleOpenScorerModal = async () => {
     setErrorMessage(null);
     setLockedBannerMessage(null);
 
-    // If another device/user is already scoring, deny and instruct to use Spectator
+    // 1. Check live lock from cloud in real-time
+    try {
+      const liveLock = await cloudSync.getActiveScorerLock();
+      if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
+        const lockedName = liveLock.userName ? `${liveLock.userName} (${liveLock.deviceName})` : (liveLock.deviceName || 'another official scorer');
+        setLockedBannerMessage(
+          `🔒 Access Denied: Scoring controls are already locked by official scorer: ${lockedName}.\n\nPlease login as Spectator to view the live match.`
+        );
+        return;
+      }
+    } catch {
+      // Fallback to local activeScorer state
+    }
+
+    // 2. If another device/user is already scoring, deny and instruct to use Spectator
     if (isScorerLockedByOther) {
       setLockedBannerMessage(
         `🔒 Access Denied: Scoring controls are already locked by official scorer: ${lockedScorerName}.\n\nPlease login as Spectator to view the live match.`

@@ -365,14 +365,14 @@ export const SeriesDashboard: React.FC = () => {
           </div>
 
           {/* ── PLAYER OF THE SERIES / TOURNAMENT MVP SHOWCASE (COMPACT MOBILE READY) ── */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-lg">
+          <div className="relative overflow-hidden pots-card-container rounded-2xl p-4 sm:p-5 shadow-lg border">
             {/* Header Mini-Bar */}
-            <div className="flex items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5 mb-3.5">
-              <div className="flex items-center space-x-2 text-amber-400 font-bold text-xs">
+            <div className="flex items-center justify-between gap-2 border-b border-amber-500/30 pb-2.5 mb-3.5">
+              <div className="flex items-center space-x-2 text-amber-500 font-bold text-xs">
                 <Trophy className="w-4 h-4" />
-                <span>{isSeriesCompleted ? '🏆 Official Player of the Series' : '⭐ Series MVP Leader'}</span>
+                <span className="font-extrabold">{isSeriesCompleted ? '🏆 Official Player of the Series' : '⭐ Series MVP Leader'}</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/40 font-mono text-[10px] font-bold">
                 {isSeriesCompleted ? 'Concluded' : 'Live Leader'}
               </span>
             </div>
@@ -401,15 +401,15 @@ export const SeriesDashboard: React.FC = () => {
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="text-base sm:text-lg font-black text-white truncate leading-tight">
+                      <h3 className="text-base sm:text-lg font-black pots-player-name truncate leading-tight">
                         {potSPlayer.name}
                       </h3>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-300">
-                        <span className="font-semibold text-amber-400">{potSPlayer.role}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] pots-citation-text">
+                        <span className="font-bold text-amber-500">{potSPlayer.role}</span>
                         {potSPlayer.country && (
                           <>
                             <span>•</span>
-                            <span className="text-slate-400">{potSPlayer.country}</span>
+                            <span>{potSPlayer.country}</span>
                           </>
                         )}
                       </div>
@@ -419,25 +419,25 @@ export const SeriesDashboard: React.FC = () => {
                   {/* Right: 3 Mini Stats */}
                   <div className="grid grid-cols-3 gap-2 flex-shrink-0">
                     {/* Runs */}
-                    <div className="bg-slate-950/70 border border-slate-800 px-3 py-1.5 rounded-xl text-center">
-                      <span className="text-[9px] font-bold uppercase text-slate-400 block">Runs</span>
-                      <span className="text-sm sm:text-base font-black text-white font-mono block">
+                    <div className="pots-stat-box px-3 py-1.5 rounded-xl text-center border">
+                      <span className="pots-stat-label text-[9px] font-bold uppercase block">Runs</span>
+                      <span className="pots-stat-value text-sm sm:text-base font-black font-mono block">
                         {topPerformer?.runs || 0}
                       </span>
                     </div>
 
                     {/* Wickets */}
-                    <div className="bg-slate-950/70 border border-slate-800 px-3 py-1.5 rounded-xl text-center">
-                      <span className="text-[9px] font-bold uppercase text-slate-400 block">Wkts</span>
-                      <span className="text-sm sm:text-base font-black text-emerald-400 font-mono block">
+                    <div className="pots-stat-box px-3 py-1.5 rounded-xl text-center border">
+                      <span className="pots-stat-label text-[9px] font-bold uppercase block">Wkts</span>
+                      <span className="text-sm sm:text-base font-black text-emerald-500 font-mono block">
                         {topPerformer?.wickets || 0}
                       </span>
                     </div>
 
                     {/* MVP Points */}
-                    <div className="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-center">
-                      <span className="text-[9px] font-bold uppercase text-amber-400 block">MVP Pts</span>
-                      <span className="text-sm sm:text-base font-black text-amber-300 font-mono block">
+                    <div className="pots-stat-box px-3 py-1.5 rounded-xl text-center border border-amber-500/40 bg-amber-500/10">
+                      <span className="text-[9px] font-bold uppercase text-amber-500 block">MVP Pts</span>
+                      <span className="text-sm sm:text-base font-black text-amber-500 font-mono block">
                         {potS?.points || topPerformer?.mvpPoints || 0}
                       </span>
                     </div>
@@ -446,14 +446,14 @@ export const SeriesDashboard: React.FC = () => {
 
                 {/* Optional Citation Footer (1 compact line) */}
                 {(selectedSeries.playerOfSeriesSummary || potS?.summary) && (
-                  <p className="text-[11px] text-slate-400 truncate border-t border-slate-800/80 pt-2">
-                    <span className="text-amber-400 font-bold">Citation: </span>
+                  <p className="text-[11px] pots-citation-text truncate border-t border-amber-500/20 pt-2">
+                    <span className="text-amber-500 font-bold">Citation: </span>
                     {selectedSeries.playerOfSeriesSummary || potS?.summary}
                   </p>
                 )}
               </div>
             ) : (
-              <div className="text-center py-3 text-xs text-slate-400">
+              <div className="text-center py-3 text-xs pots-citation-text">
                 ⭐ MVP Award will be calculated as matches progress.
               </div>
             )}

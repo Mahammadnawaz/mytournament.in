@@ -45,6 +45,33 @@ export const LiveCelebrationOverlay: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const lastBurstTimestampRef = useRef<number>(0);
+
+  // 1. Direct Real-Time Delivery Score Pop Trigger from Firebase for Spectators
+  useEffect(() => {
+    if (isScorer) return;
+    const burst = activeMatch?.latestDeliveryBurst;
+    if (!burst || !burst.timestamp) return;
+    if (lastBurstTimestampRef.current === burst.timestamp) return;
+
+    lastBurstTimestampRef.current = burst.timestamp;
+    setScoreBurst({
+      id: burst.id,
+      text: burst.text,
+      subText: burst.subText,
+      colorType: burst.colorType,
+    });
+
+    if (burst.colorType === 'six' || burst.colorType === 'four') {
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 }, colors: ['#f59e0b', '#fbbf24', '#ef4444', '#10b981', '#38bdf8'] });
+    } else if (burst.colorType === 'hattrick') {
+      confetti({ particleCount: 140, spread: 120, origin: { y: 0.4 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+    }
+
+    const timer = setTimeout(() => setScoreBurst(null), 2200);
+    return () => clearTimeout(timer);
+  }, [activeMatch?.latestDeliveryBurst?.timestamp, isScorer]);
+
   // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators
   useEffect(() => {
     if (isScorer) return;

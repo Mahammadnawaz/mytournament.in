@@ -155,6 +155,14 @@ export interface MatchPOTM {
   summary: string;
 }
 
+export interface DeliveryBurst {
+  id: string;
+  text: string;
+  subText?: string;
+  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'hattrick' | 'wide' | 'noball' | 'byes' | 'legbyes';
+  timestamp: number;
+}
+
 export interface MatchAlert {
   type: 'hat-trick' | 'milestone-50' | 'milestone-100' | 'custom';
   title: string;
@@ -186,6 +194,8 @@ export interface Match {
   dlsRevisedTarget?: number;
   scorerDeviceId?: string;
   currentAlert?: MatchAlert | null;
+  latestDeliveryBurst?: DeliveryBurst | null;
+  timeline?: any[];
 }
 
 export interface TournamentSeries {

@@ -71,7 +71,7 @@ export const LiveScoreboard: React.FC = () => {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 shadow-2xl">
+      <div className="relative overflow-hidden theme-bg-card theme-border rounded-3xl p-4 sm:p-8 shadow-2xl border live-scoreboard-card">
         
         {/* Background Subtle Gradient Overlay */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -84,10 +84,10 @@ export const LiveScoreboard: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>☕ Innings Break • Target: {activeMatch.innings1.totalRuns + 1} Runs</span>
             </span>
-            <p className="text-sm sm:text-base font-extrabold text-white">
-              {activeMatch.innings1.bowlingTeam} needs <span className="text-emerald-400 font-mono text-lg">{activeMatch.innings1.totalRuns + 1}</span> runs in {activeMatch.totalOvers} overs to win
+            <p className="text-sm sm:text-base font-extrabold scoreboard-team-name">
+              {activeMatch.innings1.bowlingTeam} needs <span className="text-emerald-500 font-mono text-lg">{activeMatch.innings1.totalRuns + 1}</span> runs in {activeMatch.totalOvers} overs to win
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs scoreboard-overs-text">
               Waiting for the official scorer to start the 2nd innings chase...
             </p>
           </div>
@@ -96,7 +96,7 @@ export const LiveScoreboard: React.FC = () => {
         {/* Match Result Banner */}
         {activeMatch.status === 'completed' && (
           <div className="mb-6 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border border-amber-500/40 rounded-2xl p-4 text-center space-y-3">
-            <div className="flex items-center justify-center space-x-2 text-amber-400 font-extrabold text-lg sm:text-xl">
+            <div className="flex items-center justify-center space-x-2 text-amber-500 font-extrabold text-lg sm:text-xl">
               <Trophy className="w-6 h-6" />
               <span>{activeMatch.result || 'Match Ended'}</span>
             </div>
@@ -107,7 +107,7 @@ export const LiveScoreboard: React.FC = () => {
               return potmPlayer ? (
                 <button
                   onClick={() => setShowPOTM(true)}
-                  className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition"
+                  className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500/30 transition"
                 >
                   <Trophy className="w-3.5 h-3.5" />
                   <span>🌟 POTM: {potmPlayer.name} — tap to see award</span>
@@ -118,13 +118,13 @@ export const LiveScoreboard: React.FC = () => {
         )}
 
         {/* Match Info Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-4 mb-6 text-xs text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-4 mb-6 text-xs scoreboard-overs-text">
           <div className="flex items-center space-x-2 font-medium">
-            <span className="text-slate-200 font-bold">{activeMatch.name}</span>
+            <span className="scoreboard-team-name font-bold">{activeMatch.name}</span>
             <span>•</span>
             <span>{activeMatch.venue}</span>
             {activeMatch.dlsApplied && (
-              <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold text-[10px]">
+              <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-bold text-[10px]">
                 DLS REVISED ({activeMatch.dlsRevisedOvers} OV)
               </span>
             )}
@@ -151,10 +151,10 @@ export const LiveScoreboard: React.FC = () => {
               <span>DLS Manager</span>
             </button>
 
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-800/80 scoreboard-team-name font-bold text-[11px]">
               Innings {activeMatch.currentInnings} of 2
             </span>
-            <span className="flex items-center space-x-1 text-emerald-400 font-semibold">
+            <span className="flex items-center space-x-1 text-emerald-500 font-semibold text-[11px]">
               <Activity className="w-3.5 h-3.5" />
               <span>Max Overs: {activeMatch.dlsRevisedOvers || activeMatch.totalOvers}</span>
             </span>
@@ -167,26 +167,26 @@ export const LiveScoreboard: React.FC = () => {
           {/* Left/Center: Team & Huge Score */}
           <div className="md:col-span-8 space-y-2">
             <div className="flex items-center space-x-3">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-wide scoreboard-team-name">
                 {activeInnings.battingTeam}
               </h2>
-              <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+              <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold">
                 Batting
               </span>
             </div>
 
             <div className="flex items-baseline space-x-4">
-              <div className="text-5xl sm:text-7xl font-black tracking-tight text-white font-mono">
-                {totalRuns}<span className="text-slate-500 text-4xl sm:text-5xl">/</span>{wickets}
+              <div className="text-5xl sm:text-7xl font-black tracking-tight font-mono scoreboard-score-runs">
+                {totalRuns}<span className="text-slate-400 text-4xl sm:text-5xl">/</span>{wickets}
               </div>
 
-              <div className="text-slate-400 text-lg sm:text-xl font-semibold font-mono">
+              <div className="text-lg sm:text-xl font-semibold font-mono scoreboard-overs-text">
                 ({overs}.{balls} / {activeMatch.dlsRevisedOvers || activeMatch.totalOvers} overs)
               </div>
             </div>
 
-            <p className="text-xs text-slate-400">
-              vs <strong className="text-slate-300">{activeInnings.bowlingTeam}</strong>
+            <p className="text-xs scoreboard-overs-text">
+              vs <strong className="scoreboard-team-name">{activeInnings.bowlingTeam}</strong>
             </p>
           </div>
 

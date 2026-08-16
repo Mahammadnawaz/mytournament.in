@@ -160,6 +160,21 @@ export const cloudSync = {
   },
 
   // 🔒 Distributed Scorer Lock via Firebase RTDB + REST API
+  async getActiveScorerLock(): Promise<{ deviceId: string; deviceName: string; userName?: string; timestamp: number } | null> {
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        const snap = await get(scorerRef);
+        if (snap.exists()) {
+          return snap.val();
+        }
+      } catch (err) {
+        console.warn('Firebase getActiveScorerLock error:', err);
+      }
+    }
+    return null;
+  },
+
   async acquireScorerLock(deviceId: string, deviceName: string, userName?: string): Promise<{
     success: boolean;
     isLocked?: boolean;
@@ -172,10 +187,9 @@ export const cloudSync = {
         const snap = await get(scorerRef);
         const currentLock = snap.exists() ? snap.val() : null;
 
-        // Check if another user/device holds an active, fresh lock (< 45 seconds old)
-        const isFresh = currentLock && currentLock.timestamp && (Date.now() - currentLock.timestamp < 45000);
-        if (isFresh && currentLock.deviceId && currentLock.deviceId !== deviceId) {
-          const lockedByName = currentLock.userName ? `${currentLock.userName} (${currentLock.deviceName})` : (currentLock.deviceName || 'another user');
+        // Strict Check: If another user/device holds an active lock, reject immediately
+        if (currentLock && currentLock.deviceId && currentLock.deviceId !== deviceId) {
+          const lockedByName = currentLock.userName ? `${currentLock.userName} (${currentLock.deviceName})` : (currentLock.deviceName || 'another official scorer');
           return {
             success: false,
             isLocked: true,

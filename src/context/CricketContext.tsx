@@ -603,6 +603,107 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updatedMatch.currentAlert = null;
     }
 
+    // 🎯 Live Delivery Score Pop Burst Event (for all Spectator screens)
+    if (engineResult.isHatTrick) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '🎩🔥',
+        subText: 'HAT-TRICK! (3 in 3)',
+        colorType: 'hattrick',
+        timestamp: Date.now(),
+      };
+    } else if (params.isWicket) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: 'OUT',
+        subText: 'WICKET! ☝️',
+        colorType: 'wicket',
+        timestamp: Date.now(),
+      };
+    } else if (params.runsScored === 6) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '6',
+        subText: 'MAXIMUM SIX! 🚀',
+        colorType: 'six',
+        timestamp: Date.now(),
+      };
+    } else if (params.runsScored === 4) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '4',
+        subText: 'FOUR! 💥',
+        colorType: 'four',
+        timestamp: Date.now(),
+      };
+    } else if (params.runsScored === 3) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '3',
+        subText: '3 RUNS (TRIPLE) ⚡',
+        colorType: 'three',
+        timestamp: Date.now(),
+      };
+    } else if (params.runsScored === 2) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '2',
+        subText: '2 RUNS (DOUBLE) 🏃‍♂️',
+        colorType: 'two',
+        timestamp: Date.now(),
+      };
+    } else if (params.runsScored === 1) {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '1',
+        subText: '1 RUN (SINGLE) 🏏',
+        colorType: 'one',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'wide') {
+      const extraRuns = (params.extraRuns || 1) > 1 ? `+${(params.extraRuns || 1) - 1}` : '';
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `WD${extraRuns}`,
+        subText: `WIDE BALL (+${params.extraRuns || 1}) ↔️`,
+        colorType: 'wide',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'no-ball') {
+      const extraRuns = (params.extraRuns || 1) > 1 ? `+${(params.extraRuns || 1) - 1}` : '';
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `NB${extraRuns}`,
+        subText: `NO BALL (+${(params.runsScored || 0) + (params.extraRuns || 1)}) ⚠️`,
+        colorType: 'noball',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'bye') {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `B+${params.extraRuns || 1}`,
+        subText: `BYES (+${params.extraRuns || 1}) 🛡️`,
+        colorType: 'byes',
+        timestamp: Date.now(),
+      };
+    } else if (params.extraType === 'leg-bye') {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: `LB+${params.extraRuns || 1}`,
+        subText: `LEG BYES (+${params.extraRuns || 1}) 🦵`,
+        colorType: 'legbyes',
+        timestamp: Date.now(),
+      };
+    } else {
+      updatedMatch.latestDeliveryBurst = {
+        id: `burst-${Date.now()}`,
+        text: '0',
+        subText: 'DOT BALL 🎯',
+        colorType: 'dot',
+        timestamp: Date.now(),
+      };
+    }
+
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
