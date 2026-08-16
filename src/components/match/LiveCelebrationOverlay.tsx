@@ -13,7 +13,7 @@ export interface ScoreBurstEvent {
   id: string;
   text: string;
   subText?: string;
-  colorType: 'four' | 'six' | 'wicket' | 'runs' | 'extra';
+  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'extra';
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
@@ -53,16 +53,16 @@ export const LiveCelebrationOverlay: React.FC = () => {
           direction,
         });
 
-        setTimeout(() => setDuckEvent(null), 6000);
+        setTimeout(() => setDuckEvent(null), 6500);
       }
     }
 
-    // 2. Determine Score Burst Number & Celebration
+    // 2. Determine Score Burst Number & Celebration for Spectators & Scorers
     if (latestBall.isWicket) {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: 'W',
-        subText: 'WICKET!',
+        subText: 'WICKET! ☝️',
         colorType: 'wicket',
       });
     } else if (latestBall.runsScored === 6) {
@@ -91,7 +91,7 @@ export const LiveCelebrationOverlay: React.FC = () => {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '6',
-        subText: 'MAXIMUM SIX!',
+        subText: 'MAXIMUM SIX! 🚀',
         colorType: 'six',
       });
     } else if (latestBall.runsScored === 4) {
@@ -106,30 +106,44 @@ export const LiveCelebrationOverlay: React.FC = () => {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '4',
-        subText: 'FOUR!',
+        subText: 'FOUR! 💥',
         colorType: 'four',
+      });
+    } else if (latestBall.runsScored === 3) {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: '3',
+        subText: '3 RUNS ⚡',
+        colorType: 'three',
+      });
+    } else if (latestBall.runsScored === 2) {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: '2',
+        subText: '2 RUNS 🏃‍♂️',
+        colorType: 'two',
+      });
+    } else if (latestBall.runsScored === 1) {
+      setScoreBurst({
+        id: `burst-${Date.now()}`,
+        text: '1',
+        subText: '1 RUN (SINGLE)',
+        colorType: 'one',
       });
     } else if (latestBall.extras && latestBall.extras.type !== 'none') {
       const extraLabel = latestBall.extras.type === 'wide' ? 'WD' : latestBall.extras.type === 'no-ball' ? 'NB' : 'EXT';
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: `${extraLabel}+${latestBall.totalRuns}`,
-        subText: 'EXTRA',
+        subText: latestBall.extras.type === 'wide' ? 'WIDE BALL (+1)' : latestBall.extras.type === 'no-ball' ? 'NO BALL (+1)' : 'EXTRA',
         colorType: 'extra',
-      });
-    } else if (latestBall.runsScored > 0) {
-      setScoreBurst({
-        id: `burst-${Date.now()}`,
-        text: `${latestBall.runsScored}`,
-        subText: latestBall.runsScored === 1 ? 'SINGLE' : latestBall.runsScored === 2 ? 'DOUBLE' : 'THREE',
-        colorType: 'runs',
       });
     } else {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: '0',
-        subText: 'DOT BALL',
-        colorType: 'runs',
+        subText: 'DOT BALL 🎯',
+        colorType: 'dot',
       });
     }
 
@@ -142,26 +156,32 @@ export const LiveCelebrationOverlay: React.FC = () => {
     <>
       {/* ── LIVE SCORE ON SCREEN BURST ANIMATION (2.2s AUTO DISAPPEAR) ── */}
       {scoreBurst && (
-        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4">
           <div className="flex flex-col items-center justify-center animate-score-pop-fade">
             <div
               className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center font-black font-mono shadow-2xl border-4 backdrop-blur-md transition-transform ${
                 scoreBurst.colorType === 'six'
-                  ? 'bg-amber-500/90 border-amber-300 text-slate-950 shadow-amber-500/60 text-6xl sm:text-7xl animate-pulse ring-8 ring-amber-400/30'
+                  ? 'bg-amber-500/95 border-amber-200 text-slate-950 shadow-amber-500/70 text-6xl sm:text-7xl animate-pulse ring-8 ring-amber-400/40 scale-105'
                   : scoreBurst.colorType === 'four'
-                  ? 'bg-emerald-500/90 border-emerald-300 text-slate-950 shadow-emerald-500/60 text-6xl sm:text-7xl animate-pulse ring-8 ring-emerald-400/30'
+                  ? 'bg-emerald-500/95 border-emerald-200 text-slate-950 shadow-emerald-500/70 text-6xl sm:text-7xl animate-pulse ring-8 ring-emerald-400/40 scale-105'
+                  : scoreBurst.colorType === 'three'
+                  ? 'bg-purple-600/95 border-purple-200 text-white shadow-purple-600/70 text-6xl sm:text-7xl ring-8 ring-purple-400/30'
+                  : scoreBurst.colorType === 'two'
+                  ? 'bg-cyan-500/95 border-cyan-200 text-slate-950 shadow-cyan-500/70 text-6xl sm:text-7xl ring-8 ring-cyan-400/30'
+                  : scoreBurst.colorType === 'one'
+                  ? 'bg-blue-600/95 border-blue-200 text-white shadow-blue-600/60 text-6xl sm:text-7xl ring-8 ring-blue-400/30'
                   : scoreBurst.colorType === 'wicket'
-                  ? 'bg-red-600/95 border-red-300 text-white shadow-red-600/60 text-6xl sm:text-7xl ring-8 ring-red-500/30'
+                  ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/70 text-6xl sm:text-7xl ring-8 ring-red-500/40 animate-pulse'
                   : scoreBurst.colorType === 'extra'
-                  ? 'bg-cyan-500/90 border-cyan-300 text-slate-950 shadow-cyan-500/50 text-4xl sm:text-5xl'
-                  : 'bg-slate-900/90 border-slate-700 text-white shadow-slate-950/60 text-5xl sm:text-6xl'
+                  ? 'bg-amber-500/90 border-amber-300 text-slate-950 shadow-amber-500/50 text-4xl sm:text-5xl ring-8 ring-amber-400/30'
+                  : 'bg-slate-900/95 border-slate-700 text-white shadow-slate-950/70 text-5xl sm:text-6xl ring-4 ring-slate-800'
               }`}
             >
               {scoreBurst.text}
             </div>
 
             {scoreBurst.subText && (
-              <span className="mt-2 px-3.5 py-1 rounded-full bg-slate-950/90 border border-slate-800 text-xs sm:text-sm font-black uppercase tracking-widest text-white shadow-xl">
+              <span className="mt-2.5 px-4 py-1.5 rounded-full bg-slate-950/95 border border-slate-700 text-xs sm:text-sm font-black uppercase tracking-widest text-white shadow-2xl backdrop-blur-md">
                 {scoreBurst.subText}
               </span>
             )}
@@ -171,7 +191,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
 
       {/* ── DUCK OUT TRANSPARENT WALKING CHARACTER ── */}
       {duckEvent && (
-        <div className="fixed bottom-14 sm:bottom-20 left-0 right-0 z-50 pointer-events-none overflow-hidden h-40">
+        <div className="fixed bottom-12 sm:bottom-20 left-0 right-0 z-50 pointer-events-none overflow-hidden h-44">
+          {/* Translating container across the pitch */}
           <div 
             className={`absolute flex items-center space-x-3 pointer-events-none drop-shadow-2xl ${
               duckEvent.direction === 'right' 
@@ -179,7 +200,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
                 : 'animate-duck-walk-left'
             }`}
           >
-            <div className="relative flex flex-col items-center">
+            {/* Waddling step bobbing & rocking animation */}
+            <div className="relative flex flex-col items-center animate-duck-waddle">
               {/* Sad Tears Animation */}
               <div className="absolute -top-3 left-6 flex space-x-1 animate-bounce">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-300"></span>
@@ -187,25 +209,33 @@ export const LiveCelebrationOverlay: React.FC = () => {
               </div>
 
               {/* Reference Duck Image with Cricket Bat */}
-              <img
-                src="/assets/cricket_duck.png"
-                alt="Duck with Bat"
-                className={`w-28 h-28 sm:w-36 sm:h-36 object-contain select-none filter drop-shadow-2xl ${
-                  duckEvent.direction === 'left' ? 'scale-x-[-1]' : ''
-                }`}
-              />
+              <div className="relative">
+                <img
+                  src="/assets/cricket_duck.png"
+                  alt="Duck with Bat"
+                  className={`w-28 h-28 sm:w-36 sm:h-36 object-contain select-none filter drop-shadow-2xl ${
+                    duckEvent.direction === 'left' ? 'scale-x-[-1]' : ''
+                  }`}
+                />
 
-              <span className="text-[10px] sm:text-xs font-black bg-red-600/90 text-white px-2.5 py-0.5 rounded-full shadow-lg mt-0.5 whitespace-nowrap border border-red-400/50">
+                {/* Animated Webbed Walking Feet */}
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex space-x-4 pointer-events-none">
+                  <div className="w-4 h-2 bg-amber-500 rounded-full border border-amber-600 shadow-sm animate-duck-foot-left" />
+                  <div className="w-4 h-2 bg-amber-500 rounded-full border border-amber-600 shadow-sm animate-duck-foot-right" />
+                </div>
+              </div>
+
+              <span className="text-[10px] sm:text-xs font-black bg-red-600/95 text-white px-3 py-0.5 rounded-full shadow-lg mt-1 whitespace-nowrap border border-red-300/60">
                 0 Runs (Duck)
               </span>
             </div>
 
-            {/* Transparent floating speech pill */}
-            <div className="bg-slate-950/85 backdrop-blur-sm border border-slate-700/80 px-3.5 py-2 rounded-2xl shadow-2xl">
+            {/* Transparent floating speech pill with waddle sync */}
+            <div className="bg-slate-950/90 backdrop-blur-md border border-slate-700 px-4 py-2 rounded-2xl shadow-2xl animate-duck-waddle">
               <span className="text-xs sm:text-sm font-black text-amber-300 block whitespace-nowrap">
                 😢 {duckEvent.batsmanName}
               </span>
-              <span className="text-[10px] text-slate-300 font-bold block whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs text-slate-300 font-bold block whitespace-nowrap">
                 {duckEvent.direction === 'right' ? 'Walking to Right Pavilion ➔' : '⬅ Walking to Left Pavilion'}
               </span>
             </div>

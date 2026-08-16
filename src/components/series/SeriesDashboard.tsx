@@ -702,14 +702,14 @@ export const SeriesDashboard: React.FC = () => {
                     )}
 
                     {potmPlayer && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 flex items-center space-x-3 text-xs">
-                        <Award className="w-5 h-5 text-emerald-400" />
+                      <div className="potm-player-row bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 flex items-center space-x-3 text-xs shadow-sm">
+                        <Award className="w-5 h-5 text-amber-500 flex-shrink-0" />
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-emerald-400 block">
+                          <span className="text-[10px] uppercase font-black text-amber-500 block">
                             Player of the Match (POTM)
                           </span>
-                          <span className="font-bold text-white">{potmPlayer.name}</span>
-                          <span className="text-slate-400 block text-[11px]">{m.potmInfo?.summary}</span>
+                          <span className="potm-player-name font-bold text-white text-xs sm:text-sm">{potmPlayer.name}</span>
+                          <span className="potm-summary-text text-slate-400 block text-[11px] font-medium">{m.potmInfo?.summary}</span>
                         </div>
                       </div>
                     )}

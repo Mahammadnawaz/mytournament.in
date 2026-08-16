@@ -31,7 +31,7 @@ export const MatchPOTMModal: React.FC<MatchPOTMModalProps> = ({ onClose }) => {
         <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-xl scale-105 pointer-events-none" />
 
         {/* Main Compact Card */}
-        <div className="relative bg-slate-900 border border-amber-500/40 rounded-2xl overflow-hidden shadow-xl shadow-slate-950">
+        <div className="relative potm-card-container bg-slate-900 border border-amber-500/40 rounded-2xl overflow-hidden shadow-2xl shadow-slate-950">
 
           {/* Slim Header */}
           <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 px-4 py-2.5 flex items-center justify-between">
@@ -43,7 +43,7 @@ export const MatchPOTMModal: React.FC<MatchPOTMModalProps> = ({ onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-slate-950/70 hover:text-slate-950 transition p-0.5"
+              className="text-slate-950/80 hover:text-slate-950 transition p-0.5"
             >
               <X className="w-4 h-4" />
             </button>
@@ -53,7 +53,7 @@ export const MatchPOTMModal: React.FC<MatchPOTMModalProps> = ({ onClose }) => {
           <div className="p-4 space-y-3">
             
             {/* Player Info + MVP Points Row */}
-            <div className="flex items-center space-x-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <div className="potm-player-row flex items-center space-x-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
               {player?.avatarUrl ? (
                 <div className="relative flex-shrink-0">
                   <img
@@ -61,36 +61,36 @@ export const MatchPOTMModal: React.FC<MatchPOTMModalProps> = ({ onClose }) => {
                     alt={player.name}
                     className="w-12 h-12 rounded-xl object-cover ring-2 ring-amber-500/40"
                   />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shadow-sm">
                     <Star className="w-2.5 h-2.5 text-slate-950 fill-current" />
                   </div>
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm flex-shrink-0 shadow-md">
                   {player?.name?.slice(0, 2).toUpperCase() || 'POTM'}
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-1.5">
-                  <h3 className="font-extrabold text-white text-sm truncate">
+                  <h3 className="potm-player-name font-black text-white text-sm sm:text-base truncate">
                     {player?.name || 'MVP Winner'}
                   </h3>
                   {player?.role && (
-                    <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[9px] font-bold">
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-extrabold text-[10px]">
                       {player.role}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                <p className="potm-summary-text text-xs text-slate-400 font-semibold truncate mt-0.5">
                   {potmInfo.summary || 'Match Winning Performance'}
                 </p>
               </div>
 
               {/* Points Badge */}
-              <div className="text-right flex-shrink-0 pl-2 border-l border-slate-800">
-                <span className="text-[9px] font-bold text-slate-500 block uppercase leading-none">MVP</span>
-                <span className="text-lg font-black text-amber-400 font-mono leading-tight">
+              <div className="text-right flex-shrink-0 pl-2.5 border-l border-slate-700/60">
+                <span className="text-[10px] font-black text-amber-500 block uppercase leading-none">MVP</span>
+                <span className="potm-points-text text-lg sm:text-xl font-black text-amber-400 font-mono leading-tight">
                   {potmInfo.points}
                 </span>
               </div>

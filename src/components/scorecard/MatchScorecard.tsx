@@ -269,14 +269,14 @@ export const MatchScorecard: React.FC<MatchScorecardProps> = ({ matchOverride })
 
         {/* PLAYER OF THE MATCH — micro badge */}
         {potmPlayer && (
-          <div className="flex items-center gap-2 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-2.5 py-1.5 self-start">
-            <Award className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wide whitespace-nowrap">POTM</span>
-            <span className="font-bold text-white text-xs">{potmPlayer.name}</span>
+          <div className="potm-player-row flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-1.5 self-start shadow-sm">
+            <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="text-[10px] font-black text-amber-500 uppercase tracking-wide whitespace-nowrap">POTM</span>
+            <span className="potm-player-name font-bold text-white text-xs sm:text-sm">{potmPlayer.name}</span>
             {match.potmInfo?.summary && (
-              <span className="hidden md:block text-[10px] text-slate-400 truncate max-w-[120px]">• {match.potmInfo.summary}</span>
+              <span className="potm-summary-text hidden md:block text-[11px] text-slate-400 truncate max-w-[200px]">• {match.potmInfo.summary}</span>
             )}
-            <span className="text-xs font-black text-amber-400 font-mono ml-1 pl-1.5 border-l border-slate-700">{match.potmInfo?.points}pts</span>
+            <span className="potm-points-text text-xs sm:text-sm font-black text-amber-400 font-mono ml-1 pl-2 border-l border-slate-700">{match.potmInfo?.points}pts</span>
           </div>
         )}
 

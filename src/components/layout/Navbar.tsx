@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export const Navbar: React.FC = () => {
-  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer, releaseScorerLock } = useCricket();
+  const { activeMatch, activeTab, setActiveTab, theme, setTheme, isScorer, isSpectator, isOnline, setUserRole, activeScorer } = useCricket();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
 
@@ -61,13 +61,9 @@ export const Navbar: React.FC = () => {
                 <button
                   onClick={() => {
                     if (activeScorer && !isScorer) {
-                      const confirmTakeover = window.confirm(
-                        `🔒 Scorer controls are currently locked by ${activeScorer.deviceName || 'another device'}.\n\nOnly 1 active scorer is permitted at a time. Would you like to force release the lock and take over scoring?`
+                      alert(
+                        `🔒 Access Denied: Scorer controls are currently locked by ${activeScorer.deviceName || 'another device'}.\n\nOnly one device can be the active scorer at a time. Please wait for the scorer to finish or switch to Spectator mode.`
                       );
-                      if (confirmTakeover) {
-                        releaseScorerLock(true);
-                        setUserRole('scorer');
-                      }
                       return;
                     }
                     setUserRole('scorer');
@@ -76,14 +72,14 @@ export const Navbar: React.FC = () => {
                     isScorer
                       ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                       : activeScorer && !isScorer
-                      ? 'text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10'
+                      ? 'text-amber-400 bg-amber-500/10 cursor-not-allowed opacity-85'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                   title={
                     isScorer 
                       ? 'Scorer Mode (You hold active scoring lock)' 
                       : activeScorer 
-                      ? `Locked by ${activeScorer.deviceName}` 
+                      ? `Locked by ${activeScorer.deviceName} (Access Denied)` 
                       : 'Switch to Scorer Mode'
                   }
                 >

@@ -110,21 +110,51 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isScorer = userRole === 'scorer' && (!activeScorer || activeScorer.deviceId === deviceId);
   const isSpectator = !isScorer;
 
+  // Real-time Cloud Scorer Lock subscription: sync active scorer across all devices
+  useEffect(() => {
+    const unsubscribe = cloudSync.subscribeScorerLock((lock) => {
+      setActiveScorer(lock);
+      if (lock && lock.deviceId !== deviceId && userRole === 'scorer') {
+        // Another device holds the lock, lock this device into spectator mode
+        setUserRoleState('spectator');
+        localStorage.setItem('cricpulse_user_role', 'spectator');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [deviceId, userRole]);
+
+  // Periodic heartbeat for active scorer to keep lock fresh
+  useEffect(() => {
+    if (!isScorer) return;
+
+    const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
+    cloudSync.heartbeatScorerLock(deviceId, devName);
+
+    const interval = setInterval(() => {
+      cloudSync.heartbeatScorerLock(deviceId, devName);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [isScorer, deviceId]);
+
   const setUserRole = async (newRole: UserRole) => {
     if (newRole === 'scorer') {
       const devName = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile Phone' : 'Laptop / PC';
-      const lockRes = await api.acquireScorerLock(deviceId, devName);
-      if (!lockRes.success && lockRes.isLocked) {
-        alert(lockRes.message || '⚠️ Scorer controls are locked by another device. Only one official scorer is allowed at a time.');
+      const lockRes = await cloudSync.acquireScorerLock(deviceId, devName);
+
+      if (!lockRes.success) {
+        alert(lockRes.message || '🔒 Access Denied: Scorer controls are locked by another device. Only 1 device is allowed to score at a time.');
         setUserRoleState('spectator');
         localStorage.setItem('cricpulse_user_role', 'spectator');
         return;
       }
+
       if (lockRes.activeScorer) {
         setActiveScorer(lockRes.activeScorer);
       }
     } else {
-      await api.releaseScorerLock(deviceId);
+      await cloudSync.releaseScorerLock(deviceId);
       setActiveScorer(null);
     }
 
@@ -140,7 +170,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const releaseScorerLock = async (force?: boolean) => {
-    await api.releaseScorerLock(deviceId, force);
+    await cloudSync.releaseScorerLock(deviceId, force);
     setActiveScorer(null);
     if (force) {
       setUserRoleState('spectator');
@@ -211,31 +241,46 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Ignore
     }
 
-    // 1. Initial snapshot pull (Only if not already populated)
-    if (!isScorer) {
-      cloudSync.pullLatest().then(data => {
-        if (data) {
-          if (data.players?.length) setPlayers(data.players);
-          if (data.matches?.length) setMatches(data.matches);
-          if (data.series?.length) setSeriesList(data.series);
-          if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
-          if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
+    // 1. Initial snapshot pull: Load latest persistent roster & match history for all devices
+    cloudSync.pullLatest().then(data => {
+      if (data) {
+        if (data.players && data.players.length > 0) {
+          setPlayers(data.players);
+          localStorage.setItem('cricket_players_v1', JSON.stringify(data.players));
         }
-      });
-    }
+        if (data.matches && data.matches.length > 0) {
+          setMatches(data.matches);
+          localStorage.setItem('cricket_matches_v1', JSON.stringify(data.matches));
+        }
+        if (data.series && data.series.length > 0) {
+          setSeriesList(data.series);
+          localStorage.setItem('cricket_series_v1', JSON.stringify(data.series));
+        }
+        if (data.activeMatchId) setActiveMatchId(data.activeMatchId);
+        if (data.activeScorer !== undefined) setActiveScorer(data.activeScorer);
+      }
+    });
 
-    // 2. Real-time subscription: ONLY FOR SPECTATORS / VIEWERS
-    // The Scorer NEVER listens to incoming subscription events during scoring.
-    // Local state handles 100% of UI updates on the Scorer device.
+    // 2. Real-time subscription: Sync roster, past matches, scorecards, and live match to spectators
+    // Local state handles 100% of instant UI updates on the Scorer device.
     let unsubscribe = () => {};
     if (!isScorer) {
       unsubscribe = cloudSync.subscribe((syncData) => {
         // 🛡️ Null Data Protection: Ignore empty/null snapshots
-        if (!syncData || !syncData.matches || syncData.matches.length === 0) return;
+        if (!syncData) return;
 
-        if (syncData.players?.length) setPlayers(syncData.players);
-        if (syncData.matches?.length) setMatches(syncData.matches);
-        if (syncData.series?.length) setSeriesList(syncData.series);
+        if (syncData.players && syncData.players.length > 0) {
+          setPlayers(syncData.players);
+          localStorage.setItem('cricket_players_v1', JSON.stringify(syncData.players));
+        }
+        if (syncData.matches && syncData.matches.length > 0) {
+          setMatches(syncData.matches);
+          localStorage.setItem('cricket_matches_v1', JSON.stringify(syncData.matches));
+        }
+        if (syncData.series && syncData.series.length > 0) {
+          setSeriesList(syncData.series);
+          localStorage.setItem('cricket_series_v1', JSON.stringify(syncData.series));
+        }
         if (syncData.activeScorer !== undefined) setActiveScorer(syncData.activeScorer);
 
         if (syncData.activeMatchId) {
@@ -281,7 +326,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null
     : null;
 
-  // Player Actions
+  // Player Actions (Permanently saved to LocalStorage & Cloud across all devices)
   const addPlayer = (newPlayerData: Omit<Player, 'id' | 'stats'>) => {
     const newPlayer: Player = {
       ...newPlayerData,
@@ -305,24 +350,33 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         maidens: 0,
       }
     };
-    setPlayers(prev => [newPlayer, ...prev]);
+    const updatedPlayers = [newPlayer, ...players];
+    setPlayers(updatedPlayers);
+    localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
+    cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.addPlayer(newPlayer);
     broadcastSync();
   };
 
   const updatePlayer = (updatedPlayer: Player) => {
-    setPlayers(prev => prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
+    const updatedPlayers = players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p);
+    setPlayers(updatedPlayers);
+    localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
+    cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.updatePlayer(updatedPlayer);
     broadcastSync();
   };
 
   const deletePlayer = (id: string) => {
-    setPlayers(prev => prev.filter(p => p.id !== id));
+    const updatedPlayers = players.filter(p => p.id !== id);
+    setPlayers(updatedPlayers);
+    localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
+    cloudSync.pushState({ players: updatedPlayers, matches, series: seriesList, activeMatchId, activeScorer });
     api.deletePlayer(id);
     broadcastSync();
   };
 
-  // Tournament / Series Actions
+  // Tournament / Series Actions (Permanently synced across all devices)
   const createSeries = (seriesData: Omit<TournamentSeries, 'id' | 'matchIds' | 'status'>) => {
     const newSeries: TournamentSeries = {
       ...seriesData,
@@ -330,7 +384,10 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       matchIds: [],
       status: 'ongoing',
     };
-    setSeriesList(prev => [newSeries, ...prev]);
+    const updatedSeriesList = [newSeries, ...seriesList];
+    setSeriesList(updatedSeriesList);
+    localStorage.setItem('cricket_series_v1', JSON.stringify(updatedSeriesList));
+    cloudSync.pushState({ players, matches, series: updatedSeriesList, activeMatchId, activeScorer });
     api.addSeries(newSeries);
     broadcastSync();
     setActiveTab('series');
@@ -342,7 +399,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const { potS } = calculateSeriesMVP(targetSeries, matches);
 
-    setSeriesList(prev => prev.map(s => {
+    const updatedSeriesList = seriesList.map(s => {
       if (s.id === seriesId) {
         const updated = {
           ...s,
@@ -351,11 +408,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
           playerOfSeriesSummary: potS?.summary || 'Outstanding all-round series performance',
         };
         api.updateSeries(updated);
-        broadcastSync();
         return updated;
       }
       return s;
-    }));
+    });
+
+    setSeriesList(updatedSeriesList);
+    localStorage.setItem('cricket_series_v1', JSON.stringify(updatedSeriesList));
+    cloudSync.pushState({ players, matches, series: updatedSeriesList, activeMatchId, activeScorer });
+    broadcastSync();
   };
 
   // Match Actions
@@ -423,8 +484,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }));
     }
 
+    const updatedMatches = [newMatch, ...matches];
     isLocalAction.current = true;
-    setMatches(prev => [newMatch, ...prev]);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: newMatch.id, activeScorer });
     api.addMatch(newMatch);
     api.setActiveMatchId(newMatch.id);
     setActiveMatchId(newMatch.id);
@@ -433,7 +497,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveTab('scoring');
   };
 
-  // Live Scorekeeper Engine Action
+  // Live Scorekeeper Engine Action (Permanently synced to Cloud & Storage)
   const scoreBall = (params: ScoreBallParams) => {
     if (!activeMatch || !activeInnings || activeMatch.status !== 'live') return;
 
@@ -448,6 +512,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } else {
       updatedMatch.innings2 = engineResult.nextInningsState;
     }
+
+    let finalPlayers = players;
 
     if (engineResult.matchResultBanner || engineResult.inningsCompleted) {
       if (activeMatch.currentInnings === 1) {
@@ -469,13 +535,18 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Aggregate stats to players
-        const updatedPlayers = aggregateMatchStatsToPlayers(players, updatedMatch);
-        setPlayers(updatedPlayers);
-        updatedPlayers.forEach(p => api.updatePlayer(p));
+        finalPlayers = aggregateMatchStatsToPlayers(players, updatedMatch);
+        setPlayers(finalPlayers);
+        localStorage.setItem('cricket_players_v1', JSON.stringify(finalPlayers));
+        finalPlayers.forEach(p => api.updatePlayer(p));
       }
     }
 
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players: finalPlayers, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
     releaseLocalActionLock(800);
@@ -535,7 +606,12 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updatedMatch.innings2 = tempInnings;
     }
     updatedMatch.status = 'live';
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
     releaseLocalActionLock(800);
@@ -554,7 +630,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
       }
     }
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
     releaseLocalActionLock(800);
@@ -570,7 +650,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       targetInnings.strikerId = targetInnings.nonStrikerId;
       targetInnings.nonStrikerId = temp;
     }
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
     releaseLocalActionLock(800);
@@ -615,7 +699,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       innings2,
     };
 
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
   };
@@ -629,7 +717,11 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (updatedMatch.innings2) {
       updatedMatch.innings2.target = revisedTarget;
     }
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+    cloudSync.pushState({ players, matches: updatedMatches, series: seriesList, activeMatchId: updatedMatch.id, activeScorer });
+
     api.updateMatch(updatedMatch);
     broadcastSync();
   };
@@ -644,8 +736,15 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (potm) updatedMatch.potmInfo = potm;
 
     const updatedPlayers = aggregateMatchStatsToPlayers(players, updatedMatch);
+    const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
+
     setPlayers(updatedPlayers);
-    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    setMatches(updatedMatches);
+    localStorage.setItem('cricket_players_v1', JSON.stringify(updatedPlayers));
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));
+
+    cloudSync.pushState({ players: updatedPlayers, matches: updatedMatches, series: seriesList, activeMatchId: null, activeScorer });
+
     api.updateMatch(updatedMatch);
     updatedPlayers.forEach(p => api.updatePlayer(p));
     broadcastSync();
@@ -662,6 +761,10 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMatches(INITIAL_MATCHES);
     setSeriesList(INITIAL_SERIES);
     setActiveMatchId(INITIAL_MATCHES[0]?.id || null);
+    localStorage.setItem('cricket_players_v1', JSON.stringify(INITIAL_PLAYERS));
+    localStorage.setItem('cricket_matches_v1', JSON.stringify(INITIAL_MATCHES));
+    localStorage.setItem('cricket_series_v1', JSON.stringify(INITIAL_SERIES));
+    cloudSync.pushState({ players: INITIAL_PLAYERS, matches: INITIAL_MATCHES, series: INITIAL_SERIES, activeMatchId: INITIAL_MATCHES[0]?.id || null });
     api.resetDemo();
     broadcastSync();
   };

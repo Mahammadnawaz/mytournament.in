@@ -131,6 +131,102 @@ export const cloudSync = {
     }
 
     return null;
+  },
+
+  // 🔒 Distributed Scorer Lock via Firebase RTDB + REST API
+  async acquireScorerLock(deviceId: string, deviceName: string): Promise<{
+    success: boolean;
+    isLocked?: boolean;
+    activeScorer?: { deviceId: string; deviceName: string; timestamp: number };
+    message?: string;
+  }> {
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        const snap = await get(scorerRef);
+        const currentLock = snap.exists() ? snap.val() : null;
+
+        // Check if another device holds an active, fresh lock (< 45 seconds old)
+        const isFresh = currentLock && currentLock.timestamp && (Date.now() - currentLock.timestamp < 45000);
+        if (isFresh && currentLock.deviceId !== deviceId) {
+          return {
+            success: false,
+            isLocked: true,
+            activeScorer: currentLock,
+            message: `🔒 Access Denied: Scoring controls are locked by ${currentLock.deviceName || 'another device'}. Only 1 device is allowed to score at a time.`,
+          };
+        }
+
+        // Claim lock in Firebase RTDB
+        const newLock = { deviceId, deviceName, timestamp: Date.now() };
+        await set(scorerRef, newLock);
+        return { success: true, activeScorer: newLock };
+      } catch (err) {
+        console.warn('Firebase acquireScorerLock error:', err);
+      }
+    }
+
+    // Fallback to Express backend if Firebase not configured
+    const apiRes = await api.acquireScorerLock(deviceId, deviceName);
+    return {
+      ...apiRes,
+      activeScorer: apiRes.activeScorer ? { ...apiRes.activeScorer, timestamp: Date.now() } : undefined,
+    };
+  },
+
+  async releaseScorerLock(deviceId: string, force = false): Promise<boolean> {
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        const snap = await get(scorerRef);
+        if (snap.exists()) {
+          const current = snap.val();
+          if (force || current?.deviceId === deviceId) {
+            await set(scorerRef, null);
+          }
+        }
+      } catch (err) {
+        console.warn('Firebase releaseScorerLock error:', err);
+      }
+    }
+    return await api.releaseScorerLock(deviceId, force);
+  },
+
+  async heartbeatScorerLock(deviceId: string, deviceName: string): Promise<void> {
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        await set(scorerRef, { deviceId, deviceName, timestamp: Date.now() });
+      } catch {
+        // Ignore
+      }
+    }
+    api.heartbeatScorerLock(deviceId);
+  },
+
+  subscribeScorerLock(onUpdate: (scorer: { deviceId: string; deviceName: string; timestamp: number } | null) => void): () => void {
+    if (isFirebaseConfigured) {
+      try {
+        const scorerRef = ref(db, 'cricpulse_active_scorer');
+        const unsubscribe = onValue(scorerRef, (snapshot) => {
+          if (!snapshot.exists()) {
+            onUpdate(null);
+            return;
+          }
+          const val = snapshot.val();
+          if (val && val.timestamp && (Date.now() - val.timestamp > 45000)) {
+            // Expired lock
+            onUpdate(null);
+          } else {
+            onUpdate(val);
+          }
+        });
+        return unsubscribe;
+      } catch {
+        // Ignore
+      }
+    }
+    return () => {};
   }
 };
 

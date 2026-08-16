@@ -426,65 +426,93 @@ h1, h2, h3, h4, h5, h6 {
   animation: broadcastPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Animated Duck Walking Right (for Right-hand Batsman Duck Dismissal) */
-@keyframes duckWalkRight {
+/* Animated Duck Walking Across Pitch (Linear translation across screen) */
+@keyframes duckWalkAcrossRight {
   0% {
-    left: -10%;
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-8px) rotate(5deg);
-  }
-  50% {
-    transform: translateY(0px) rotate(-3deg);
-  }
-  75% {
-    transform: translateY(-8px) rotate(5deg);
+    left: -15%;
   }
   100% {
-    left: 105%;
-    transform: translateY(0px) rotate(0deg);
+    left: 108%;
   }
 }
 
-/* Animated Duck Walking Left (for Left-hand Batsman Duck Dismissal) */
-@keyframes duckWalkLeft {
+@keyframes duckWalkAcrossLeft {
   0% {
-    right: -10%;
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-8px) rotate(-5deg);
-  }
-  50% {
-    transform: translateY(0px) rotate(3deg);
-  }
-  75% {
-    transform: translateY(-8px) rotate(-5deg);
+    right: -15%;
   }
   100% {
-    right: 105%;
+    right: 108%;
+  }
+}
+
+/* Realistic Duck Waddling Step Cycle (Active bobbing, foot-rocking, body tilt) */
+@keyframes duckWaddleStep {
+  0% {
+    transform: translateY(0px) rotate(-7deg) scale(1, 0.95);
+  }
+  25% {
+    transform: translateY(-12px) rotate(0deg) scale(0.96, 1.05);
+  }
+  50% {
+    transform: translateY(0px) rotate(7deg) scale(1, 0.95);
+  }
+  75% {
+    transform: translateY(-12px) rotate(0deg) scale(0.96, 1.05);
+  }
+  100% {
+    transform: translateY(0px) rotate(-7deg) scale(1, 0.95);
+  }
+}
+
+/* Duck Webbed Feet Walking Step Cycle */
+@keyframes duckFootLeftStep {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-18deg);
+  }
+}
+
+@keyframes duckFootRightStep {
+  0%, 100% {
+    transform: translateY(-8px) rotate(18deg);
+  }
+  50% {
     transform: translateY(0px) rotate(0deg);
   }
 }
 
 .animate-duck-walk-right {
-  animation: duckWalkRight 6s linear forwards;
+  animation: duckWalkAcrossRight 6.5s linear forwards;
 }
 
 .animate-duck-walk-left {
-  animation: duckWalkLeft 6s linear forwards;
+  animation: duckWalkAcrossLeft 6.5s linear forwards;
+}
+
+.animate-duck-waddle {
+  animation: duckWaddleStep 0.36s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-duck-foot-left {
+  animation: duckFootLeftStep 0.36s ease-in-out infinite;
+}
+
+.animate-duck-foot-right {
+  animation: duckFootRightStep 0.36s ease-in-out infinite;
 }
 
 /* Floating On-Screen Score Number Pop & Fade (2.2s auto disappear) */
 @keyframes scorePopFade {
   0% {
     opacity: 0;
-    transform: scale(0.5) translateY(20px);
+    transform: scale(0.35) translateY(30px);
   }
   15% {
     opacity: 1;
-    transform: scale(1.15) translateY(0px);
+    transform: scale(1.18) translateY(0px);
   }
   25% {
     opacity: 1;
@@ -496,10 +524,74 @@ h1, h2, h3, h4, h5, h6 {
   }
   100% {
     opacity: 0;
-    transform: scale(0.85) translateY(-20px);
+    transform: scale(0.85) translateY(-25px);
   }
 }
 
 .animate-score-pop-fade {
   animation: scorePopFade 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ==========================================================================
+   HIGH-CONTRAST PLAYER OF THE MATCH (POTM) STYLES ACROSS ALL THEMES
+   ========================================================================== */
+.potm-card-container {
+  background-color: #0b1329;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.potm-player-row {
+  background-color: rgba(2, 6, 23, 0.7);
+  border-color: #1e293b;
+}
+
+.potm-player-name {
+  color: #ffffff;
+}
+
+.potm-summary-text {
+  color: #94a3b8;
+}
+
+.potm-points-text {
+  color: #fbbf24;
+}
+
+html.theme-testcricket .potm-card-container,
+html.theme-county .potm-card-container,
+html.theme-lords .potm-card-container,
+html.theme-daylight .potm-card-container {
+  background-color: #ffffff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.theme-testcricket .potm-player-row,
+html.theme-county .potm-player-row,
+html.theme-lords .potm-player-row,
+html.theme-daylight .potm-player-row {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-testcricket .potm-player-name,
+html.theme-county .potm-player-name,
+html.theme-lords .potm-player-name,
+html.theme-daylight .potm-player-name {
+  color: #0f172a !important;
+}
+
+html.theme-testcricket .potm-summary-text,
+html.theme-county .potm-summary-text,
+html.theme-lords .potm-summary-text,
+html.theme-daylight .potm-summary-text {
+  color: #334155 !important;
+}
+
+html.theme-testcricket .potm-points-text,
+html.theme-county .potm-points-text,
+html.theme-lords .potm-points-text,
+html.theme-daylight .potm-points-text {
+  color: #b45309 !important;
+}
+
