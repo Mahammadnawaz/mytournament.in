@@ -155,6 +155,14 @@ export interface MatchPOTM {
   summary: string;
 }
 
+export interface MatchAlert {
+  type: 'hat-trick' | 'milestone-50' | 'milestone-100' | 'custom';
+  title: string;
+  subtitle: string;
+  playerName?: string;
+  timestamp: number;
+}
+
 export interface Match {
   id: string;
   name: string;
@@ -176,6 +184,8 @@ export interface Match {
   dlsApplied?: boolean;
   dlsRevisedOvers?: number;
   dlsRevisedTarget?: number;
+  scorerDeviceId?: string;
+  currentAlert?: MatchAlert | null;
 }
 
 export interface TournamentSeries {

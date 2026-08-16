@@ -13,14 +13,33 @@ export interface ScoreBurstEvent {
   id: string;
   text: string;
   subText?: string;
-  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'wide' | 'noball' | 'byes' | 'legbyes';
+  colorType: 'four' | 'six' | 'three' | 'two' | 'one' | 'dot' | 'wicket' | 'hattrick' | 'wide' | 'noball' | 'byes' | 'legbyes';
 }
 
 export const LiveCelebrationOverlay: React.FC = () => {
-  const { activeInnings, players } = useCricket();
+  const { activeMatch, activeInnings, players } = useCricket();
   const [duckEvent, setDuckEvent] = useState<DuckEvent | null>(null);
   const [scoreBurst, setScoreBurst] = useState<ScoreBurstEvent | null>(null);
   const lastProcessedBallIdRef = useRef<string | null>(null);
+
+  // Sync real-time alerts (e.g. Hat-Trick) from Firebase activeMatch.currentAlert for Spectators & Scorers
+  useEffect(() => {
+    if (activeMatch?.currentAlert && activeMatch.currentAlert.type === 'hat-trick') {
+      confetti({ particleCount: 90, spread: 80, origin: { x: 0.2, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+      confetti({ particleCount: 90, spread: 80, origin: { x: 0.8, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+      confetti({ particleCount: 140, spread: 120, origin: { y: 0.4 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+
+      setScoreBurst({
+        id: `alert-hattrick-${activeMatch.currentAlert.timestamp}`,
+        text: '🎩🔥',
+        subText: `${activeMatch.currentAlert.title} ${activeMatch.currentAlert.subtitle}`,
+        colorType: 'hattrick',
+      });
+
+      const timer = setTimeout(() => setScoreBurst(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeMatch?.currentAlert?.timestamp]);
 
   // Detect live ball events from activeInnings.ballLogs
   useEffect(() => {
@@ -57,8 +76,25 @@ export const LiveCelebrationOverlay: React.FC = () => {
       }
     }
 
-    // 2. Determine Score Burst Number & Celebration for All Devices (0, 1, 2, 3, 4, 6, OUT, WIDE, NOBALL, BYES, LEGBYES)
-    if (latestBall.isWicket) {
+    // 2. Determine Score Burst Number & Celebration for All Devices (0, 1, 2, 3, 4, 6, OUT, HAT-TRICK, WIDE, NOBALL, BYES, LEGBYES)
+    const bowlerBalls = activeInnings.ballLogs.filter(b => b.bowlerId === latestBall.bowlerId);
+    const isHatTrick = latestBall.isWicket && bowlerBalls.length >= 3 && bowlerBalls.slice(-3).every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
+
+    if (isHatTrick) {
+      // 🎩🔥 Massive Hat-Trick Confetti Extravaganza
+      confetti({ particleCount: 90, spread: 80, origin: { x: 0.2, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+      confetti({ particleCount: 90, spread: 80, origin: { x: 0.8, y: 0.5 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+      confetti({ particleCount: 140, spread: 120, origin: { y: 0.4 }, colors: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] });
+
+      const bowler = players.find(p => p.id === latestBall.bowlerId);
+
+      setScoreBurst({
+        id: `hattrick-${Date.now()}`,
+        text: '🎩🔥',
+        subText: `HAT-TRICK! ${bowler?.name || 'Bowler'} (3 in 3)`,
+        colorType: 'hattrick',
+      });
+    } else if (latestBall.isWicket) {
       setScoreBurst({
         id: `burst-${Date.now()}`,
         text: 'OUT',
@@ -192,6 +228,8 @@ export const LiveCelebrationOverlay: React.FC = () => {
                   ? 'bg-cyan-500/95 border-cyan-200 text-slate-950 shadow-cyan-500/70 text-6xl sm:text-7xl ring-8 ring-cyan-400/30'
                   : scoreBurst.colorType === 'one'
                   ? 'bg-blue-600/95 border-blue-200 text-white shadow-blue-600/60 text-6xl sm:text-7xl ring-8 ring-blue-400/30'
+                  : scoreBurst.colorType === 'hattrick'
+                  ? 'bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 border-amber-200 text-white shadow-rose-500/90 text-4xl sm:text-5xl ring-8 ring-amber-400/50 animate-bounce scale-110'
                   : scoreBurst.colorType === 'wicket'
                   ? 'bg-red-600/95 border-red-200 text-white shadow-red-600/80 text-5xl sm:text-6xl ring-8 ring-red-500/40 animate-pulse'
                   : scoreBurst.colorType === 'wide'

@@ -542,6 +542,20 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
+    // 🎩 Hat-Trick Event Alert Trigger
+    if (engineResult.isHatTrick && engineResult.hatTrickBowlerId) {
+      const bowlerPlayer = players.find(p => p.id === engineResult.hatTrickBowlerId);
+      updatedMatch.currentAlert = {
+        type: 'hat-trick',
+        title: 'HAT-TRICK! 🎩🔥',
+        subtitle: `${bowlerPlayer?.name || 'Bowler'} takes 3 wickets in 3 consecutive balls!`,
+        playerName: bowlerPlayer?.name || 'Bowler',
+        timestamp: Date.now(),
+      };
+    } else {
+      updatedMatch.currentAlert = null;
+    }
+
     const updatedMatches = matches.map(m => m.id === updatedMatch.id ? updatedMatch : m);
     setMatches(updatedMatches);
     localStorage.setItem('cricket_matches_v1', JSON.stringify(updatedMatches));

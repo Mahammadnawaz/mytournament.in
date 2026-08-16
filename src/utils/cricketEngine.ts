@@ -26,6 +26,21 @@ export interface EngineResult {
   needNextBatsman: boolean;
   matchResultBanner?: string;
   winnerTeam?: string;
+  isHatTrick?: boolean;
+  hatTrickBowlerId?: string;
+}
+
+/**
+ * Detects if the current bowler has taken 3 wickets in 3 consecutive deliveries
+ */
+export function checkIfHatTrick(ballLogs: BallLog[], bowlerId: string): boolean {
+  if (!ballLogs || ballLogs.length < 3 || !bowlerId) return false;
+  // Get all balls bowled by this specific bowler in chronological order
+  const bowlerBalls = ballLogs.filter(b => b.bowlerId === bowlerId);
+  if (bowlerBalls.length < 3) return false;
+
+  const last3 = bowlerBalls.slice(-3);
+  return last3.every(b => b.isWicket && b.wicketInfo?.type !== 'run-out' && b.wicketInfo?.type !== 'retired-hurt');
 }
 
 export function processBall(
@@ -244,6 +259,9 @@ export function processBall(
     }
   }
 
+  // Detect Hat-Trick for current bowler
+  const isHatTrick = isWicket && checkIfHatTrick(state.ballLogs, currentBowlerId);
+
   return {
     nextInningsState: state,
     overCompleted,
@@ -252,6 +270,8 @@ export function processBall(
     needNextBatsman,
     matchResultBanner,
     winnerTeam,
+    isHatTrick,
+    hatTrickBowlerId: isHatTrick ? currentBowlerId : undefined,
   };
 }
 
