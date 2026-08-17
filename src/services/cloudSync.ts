@@ -271,44 +271,57 @@ export const cloudSync = {
     const now = Date.now();
     const LOCK_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-    // 1. Firebase RTDB
+    // 1. Check REST API Status first (Authoritative Server State)
+    try {
+      const statusRes = await api.getScorerStatus();
+      if (statusRes) {
+        if (!statusRes.isLocked || !statusRes.activeScorer) {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cricpulse_active_scorer_lock');
+          }
+          return null;
+        }
+        if (statusRes.activeScorer && (now - (statusRes.activeScorer.timestamp || now) < LOCK_EXPIRY_MS)) {
+          return {
+            deviceId: statusRes.activeScorer.deviceId,
+            deviceName: statusRes.activeScorer.deviceName,
+            userName: statusRes.activeScorer.userName,
+            timestamp: statusRes.activeScorer.timestamp || now,
+          };
+        }
+      }
+    } catch {
+      // Backend offline
+    }
+
+    // 2. Check Firebase RTDB
     if (isFirebaseConfigured) {
       try {
         const scorerRef = ref(db, 'cricpulse_active_scorer');
         const snap = await get(scorerRef);
-        if (snap.exists()) {
+        if (snap.exists() && snap.val()) {
           const val = snap.val();
-          if (val && val.timestamp && (now - val.timestamp < LOCK_EXPIRY_MS)) {
+          if (val && (val.userName || val.deviceId) && (now - (val.timestamp || 0) < LOCK_EXPIRY_MS)) {
             return val;
           }
+        } else {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cricpulse_active_scorer_lock');
+          }
+          return null;
         }
       } catch (err) {
         console.warn('Firebase getActiveScorerLock error:', err);
       }
     }
 
-    // 2. REST API Status
-    try {
-      const statusRes = await api.getScorerStatus();
-      if (statusRes && statusRes.isLocked && statusRes.activeScorer) {
-        return {
-          deviceId: statusRes.activeScorer.deviceId,
-          deviceName: statusRes.activeScorer.deviceName,
-          userName: statusRes.activeScorer.userName,
-          timestamp: statusRes.activeScorer.timestamp || now,
-        };
-      }
-    } catch {
-      // Backend offline
-    }
-
-    // 3. LocalStorage cross-tab lock
+    // 3. LocalStorage fallback only if offline
     try {
       if (typeof window !== 'undefined') {
         const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
         if (localRaw) {
           const parsed = JSON.parse(localRaw);
-          if (parsed && parsed.deviceId && parsed.timestamp && (now - parsed.timestamp < LOCK_EXPIRY_MS)) {
+          if (parsed && (parsed.userName || parsed.deviceId) && (now - (parsed.timestamp || 0) < LOCK_EXPIRY_MS)) {
             return parsed;
           }
         }

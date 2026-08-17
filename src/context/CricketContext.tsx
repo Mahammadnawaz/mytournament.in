@@ -297,6 +297,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUserNameState(null);
     localStorage.removeItem('cricpulse_user_role');
     localStorage.removeItem('cricpulse_user_name');
+    localStorage.removeItem('cricpulse_active_scorer_lock');
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.delete('role');
