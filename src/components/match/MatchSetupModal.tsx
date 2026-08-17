@@ -30,19 +30,19 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
       if (t && t.trim()) set.add(t.trim());
     });
     seriesList.forEach(s => {
-      if (s.id !== 'demo-series-1') {
+      if (!s.id.startsWith('series-triseries') && !s.id.startsWith('series-1') && !s.id.startsWith('demo-')) {
         if (s.teamA) set.add(s.teamA);
         if (s.teamB) set.add(s.teamB);
         if (s.teamC) set.add(s.teamC);
       }
     });
     matches.forEach(m => {
-      if (m.id !== 'demo-match-1') {
+      if (!m.id.startsWith('m-sample') && !m.id.startsWith('demo-')) {
         if (m.teamA?.name) set.add(m.teamA.name);
         if (m.teamB?.name) set.add(m.teamB.name);
       }
     });
-    if (attachedSeries) {
+    if (attachedSeries && !attachedSeries.id.startsWith('series-triseries') && !attachedSeries.id.startsWith('series-1')) {
       if (attachedSeries.teamA) set.add(attachedSeries.teamA);
       if (attachedSeries.teamB) set.add(attachedSeries.teamB);
       if (attachedSeries.teamC) set.add(attachedSeries.teamC);
