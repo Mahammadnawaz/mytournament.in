@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import { X, Swords, Play, Check, ChevronRight, ChevronLeft, User, Shield, Flame, Coins, Sparkles, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -18,22 +18,38 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   initialTeamA,
   initialTeamB,
 }) => {
-  const { players, createMatch, seriesList } = useCricket();
+  const { players, createMatch, seriesList, matches, customAddedTeams } = useCricket();
 
   const [selectedSeriesId] = useState<string>(initialSeriesId || (seriesList[0]?.id || ''));
 
   const attachedSeries = seriesList.find(s => s.id === selectedSeriesId) || (initialSeriesId ? seriesList.find(s => s.id === initialSeriesId) : seriesList[0]);
 
-  const seriesTeams = Array.from(new Set(
-    (attachedSeries 
-      ? [attachedSeries.teamA, attachedSeries.teamB, attachedSeries.teamC].filter(Boolean) as string[]
-      : []
-    ).concat(
-      seriesList.flatMap(s => [s.teamA, s.teamB, s.teamC].filter(Boolean) as string[])
-    )
-  )).filter(Boolean);
+  const availableTeamOptions = useMemo(() => {
+    const set = new Set<string>();
+    customAddedTeams.forEach(t => {
+      if (t && t.trim()) set.add(t.trim());
+    });
+    seriesList.forEach(s => {
+      if (s.id !== 'demo-series-1') {
+        if (s.teamA) set.add(s.teamA);
+        if (s.teamB) set.add(s.teamB);
+        if (s.teamC) set.add(s.teamC);
+      }
+    });
+    matches.forEach(m => {
+      if (m.id !== 'demo-match-1') {
+        if (m.teamA?.name) set.add(m.teamA.name);
+        if (m.teamB?.name) set.add(m.teamB.name);
+      }
+    });
+    if (attachedSeries) {
+      if (attachedSeries.teamA) set.add(attachedSeries.teamA);
+      if (attachedSeries.teamB) set.add(attachedSeries.teamB);
+      if (attachedSeries.teamC) set.add(attachedSeries.teamC);
+    }
+    return Array.from(set).filter(Boolean);
+  }, [customAddedTeams, seriesList, matches, attachedSeries]);
 
-  const availableTeamOptions = seriesTeams;
   const [useCustomTeamInputs, setUseCustomTeamInputs] = useState<boolean>(availableTeamOptions.length === 0);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);

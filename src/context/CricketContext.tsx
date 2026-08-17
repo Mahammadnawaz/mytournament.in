@@ -56,6 +56,8 @@ interface CricketContextType {
   seriesBreakTimer: SeriesBreakTimer | null;
   startSeriesBreak: (seriesId: string, nextMatchNo: number, durationMinutes: number) => void;
   cancelSeriesBreak: () => void;
+  customAddedTeams: string[];
+  addCustomTeamName: (teamName: string) => void;
 }
 
 const CricketContext = createContext<CricketContextType | undefined>(undefined);
@@ -131,6 +133,31 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (typeof window !== 'undefined') {
       localStorage.setItem('cricpulse_active_tab', tab);
     }
+  };
+
+  const [customAddedTeams, setCustomAddedTeams] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cricket_added_teams_v1');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+    return [];
+  });
+
+  const addCustomTeamName = (teamName: string) => {
+    if (!teamName || !teamName.trim()) return;
+    const trimmed = teamName.trim();
+    setCustomAddedTeams(prev => {
+      if (prev.includes(trimmed)) return prev;
+      const updated = [...prev, trimmed];
+      localStorage.setItem('cricket_added_teams_v1', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Persistent device ID per browser/device
@@ -575,6 +602,10 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Tournament / Series Actions (Permanently synced across all devices)
   const createSeries = (seriesData: Omit<TournamentSeries, 'id' | 'matchIds' | 'status'>) => {
+    addCustomTeamName(seriesData.teamA);
+    addCustomTeamName(seriesData.teamB);
+    if (seriesData.teamC) addCustomTeamName(seriesData.teamC);
+
     const newSeries: TournamentSeries = {
       ...seriesData,
       id: `series-${Date.now()}`,
@@ -625,6 +656,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   ) => {
     const { openingStrikerId, openingNonStrikerId, openingBowlerId, ...cleanMatchData } = matchData;
+
+    addCustomTeamName(cleanMatchData.teamA.name);
+    addCustomTeamName(cleanMatchData.teamB.name);
 
     const battingTeamName = cleanMatchData.tossChoice === 'bat' ? cleanMatchData.tossWinner : (cleanMatchData.tossWinner === cleanMatchData.teamA.name ? cleanMatchData.teamB.name : cleanMatchData.teamA.name);
     const bowlingTeamName = battingTeamName === cleanMatchData.teamA.name ? cleanMatchData.teamB.name : cleanMatchData.teamA.name;
@@ -1220,6 +1254,8 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
         seriesBreakTimer,
         startSeriesBreak,
         cancelSeriesBreak,
+        customAddedTeams,
+        addCustomTeamName,
       }}
     >
       {children}

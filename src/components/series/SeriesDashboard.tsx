@@ -988,24 +988,29 @@ const CreateSeriesModal: React.FC<{
   onClose: () => void;
   onSeriesCreated: (series: TournamentSeries) => void;
 }> = ({ onClose, onSeriesCreated }) => {
-  const { createSeries, seriesList, matches, players } = useCricket();
+  const { createSeries, seriesList, matches, customAddedTeams } = useCricket();
 
   const addedTeams = useMemo(() => {
     const set = new Set<string>();
+    customAddedTeams.forEach(t => {
+      if (t && t.trim()) set.add(t.trim());
+    });
     seriesList.forEach(s => {
-      if (s.teamA) set.add(s.teamA);
-      if (s.teamB) set.add(s.teamB);
-      if (s.teamC) set.add(s.teamC);
+      if (s.id !== 'demo-series-1') {
+        if (s.teamA) set.add(s.teamA);
+        if (s.teamB) set.add(s.teamB);
+        if (s.teamC) set.add(s.teamC);
+      }
     });
     matches.forEach(m => {
-      if (m.teamA?.name) set.add(m.teamA.name);
-      if (m.teamB?.name) set.add(m.teamB.name);
+      if (m.id !== 'demo-match-1') {
+        if (m.teamA?.name) set.add(m.teamA.name);
+        if (m.teamB?.name) set.add(m.teamB.name);
+      }
     });
-    players.forEach(p => {
-      if ((p as any).team) set.add((p as any).team);
-    });
+
     return Array.from(set).filter(Boolean);
-  }, [seriesList, matches, players]);
+  }, [customAddedTeams, seriesList, matches]);
 
   const [useCustomInputs, setUseCustomInputs] = useState<boolean>(addedTeams.length === 0);
 
