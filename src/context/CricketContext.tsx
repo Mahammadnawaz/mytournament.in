@@ -391,6 +391,40 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Ignore
     }
 
+function isIncomingMatchNewerOrEqual(incoming: any, existing: any): boolean {
+  if (!existing) return true;
+  if (!incoming) return false;
+
+  if (existing.status === 'completed' && incoming.status === 'live') {
+    return false;
+  }
+
+  const incInnNo = incoming.currentInnings || 1;
+  const extInnNo = existing.currentInnings || 1;
+
+  if (incInnNo < extInnNo) return false;
+  if (incInnNo > extInnNo) return true;
+
+  const incInn = incInnNo === 1 ? incoming.innings1 : incoming.innings2;
+  const extInn = extInnNo === 1 ? existing.innings1 : existing.innings2;
+
+  if (!extInn) return true;
+  if (!incInn) return false;
+
+  const incBalls = (incInn.overs || 0) * 6 + (incInn.balls || 0);
+  const extBalls = (extInn.overs || 0) * 6 + (extInn.balls || 0);
+
+  if (incBalls < extBalls) return false;
+
+  if (incBalls === extBalls) {
+    const incLogs = incInn.ballLogs?.length || 0;
+    const extLogs = extInn.ballLogs?.length || 0;
+    if (incLogs < extLogs) return false;
+  }
+
+  return true;
+}
+
     const applyIncomingSync = (syncData: any) => {
       if (!syncData) return;
       if (isLocalAction.current) return;
@@ -411,7 +445,9 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
           syncData.matches.forEach((m: any) => {
             const existing = mMap.get(m.id);
             if (existing) {
-              mMap.set(m.id, { ...existing, ...m, history: m.history || (existing as any).history });
+              if (isIncomingMatchNewerOrEqual(m, existing)) {
+                mMap.set(m.id, { ...existing, ...m, history: m.history || (existing as any).history });
+              }
             } else {
               mMap.set(m.id, m);
             }
