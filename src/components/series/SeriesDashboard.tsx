@@ -742,7 +742,9 @@ export const SeriesDashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-[11px] sm:text-xs font-black">
                   <span className="text-emerald-400 font-black text-xs sm:text-sm truncate flex-1">{activeH2HTeamA}</span>
-                  <span className="text-slate-400 font-extrabold text-[10px] uppercase tracking-widest px-2 flex-shrink-0">HEAD TO HEAD WINS</span>
+                  <span className="text-slate-400 font-extrabold text-[10px] uppercase tracking-widest px-2 flex-shrink-0">
+                    HEAD TO HEAD ({h2hA.played} {h2hA.played === 1 ? 'Match of Series' : 'Matches of Series'})
+                  </span>
                   <span className="text-blue-400 font-black text-xs sm:text-sm truncate flex-1 text-right">{activeH2HTeamB}</span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -905,13 +907,15 @@ export const SeriesDashboard: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {seriesMatches.map((m) => {
+              {seriesMatches.map((m, index) => {
                 const potmPlayer = m.potmInfo ? players.find(p => p.id === m.potmInfo?.playerId) : undefined;
 
                 return (
                   <div key={m.id} className="theme-bg-card border theme-border rounded-2xl p-4 space-y-3 shadow-md">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold theme-text-sub">{m.date} • {m.venue}</span>
+                      <span className="font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-lg">
+                        {index + 1} Match of Series
+                      </span>
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[10px] font-extrabold">
                         {m.status.toUpperCase()}
                       </span>
@@ -920,6 +924,10 @@ export const SeriesDashboard: React.FC = () => {
                     <h4 className="font-black theme-text-main text-base sm:text-lg">
                       {m.teamA.name} vs {m.teamB.name}
                     </h4>
+
+                    <p className="text-[11px] font-medium theme-text-sub">
+                      {m.date} • {m.venue}
+                    </p>
 
                     {m.result && (
                       <p className="text-xs font-extrabold text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 inline-block">

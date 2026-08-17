@@ -501,7 +501,7 @@ export const MatchAnalytics: React.FC = () => {
                 <div key={`h2h-${idx}`} className="bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
-                      {h2h.matchesPlayed} Matches ({analyticsFilter === 'series' ? 'Series' : analyticsFilter === 'individual' ? 'Standalone' : 'Total'})
+                      {h2h.matchesPlayed} {h2h.matchesPlayed === 1 ? 'Match of Series' : 'Matches of Series'}
                     </span>
                     {h2h.ties > 0 && (
                       <span className="text-[11px] font-bold text-slate-400">
