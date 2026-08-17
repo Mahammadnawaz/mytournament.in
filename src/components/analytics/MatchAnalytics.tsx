@@ -41,6 +41,10 @@ export const MatchAnalytics: React.FC = () => {
   // Top Bowling Leaderboard
   const sortedBowlers = [...players].sort((a, b) => b.stats.wicketsTaken - a.stats.wicketsTaken);
 
+  const seriesMatches = useMemo(() => {
+    return matches.filter(m => (m.seriesId || m.matchCategory === 'series') && m.status === 'completed');
+  }, [matches]);
+
   // Compute Head-to-Head Analytics for Team Pairings with Category Filter
   const h2hAnalytics = useMemo(() => {
     const filteredMatches = matches.filter(m => {
@@ -486,9 +490,52 @@ export const MatchAnalytics: React.FC = () => {
           </div>
         </div>
 
-        {h2hAnalytics.length === 0 ? (
+        {analyticsFilter === 'series' ? (
+          seriesMatches.length === 0 ? (
+            <div className="p-8 text-center text-slate-500 text-xs font-medium bg-slate-950/60 rounded-2xl border border-slate-800">
+              No completed Series matches recorded yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {seriesMatches.map((m, idx) => (
+                <div key={m.id} className="bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
+                      {idx + 1} Match of Series
+                    </span>
+                    <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full uppercase">
+                      {m.status}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-1">
+                    <div className="space-y-0.5">
+                      <span className="text-sm font-black text-emerald-400 block">{m.teamA.name}</span>
+                      <span className="text-xs font-mono font-bold text-white block">
+                        {m.innings1?.battingTeam === m.teamA.name ? `${m.innings1.totalRuns}/${m.innings1.wickets}` : (m.innings2?.totalRuns ? `${m.innings2.totalRuns}/${m.innings2.wickets}` : '-')}
+                      </span>
+                    </div>
+                    <span className="text-xs font-black text-slate-500 px-2">VS</span>
+                    <div className="space-y-0.5 text-right">
+                      <span className="text-sm font-black text-cyan-400 block">{m.teamB.name}</span>
+                      <span className="text-xs font-mono font-bold text-white block">
+                        {m.innings1?.battingTeam === m.teamB.name ? `${m.innings1.totalRuns}/${m.innings1.wickets}` : (m.innings2?.totalRuns ? `${m.innings2.totalRuns}/${m.innings2.wickets}` : '-')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {m.result && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 text-center text-xs font-extrabold text-amber-400">
+                      🏆 {m.result}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        ) : h2hAnalytics.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs font-medium bg-slate-950/60 rounded-2xl border border-slate-800">
-            No completed {analyticsFilter === 'series' ? 'Series' : analyticsFilter === 'individual' ? 'Standalone' : ''} matches recorded yet to build Head-to-Head analytics.
+            No completed {analyticsFilter === 'individual' ? 'Standalone' : ''} matches recorded yet to build Head-to-Head analytics.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -501,7 +548,7 @@ export const MatchAnalytics: React.FC = () => {
                 <div key={`h2h-${idx}`} className="bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
-                      {h2h.matchesPlayed} {h2h.matchesPlayed === 1 ? 'Match of Series' : 'Matches of Series'}
+                      {h2h.matchesPlayed} {h2h.matchesPlayed === 1 ? 'Match of Series' : 'Matches Played'}
                     </span>
                     {h2h.ties > 0 && (
                       <span className="text-[11px] font-bold text-slate-400">

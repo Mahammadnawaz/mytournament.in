@@ -134,6 +134,7 @@ export interface InningsState {
     total: number;
   };
   isCompleted: boolean;
+  isDeclared?: boolean;
   fow: Array<{
     wicketNo: number;
     runs: number;

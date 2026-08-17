@@ -1142,6 +1142,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (activeMatch.currentInnings === 1) {
       if (updatedMatch.innings1) {
         updatedMatch.innings1.isCompleted = true;
+        updatedMatch.innings1.isDeclared = true;
       }
       updatedMatch.currentInnings = 2;
       updatedMatch.innings2 = undefined;

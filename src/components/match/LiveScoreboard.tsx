@@ -89,13 +89,17 @@ export const LiveScoreboard: React.FC = () => {
           <div className="mb-6 bg-gradient-to-r from-emerald-500/15 via-teal-500/20 to-emerald-500/15 border border-emerald-500/40 rounded-2xl p-4 text-center space-y-1.5 animate-fade-in">
             <span className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center justify-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>📢 Innings 1 Declared / Completed • Target: {activeMatch.innings1.totalRuns + 1} Runs</span>
+              <span>
+                📢 {activeMatch.innings1.isDeclared ? '1st Innings Declared' : '1st Innings Completed'} • Target: {activeMatch.innings1.totalRuns + 1} Runs
+              </span>
             </span>
             <p className="text-sm sm:text-base font-extrabold scoreboard-team-name">
               {activeMatch.innings1.bowlingTeam} needs <span className="text-emerald-500 font-mono text-lg">{activeMatch.innings1.totalRuns + 1}</span> runs in {activeMatch.totalOvers} overs to win
             </p>
             <p className="text-xs scoreboard-overs-text">
-              Waiting for the official scorer to setup 2nd innings opening lineup...
+              {activeMatch.innings1.isDeclared
+                ? '1st Innings was declared by the batting team. Waiting for 2nd innings chase...'
+                : '1st Innings overs allocation completed. Waiting for 2nd innings chase...'}
             </p>
           </div>
         )}
