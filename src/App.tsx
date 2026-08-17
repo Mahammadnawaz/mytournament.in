@@ -388,7 +388,7 @@ const MainContent: React.FC = () => {
         <LiveCommentaryFeed />
 
         {/* Next Series Match Prompt Action Banner */}
-        {activeMatch.status === 'completed' && linkedSeries && !seriesBreakTimer && isScorer && (
+        {activeMatch.status === 'completed' && linkedSeries && linkedSeries.status !== 'completed' && completedCount < totalSeriesMatches && !seriesBreakTimer && isScorer && (
           <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-3xl shadow-2xl space-y-3">
             <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col space-y-4">
               
