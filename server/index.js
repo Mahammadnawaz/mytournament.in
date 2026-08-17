@@ -249,15 +249,23 @@ app.post('/api/scorer/acquire', (req, res) => {
   const now = Date.now();
   const currentScorer = db.activeScorer;
 
-  // If another device/user holds the lock and it hasn't expired
-  if (currentScorer && currentScorer.deviceId !== deviceId && (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < LOCK_EXPIRY_MS) {
-    const lockedByName = currentScorer.userName ? `${currentScorer.userName}` : (currentScorer.deviceName || 'another official scorer');
-    return res.json({
-      success: false,
-      isLocked: true,
-      activeScorer: currentScorer,
-      message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
-    });
+  // Strict Single Scorer Lock Check:
+  // If an active scorer lock exists (by any user or device) and has not expired:
+  if (
+    currentScorer &&
+    (currentScorer.userName || currentScorer.deviceId) &&
+    (now - (currentScorer.lastActive || currentScorer.acquiredAt || currentScorer.timestamp || 0)) < LOCK_EXPIRY_MS
+  ) {
+    const isSameScorer = currentScorer.deviceId === deviceId && currentScorer.userName === userName;
+    if (!isSameScorer) {
+      const lockedByName = currentScorer.userName || currentScorer.deviceName || 'Official Scorer';
+      return res.json({
+        success: false,
+        isLocked: true,
+        activeScorer: currentScorer,
+        message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
+      });
+    }
   }
 
   // Grant or refresh scorer lock

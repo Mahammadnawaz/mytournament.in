@@ -335,14 +335,17 @@ export const cloudSync = {
         const localRaw = localStorage.getItem('cricpulse_active_scorer_lock');
         if (localRaw) {
           const parsed = JSON.parse(localRaw);
-          if (parsed && parsed.deviceId && parsed.deviceId !== deviceId && (now - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
-            const lockedByName = parsed.userName ? `${parsed.userName}` : (parsed.deviceName || 'another official scorer');
-            return {
-              success: false,
-              isLocked: true,
-              activeScorer: parsed,
-              message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
-            };
+          if (parsed && (parsed.userName || parsed.deviceId) && (now - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+            const isSameScorer = parsed.deviceId === deviceId && parsed.userName === cleanUserName;
+            if (!isSameScorer) {
+              const lockedByName = parsed.userName || parsed.deviceName || 'Official Scorer';
+              return {
+                success: false,
+                isLocked: true,
+                activeScorer: parsed,
+                message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
+              };
+            }
           }
         }
       }
@@ -357,15 +360,17 @@ export const cloudSync = {
         const snap = await get(scorerRef);
         const currentLock = snap.exists() ? snap.val() : null;
 
-        // Strict Check: If another user/device holds an active lock
-        if (currentLock && currentLock.deviceId && currentLock.deviceId !== deviceId && (now - (currentLock.timestamp || 0) < 10 * 60 * 1000)) {
-          const lockedByName = currentLock.userName ? `${currentLock.userName}` : (currentLock.deviceName || 'another official scorer');
-          return {
-            success: false,
-            isLocked: true,
-            activeScorer: currentLock,
-            message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
-          };
+        if (currentLock && (currentLock.userName || currentLock.deviceId) && (now - (currentLock.timestamp || 0) < 10 * 60 * 1000)) {
+          const isSameScorer = currentLock.deviceId === deviceId && currentLock.userName === cleanUserName;
+          if (!isSameScorer) {
+            const lockedByName = currentLock.userName || currentLock.deviceName || 'Official Scorer';
+            return {
+              success: false,
+              isLocked: true,
+              activeScorer: currentLock,
+              message: `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedByName}". Only 1 official scorer is allowed at a time. Please login as Spectator.`,
+            };
+          }
         }
       } catch (err) {
         console.warn('Firebase acquireScorerLock check error:', err);

@@ -4,7 +4,7 @@ import { cloudSync } from '../../services/cloudSync';
 import { Trophy, Activity, Lock, Shield, Eye, Flame, ChevronRight, X, AlertCircle, User, ShieldAlert } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { activeScorer, deviceId, loginAsScorer, loginAsSpectator } = useCricket();
+  const { activeScorer, loginAsScorer, loginAsSpectator } = useCricket();
 
   // Modal State
   const [modalRole, setModalRole] = useState<'scorer' | 'spectator' | null>(null);
@@ -14,7 +14,7 @@ export const LoginPage: React.FC = () => {
   const [lockedBannerMessage, setLockedBannerMessage] = useState<string | null>(null);
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState<boolean>(false);
 
-  const isScorerLockedByOther = Boolean(activeScorer && activeScorer.deviceId && activeScorer.deviceId !== deviceId);
+  const isScorerActive = Boolean(activeScorer && (activeScorer.userName || activeScorer.deviceId));
   const lockedScorerName = activeScorer?.userName || activeScorer?.deviceName || 'Official Scorer';
 
   const handleOpenScorerModal = async () => {
@@ -24,10 +24,10 @@ export const LoginPage: React.FC = () => {
     // 1. Check live lock from cloud in real-time
     try {
       const liveLock = await cloudSync.getActiveScorerLock();
-      if (liveLock && liveLock.deviceId && liveLock.deviceId !== deviceId) {
+      if (liveLock && (liveLock.userName || liveLock.deviceId)) {
         const lockedName = liveLock.userName || liveLock.deviceName || 'Official Scorer';
         setLockedBannerMessage(
-          `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
+          `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedName}".\n\nOnly 1 official scorer is allowed at a time. Please login as Spectator to watch the live match.`
         );
         setShowAccessDeniedModal(true);
         return;
@@ -36,10 +36,10 @@ export const LoginPage: React.FC = () => {
       // Fallback to local activeScorer state
     }
 
-    // 2. If another device/user is already scoring, deny and instruct to use Spectator
-    if (isScorerLockedByOther) {
+    // 2. If another user is already scoring, deny and instruct to use Spectator
+    if (isScorerActive) {
       setLockedBannerMessage(
-        `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedScorerName}".\n\nOnly 1 official scorer is allowed. Please login as Spectator to watch the live match.`
+        `🔒 Access Denied: Match scoring is already locked by official scorer: "${lockedScorerName}".\n\nOnly 1 official scorer is allowed at a time. Please login as Spectator to watch the live match.`
       );
       setShowAccessDeniedModal(true);
       return;
@@ -146,7 +146,7 @@ export const LoginPage: React.FC = () => {
           <div
             onClick={handleOpenScorerModal}
             className={`group cursor-pointer relative overflow-hidden rounded-3xl border p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
-              isScorerLockedByOther
+              isScorerActive
                 ? 'bg-slate-900/60 border-amber-500/30 hover:border-amber-500/50'
                 : 'bg-slate-900 border-slate-800 hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 active:scale-[0.99]'
             }`}
@@ -155,12 +155,12 @@ export const LoginPage: React.FC = () => {
             <div className="flex items-center justify-between pb-4">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center space-x-1.5 border ${
-                  isScorerLockedByOther
+                  isScorerActive
                     ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
                     : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                 }`}
               >
-                {isScorerLockedByOther ? (
+                {isScorerActive ? (
                   <>
                     <Lock className="w-3 h-3 text-amber-400" />
                     <span>Locked (1 Scorer Only)</span>
@@ -182,16 +182,16 @@ export const LoginPage: React.FC = () => {
             <div className="space-y-3 py-2">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-400 transition-colors">
-                  {isScorerLockedByOther ? 'Scorer Mode Locked 🔒' : 'Login as Scorer'}
+                  {isScorerActive ? 'Scorer Mode Locked 🔒' : 'Login as Scorer'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-400 pt-1">
-                  {isScorerLockedByOther
+                  {isScorerActive
                     ? `Match scoring is currently locked by official scorer: ${lockedScorerName}. Only 1 official scorer is permitted.`
                     : 'Record runs, balls, boundaries, wickets, player substitutions, toss, and match settings.'}
                 </p>
               </div>
 
-              {isScorerLockedByOther && (
+              {isScorerActive && (
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-amber-500/30 text-amber-300 text-xs flex items-center space-x-2">
                   <Lock className="w-4 h-4 text-amber-400 flex-shrink-0" />
                   <span>Official Scorer: <strong className="text-white ml-1 font-mono">{lockedScorerName}</strong></span>
@@ -204,12 +204,12 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 className={`w-full py-3.5 sm:py-4 px-6 rounded-2xl font-black text-sm flex items-center justify-center space-x-2 transition shadow-lg ${
-                  isScorerLockedByOther
+                  isScorerActive
                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                     : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
                 }`}
               >
-                {isScorerLockedByOther ? (
+                {isScorerActive ? (
                   <>
                     <Lock className="w-4 h-4" />
                     <span>Locked (Scorer Active)</span>
