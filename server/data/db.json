@@ -6323,7 +6323,9 @@
       "teamB": "Super Strikers",
       "teamC": "England",
       "matchIds": [],
-      "status": "ongoing"
+      "status": "completed",
+      "playerOfSeriesId": "p-1",
+      "playerOfSeriesSummary": "61 Runs • 0 Wickets (71 MVP Pts)"
     },
     {
       "id": "series-1786954969709",
@@ -6451,7 +6453,9 @@
       "matchIds": [
         "match-1786898920010"
       ],
-      "status": "ongoing"
+      "status": "completed",
+      "playerOfSeriesId": "p-1",
+      "playerOfSeriesSummary": "74 Runs • 0 Wickets (88 MVP Pts)"
     },
     {
       "id": "series-1786897516885",
@@ -6597,9 +6601,9 @@
     "deviceId": "dev-v6wkiir",
     "deviceName": "Laptop / PC",
     "userName": "jhjh",
-    "timestamp": 1786955166443,
-    "lastActive": 1786955166443
+    "timestamp": 1786958136554,
+    "lastActive": 1786958136554
   },
-  "syncTimestamp": 1786955157586,
+  "syncTimestamp": 1786958128904,
   "seriesBreakTimer": null
 }

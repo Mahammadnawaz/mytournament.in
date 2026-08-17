@@ -59,7 +59,7 @@ class TabErrorBoundary extends React.Component<{ children: React.ReactNode; tabN
 }
 
 const MainContent: React.FC = () => {
-  const { activeMatch, activeInnings, activeTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak, setActiveMatchId } = useCricket();
+  const { activeMatch, activeInnings, activeTab, setActiveTab, changeBowler, isScorer, isLoggedIn, resetToDemoData, seriesList, matches, players, seriesBreakTimer, startSeriesBreak, cancelSeriesBreak, setActiveMatchId } = useCricket();
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [setupMatchParams, setSetupMatchParams] = useState<{
@@ -388,8 +388,8 @@ const MainContent: React.FC = () => {
         <LiveCommentaryFeed />
 
         {/* Next Series Match Prompt Action Banner */}
-        {activeMatch.status === 'completed' && linkedSeries && completedCount < totalSeriesMatches && !seriesBreakTimer && isScorer && (
-          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-3xl shadow-2xl animate-pulse space-y-3">
+        {activeMatch.status === 'completed' && linkedSeries && !seriesBreakTimer && isScorer && (
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-3xl shadow-2xl space-y-3">
             <div className="bg-slate-950/95 rounded-[22px] p-5 sm:p-6 flex flex-col space-y-4">
               
               {/* Header Info & Head-to-Head */}
@@ -401,14 +401,16 @@ const MainContent: React.FC = () => {
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black uppercase tracking-widest border border-amber-400/30">
-                        {linkedSeries.name} • Match {completedCount} of {totalSeriesMatches} Completed
+                        {linkedSeries.name} • {completedCount >= totalSeriesMatches ? 'Series Concluded 🏆' : `Match ${completedCount} of ${totalSeriesMatches} Completed`}
                       </span>
                     </div>
                     <h3 className="text-lg sm:text-2xl font-extrabold text-white mt-1">
-                      Start Match {nextMatchNo} of {totalSeriesMatches} Series?
+                      {completedCount >= totalSeriesMatches ? `Series Concluded! Winner: ${linkedSeries.winnerTeam || (teamAWins > teamBWins ? linkedSeries.teamA : teamBWins > teamAWins ? linkedSeries.teamB : 'Draw')}` : `Start Match ${nextMatchNo} of ${totalSeriesMatches} Series?`}
                     </h3>
                     <p className="text-xs text-slate-300 font-medium mt-0.5">
-                      Match {completedCount} is completed ({activeMatch.result || 'Finished'}). Choose to start Match {nextMatchNo} immediately or schedule a break:
+                      {completedCount >= totalSeriesMatches
+                        ? `All ${totalSeriesMatches} matches of this series have concluded. View complete standings or create a new series:`
+                        : `Match ${completedCount} is completed (${activeMatch.result || 'Finished'}). Choose to start Match ${nextMatchNo} immediately or schedule a break:`}
                     </p>
                   </div>
                 </div>
@@ -445,45 +447,43 @@ const MainContent: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-2.5 pt-1 justify-end">
-                <button
-                  onClick={() => {
-                    setSetupMatchParams({
-                      seriesId: linkedSeries.id,
-                      matchName: `${linkedSeries.name} - Match ${nextMatchNo}`,
-                      teamA: linkedSeries.teamA,
-                      teamB: linkedSeries.teamB,
-                    });
-                    setShowSetupModal(true);
-                  }}
-                  className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-xl transition transform active:scale-95 flex items-center space-x-1.5"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>Start Match {nextMatchNo} Immediately ➔</span>
-                </button>
+                {completedCount < totalSeriesMatches ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setSetupMatchParams({
+                          seriesId: linkedSeries.id,
+                          matchName: `${linkedSeries.name} - Match ${nextMatchNo}`,
+                          teamA: linkedSeries.teamA,
+                          teamB: linkedSeries.teamB,
+                        });
+                        setShowSetupModal(true);
+                      }}
+                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-xl transition transform active:scale-95 flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Start Match {nextMatchNo} Immediately ➔</span>
+                    </button>
 
-                <button
-                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 15)}
-                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
-                >
-                  <Coffee className="w-4 h-4 text-amber-400" />
-                  <span>Take 15 Min Break ☕</span>
-                </button>
-
-                <button
-                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 30)}
-                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
-                >
-                  <Coffee className="w-4 h-4 text-amber-400" />
-                  <span>Take 30 Min Break ☕</span>
-                </button>
-
-                <button
-                  onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 45)}
-                  className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5"
-                >
-                  <Coffee className="w-4 h-4 text-amber-400" />
-                  <span>Take 45 Min Break ☕</span>
-                </button>
+                    <button
+                      onClick={() => startSeriesBreak(linkedSeries.id, nextMatchNo, 15)}
+                      className="px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-extrabold text-xs transition border border-amber-500/40 flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Coffee className="w-4 h-4 text-amber-400" />
+                      <span>Take 15 Min Break ☕</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setActiveTab('series')}
+                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs shadow-xl transition transform active:scale-95 flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Trophy className="w-4 h-4" />
+                      <span>View Series Dashboard & Standings ➔</span>
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
