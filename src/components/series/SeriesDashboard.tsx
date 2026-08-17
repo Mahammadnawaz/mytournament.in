@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCricket } from '../../context/CricketContext';
 import type { TournamentSeries } from '../../types/cricket';
 import { calculateSeriesMVP } from '../../utils/cricketEngine';
@@ -988,15 +988,36 @@ const CreateSeriesModal: React.FC<{
   onClose: () => void;
   onSeriesCreated: (series: TournamentSeries) => void;
 }> = ({ onClose, onSeriesCreated }) => {
-  const { createSeries } = useCricket();
+  const { createSeries, seriesList, matches, players } = useCricket();
+
+  const availableTeams = useMemo(() => {
+    const set = new Set<string>();
+    seriesList.forEach(s => {
+      if (s.teamA) set.add(s.teamA);
+      if (s.teamB) set.add(s.teamB);
+      if (s.teamC) set.add(s.teamC);
+    });
+    matches.forEach(m => {
+      if (m.teamA?.name) set.add(m.teamA.name);
+      if (m.teamB?.name) set.add(m.teamB.name);
+    });
+    players.forEach(p => {
+      if ((p as any).team) set.add((p as any).team);
+    });
+
+    const defaultTeams = ['Royal Titans', 'Super Strikers', 'Thunder Warriors', 'Rising Stars', 'Deccan Chargers', 'Kolkata Knights', 'Mumbai Champions', 'Chennai Kings'];
+    defaultTeams.forEach(t => set.add(t));
+    return Array.from(set).filter(Boolean);
+  }, [seriesList, matches, players]);
 
   const [seriesType, setSeriesType] = useState<'bilateral' | 'triseries'>('triseries');
   const [name, setName] = useState('International Tri-Series Cup 2026');
   const [format, setFormat] = useState('Tri-Series (3 Teams)');
   const [totalMatches, setTotalMatches] = useState<number | string>(7);
-  const [teamA, setTeamA] = useState('Royal Titans');
-  const [teamB, setTeamB] = useState('Super Strikers');
-  const [teamC, setTeamC] = useState('Thunder Warriors');
+
+  const [teamA, setTeamA] = useState<string>(availableTeams[0] || 'Royal Titans');
+  const [teamB, setTeamB] = useState<string>(availableTeams[1] || 'Super Strikers');
+  const [teamC, setTeamC] = useState<string>(availableTeams[2] || 'Thunder Warriors');
 
   const handleTypeToggle = (type: 'bilateral' | 'triseries') => {
     setSeriesType(type);
@@ -1120,37 +1141,83 @@ const CreateSeriesModal: React.FC<{
             </div>
           </div>
 
+          {/* Added Teams Dropdown Selectors */}
           <div className={`grid ${seriesType === 'triseries' ? 'grid-cols-3' : 'grid-cols-2'} gap-2.5`}>
             <div>
-              <label className="block text-xs font-semibold text-emerald-400 mb-1">Team A Name *</label>
-              <input
-                type="text"
-                required
+              <label className="block text-xs font-semibold text-emerald-400 mb-1">Select Team A *</label>
+              <select
                 value={teamA}
-                onChange={(e) => setTeamA(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
-              />
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTeamA(val);
+                  if (val === teamB) {
+                    const next = availableTeams.find(t => t !== val && t !== teamC);
+                    if (next) setTeamB(next);
+                  }
+                  if (val === teamC) {
+                    const next = availableTeams.find(t => t !== val && t !== teamB);
+                    if (next) setTeamC(next);
+                  }
+                }}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
+              >
+                {availableTeams.map(t => (
+                  <option key={t} value={t} disabled={t === teamB || t === teamC}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-blue-400 mb-1">Team B Name *</label>
-              <input
-                type="text"
-                required
+              <label className="block text-xs font-semibold text-blue-400 mb-1">Select Team B *</label>
+              <select
                 value={teamB}
-                onChange={(e) => setTeamB(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
-              />
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTeamB(val);
+                  if (val === teamA) {
+                    const next = availableTeams.find(t => t !== val && t !== teamC);
+                    if (next) setTeamA(next);
+                  }
+                  if (val === teamC) {
+                    const next = availableTeams.find(t => t !== val && t !== teamA);
+                    if (next) setTeamC(next);
+                  }
+                }}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
+              >
+                {availableTeams.map(t => (
+                  <option key={t} value={t} disabled={t === teamA || t === teamC}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
             {seriesType === 'triseries' && (
               <div>
-                <label className="block text-xs font-semibold text-cyan-400 mb-1">Team C Name *</label>
-                <input
-                  type="text"
-                  required
+                <label className="block text-xs font-semibold text-cyan-400 mb-1">Select Team C *</label>
+                <select
                   value={teamC}
-                  onChange={(e) => setTeamC(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
-                />
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTeamC(val);
+                    if (val === teamA) {
+                      const next = availableTeams.find(t => t !== val && t !== teamB);
+                      if (next) setTeamA(next);
+                    }
+                    if (val === teamB) {
+                      const next = availableTeams.find(t => t !== val && t !== teamA);
+                      if (next) setTeamB(next);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
+                >
+                  {availableTeams.map(t => (
+                    <option key={t} value={t} disabled={t === teamA || t === teamB}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </div>
