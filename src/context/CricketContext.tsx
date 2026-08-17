@@ -541,7 +541,7 @@ export const CricketProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const liveMatch = matches.find(m => m.status === 'live');
   const activeMatch = liveMatch || (activeMatchId ? matches.find(m => m.id === activeMatchId) : null) || null;
   const activeInnings = activeMatch 
-    ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : activeMatch.innings2) || null
+    ? (activeMatch.currentInnings === 1 ? activeMatch.innings1 : (activeMatch.innings2 || activeMatch.innings1)) || null
     : null;
 
   // Player Actions (Permanently saved to LocalStorage & Cloud across all devices)

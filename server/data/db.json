@@ -6314,6 +6314,18 @@
   ],
   "series": [
     {
+      "id": "series-1786955157485",
+      "name": "International Tri-Series Cup 2026",
+      "seriesType": "triseries",
+      "format": "Tri-Series (3 Teams)",
+      "totalMatches": 7,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "teamC": "England",
+      "matchIds": [],
+      "status": "ongoing"
+    },
+    {
       "id": "series-1786954969709",
       "name": "International Tri-Series Cup 2026",
       "seriesType": "triseries",
@@ -6585,9 +6597,9 @@
     "deviceId": "dev-v6wkiir",
     "deviceName": "Laptop / PC",
     "userName": "jhjh",
-    "timestamp": 1786955111484,
-    "lastActive": 1786955111484
+    "timestamp": 1786955166443,
+    "lastActive": 1786955166443
   },
-  "syncTimestamp": 1786954970227,
+  "syncTimestamp": 1786955157586,
   "seriesBreakTimer": null
 }

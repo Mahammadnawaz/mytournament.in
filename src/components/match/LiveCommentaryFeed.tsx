@@ -300,15 +300,24 @@ export const LiveCommentaryFeed: React.FC = () => {
     });
   };
 
+  const mountedAtRef = useRef<number>(Date.now());
   const lastSpokenBallId = useRef<string | null>(null);
   const lastSpokenResultId = useRef<string | null>(null);
   const lastSpokenSeriesResultId = useRef<string | null>(null);
 
   // Audio commentary announcement for ball-by-ball events
   useEffect(() => {
-    if (!isAudioEnabled || !activeInnings || activeInnings.ballLogs.length === 0) return;
+    if (!isAudioEnabled || !activeInnings || !activeInnings.ballLogs || activeInnings.ballLogs.length === 0) return;
     const latestBall = activeInnings.ballLogs[activeInnings.ballLogs.length - 1];
-    const ballKey = `${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.isWicket}-${latestBall.extras?.type}-${latestBall.extras?.runs}-${latestBall.shotZone || ''}`;
+    if (!latestBall) return;
+
+    // Ignore historical past balls delivered before page mount (load / refresh / tab switch)
+    if (latestBall.timestamp && latestBall.timestamp < mountedAtRef.current - 1500) {
+      lastSpokenBallId.current = latestBall.id || `${activeInnings.inningsNo}-${latestBall.overNumber}.${latestBall.ballNumber}`;
+      return;
+    }
+
+    const ballKey = latestBall.id || `${activeInnings.inningsNo}-${latestBall.overNumber}.${latestBall.ballNumber}-${latestBall.runsScored}-${latestBall.timestamp || Date.now()}`;
 
     if (lastSpokenBallId.current !== ballKey && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       lastSpokenBallId.current = ballKey;
