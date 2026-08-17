@@ -990,7 +990,7 @@ const CreateSeriesModal: React.FC<{
 }> = ({ onClose, onSeriesCreated }) => {
   const { createSeries, seriesList, matches, players } = useCricket();
 
-  const availableTeams = useMemo(() => {
+  const addedTeams = useMemo(() => {
     const set = new Set<string>();
     seriesList.forEach(s => {
       if (s.teamA) set.add(s.teamA);
@@ -1004,20 +1004,27 @@ const CreateSeriesModal: React.FC<{
     players.forEach(p => {
       if ((p as any).team) set.add((p as any).team);
     });
-
-    const defaultTeams = ['Royal Titans', 'Super Strikers', 'Thunder Warriors', 'Rising Stars', 'Deccan Chargers', 'Kolkata Knights', 'Mumbai Champions', 'Chennai Kings'];
-    defaultTeams.forEach(t => set.add(t));
     return Array.from(set).filter(Boolean);
   }, [seriesList, matches, players]);
+
+  const [useCustomInputs, setUseCustomInputs] = useState<boolean>(addedTeams.length === 0);
 
   const [seriesType, setSeriesType] = useState<'bilateral' | 'triseries'>('triseries');
   const [name, setName] = useState('International Tri-Series Cup 2026');
   const [format, setFormat] = useState('Tri-Series (3 Teams)');
   const [totalMatches, setTotalMatches] = useState<number | string>(7);
 
-  const [teamA, setTeamA] = useState<string>(availableTeams[0] || 'Royal Titans');
-  const [teamB, setTeamB] = useState<string>(availableTeams[1] || 'Super Strikers');
-  const [teamC, setTeamC] = useState<string>(availableTeams[2] || 'Thunder Warriors');
+  const [teamA, setTeamA] = useState<string>(addedTeams[0] || '');
+  const [teamB, setTeamB] = useState<string>(addedTeams[1] || '');
+  const [teamC, setTeamC] = useState<string>(addedTeams[2] || '');
+
+  useEffect(() => {
+    if (!useCustomInputs && addedTeams.length > 0) {
+      if (!teamA || !addedTeams.includes(teamA)) setTeamA(addedTeams[0] || '');
+      if (!teamB || !addedTeams.includes(teamB)) setTeamB(addedTeams[1] || addedTeams[0] || '');
+      if (!teamC || !addedTeams.includes(teamC)) setTeamC(addedTeams[2] || addedTeams[0] || '');
+    }
+  }, [useCustomInputs, addedTeams]);
 
   const handleTypeToggle = (type: 'bilateral' | 'triseries') => {
     setSeriesType(type);
@@ -1141,83 +1148,134 @@ const CreateSeriesModal: React.FC<{
             </div>
           </div>
 
-          {/* Added Teams Dropdown Selectors */}
+          {/* Teams Selection Header & Mode Toggle */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs font-bold text-slate-300">Team Names</span>
+            {addedTeams.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setUseCustomInputs(!useCustomInputs)}
+                className="text-[11px] font-extrabold text-amber-400 hover:text-amber-300 underline"
+              >
+                {useCustomInputs ? 'Select from Added Teams 🔽' : '+ Add New Custom Team ✏️'}
+              </button>
+            )}
+          </div>
+
           <div className={`grid ${seriesType === 'triseries' ? 'grid-cols-3' : 'grid-cols-2'} gap-2.5`}>
+            {/* Team A */}
             <div>
-              <label className="block text-xs font-semibold text-emerald-400 mb-1">Select Team A *</label>
-              <select
-                value={teamA}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setTeamA(val);
-                  if (val === teamB) {
-                    const next = availableTeams.find(t => t !== val && t !== teamC);
-                    if (next) setTeamB(next);
-                  }
-                  if (val === teamC) {
-                    const next = availableTeams.find(t => t !== val && t !== teamB);
-                    if (next) setTeamC(next);
-                  }
-                }}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
-              >
-                {availableTeams.map(t => (
-                  <option key={t} value={t} disabled={t === teamB || t === teamC}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-blue-400 mb-1">Select Team B *</label>
-              <select
-                value={teamB}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setTeamB(val);
-                  if (val === teamA) {
-                    const next = availableTeams.find(t => t !== val && t !== teamC);
-                    if (next) setTeamA(next);
-                  }
-                  if (val === teamC) {
-                    const next = availableTeams.find(t => t !== val && t !== teamA);
-                    if (next) setTeamC(next);
-                  }
-                }}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
-              >
-                {availableTeams.map(t => (
-                  <option key={t} value={t} disabled={t === teamA || t === teamC}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {seriesType === 'triseries' && (
-              <div>
-                <label className="block text-xs font-semibold text-cyan-400 mb-1">Select Team C *</label>
+              <label className="block text-xs font-semibold text-emerald-400 mb-1">Team A *</label>
+              {!useCustomInputs && addedTeams.length > 0 ? (
                 <select
-                  value={teamC}
+                  value={teamA}
                   onChange={(e) => {
                     const val = e.target.value;
-                    setTeamC(val);
-                    if (val === teamA) {
-                      const next = availableTeams.find(t => t !== val && t !== teamB);
-                      if (next) setTeamA(next);
-                    }
+                    setTeamA(val);
                     if (val === teamB) {
-                      const next = availableTeams.find(t => t !== val && t !== teamA);
+                      const next = addedTeams.find(t => t !== val && t !== teamC);
                       if (next) setTeamB(next);
+                    }
+                    if (val === teamC) {
+                      const next = addedTeams.find(t => t !== val && t !== teamB);
+                      if (next) setTeamC(next);
                     }
                   }}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
                 >
-                  {availableTeams.map(t => (
-                    <option key={t} value={t} disabled={t === teamA || t === teamB}>
+                  {addedTeams.map(t => (
+                    <option key={t} value={t} disabled={t === teamB || t === teamC}>
                       {t}
                     </option>
                   ))}
                 </select>
+              ) : (
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. India"
+                  value={teamA}
+                  onChange={(e) => setTeamA(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
+                />
+              )}
+            </div>
+
+            {/* Team B */}
+            <div>
+              <label className="block text-xs font-semibold text-blue-400 mb-1">Team B *</label>
+              {!useCustomInputs && addedTeams.length > 0 ? (
+                <select
+                  value={teamB}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTeamB(val);
+                    if (val === teamA) {
+                      const next = addedTeams.find(t => t !== val && t !== teamC);
+                      if (next) setTeamA(next);
+                    }
+                    if (val === teamC) {
+                      const next = addedTeams.find(t => t !== val && t !== teamA);
+                      if (next) setTeamC(next);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
+                >
+                  {addedTeams.map(t => (
+                    <option key={t} value={t} disabled={t === teamA || t === teamC}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Australia"
+                  value={teamB}
+                  onChange={(e) => setTeamB(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
+                />
+              )}
+            </div>
+
+            {/* Team C */}
+            {seriesType === 'triseries' && (
+              <div>
+                <label className="block text-xs font-semibold text-cyan-400 mb-1">Team C *</label>
+                {!useCustomInputs && addedTeams.length > 0 ? (
+                  <select
+                    value={teamC}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTeamC(val);
+                      if (val === teamA) {
+                        const next = addedTeams.find(t => t !== val && t !== teamB);
+                        if (next) setTeamA(next);
+                      }
+                      if (val === teamB) {
+                        const next = addedTeams.find(t => t !== val && t !== teamA);
+                        if (next) setTeamB(next);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none cursor-pointer"
+                  >
+                    {addedTeams.map(t => (
+                      <option key={t} value={t} disabled={t === teamA || t === teamB}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. South Africa"
+                    value={teamC}
+                    onChange={(e) => setTeamC(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-bold text-xs outline-none"
+                  />
+                )}
               </div>
             )}
           </div>

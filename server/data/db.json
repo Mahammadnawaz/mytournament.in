@@ -6068,10 +6068,263 @@
         "playerId": "p-1",
         "points": 78,
         "summary": "32 runs (18b) • 4x4, 1x6"
+      },
+      "innings1": {
+        "inningsNo": 1,
+        "battingTeam": "Royal Titans",
+        "bowlingTeam": "Super Strikers",
+        "totalRuns": 54,
+        "wickets": 2,
+        "overs": 5,
+        "balls": 0,
+        "strikerId": "p-1",
+        "nonStrikerId": "p-2",
+        "currentBowlerId": "p-18",
+        "extrasTotal": {
+          "wides": 2,
+          "noBalls": 1,
+          "byes": 0,
+          "legByes": 0,
+          "total": 3
+        },
+        "isCompleted": true,
+        "fow": [
+          {
+            "wicketNo": 1,
+            "runs": 28,
+            "overs": "2.4",
+            "playerId": "p-5"
+          },
+          {
+            "wicketNo": 2,
+            "runs": 45,
+            "overs": "4.2",
+            "playerId": "p-3"
+          }
+        ],
+        "batsmenStats": {
+          "p-1": {
+            "playerId": "p-1",
+            "runs": 32,
+            "balls": 18,
+            "fours": 4,
+            "sixes": 1,
+            "isOut": false
+          },
+          "p-5": {
+            "playerId": "p-5",
+            "runs": 12,
+            "balls": 8,
+            "fours": 2,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "caught",
+            "dismissalText": "c Buttler b Afridi",
+            "bowlerId": "p-18",
+            "fielderId": "p-12"
+          },
+          "p-3": {
+            "playerId": "p-3",
+            "runs": 7,
+            "balls": 4,
+            "fours": 1,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "bowled",
+            "dismissalText": "b Starc",
+            "bowlerId": "p-19"
+          },
+          "p-2": {
+            "playerId": "p-2",
+            "runs": 3,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-18": {
+            "playerId": "p-18",
+            "overs": 2,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 22,
+            "wickets": 1,
+            "wides": 1,
+            "noBalls": 0,
+            "dots": 4
+          },
+          "p-19": {
+            "playerId": "p-19",
+            "overs": 2,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 18,
+            "wickets": 1,
+            "wides": 1,
+            "noBalls": 1,
+            "dots": 5
+          },
+          "p-17": {
+            "playerId": "p-17",
+            "overs": 1,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 14,
+            "wickets": 0,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 1
+          }
+        },
+        "ballLogs": [],
+        "recentBalls": []
+      },
+      "innings2": {
+        "inningsNo": 2,
+        "battingTeam": "Super Strikers",
+        "bowlingTeam": "Royal Titans",
+        "totalRuns": 40,
+        "wickets": 4,
+        "overs": 5,
+        "balls": 0,
+        "target": 55,
+        "strikerId": "p-12",
+        "nonStrikerId": "p-13",
+        "currentBowlerId": "p-7",
+        "extrasTotal": {
+          "wides": 1,
+          "noBalls": 0,
+          "byes": 1,
+          "legByes": 0,
+          "total": 2
+        },
+        "isCompleted": true,
+        "fow": [
+          {
+            "wicketNo": 1,
+            "runs": 12,
+            "overs": "1.2",
+            "playerId": "p-12"
+          },
+          {
+            "wicketNo": 2,
+            "runs": 24,
+            "overs": "2.5",
+            "playerId": "p-14"
+          },
+          {
+            "wicketNo": 3,
+            "runs": 33,
+            "overs": "3.6",
+            "playerId": "p-17"
+          },
+          {
+            "wicketNo": 4,
+            "runs": 38,
+            "overs": "4.4",
+            "playerId": "p-18"
+          }
+        ],
+        "batsmenStats": {
+          "p-14": {
+            "playerId": "p-14",
+            "runs": 15,
+            "balls": 11,
+            "fours": 2,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "lbw",
+            "dismissalText": "lbw b Bumrah",
+            "bowlerId": "p-7"
+          },
+          "p-12": {
+            "playerId": "p-12",
+            "runs": 8,
+            "balls": 6,
+            "fours": 1,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "caught",
+            "dismissalText": "c Pant b Pandya",
+            "bowlerId": "p-4",
+            "fielderId": "p-5"
+          },
+          "p-17": {
+            "playerId": "p-17",
+            "runs": 10,
+            "balls": 8,
+            "fours": 1,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "bowled",
+            "dismissalText": "b Bumrah",
+            "bowlerId": "p-7"
+          },
+          "p-18": {
+            "playerId": "p-18",
+            "runs": 4,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": true,
+            "dismissalType": "run-out",
+            "dismissalText": "run out (Kohli)",
+            "bowlerId": "p-7",
+            "fielderId": "p-1"
+          },
+          "p-13": {
+            "playerId": "p-13",
+            "runs": 3,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "isOut": false
+          }
+        },
+        "bowlerStats": {
+          "p-7": {
+            "playerId": "p-7",
+            "overs": 3,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 18,
+            "wickets": 2,
+            "wides": 1,
+            "noBalls": 0,
+            "dots": 9
+          },
+          "p-4": {
+            "playerId": "p-4",
+            "overs": 2,
+            "balls": 0,
+            "maidens": 0,
+            "runsConceded": 20,
+            "wickets": 1,
+            "wides": 0,
+            "noBalls": 0,
+            "dots": 4
+          }
+        },
+        "ballLogs": [],
+        "recentBalls": []
       }
     }
   ],
   "series": [
+    {
+      "id": "series-1786954114194",
+      "name": "International Tri-Series Cup 2026",
+      "seriesType": "triseries",
+      "format": "Tri-Series (3 Teams)",
+      "totalMatches": 7,
+      "teamA": "Royal Titans",
+      "teamB": "Super Strikers",
+      "teamC": "England",
+      "matchIds": [],
+      "status": "ongoing"
+    },
     {
       "id": "series-1786903893419",
       "name": "International Tri-Series Cup 2026",
@@ -6287,16 +6540,30 @@
       "seriesResult": "Royal Titans won the series 2-1",
       "playerOfSeriesId": "p-1",
       "playerOfSeriesSummary": "168 Runs • 2 Wickets (215 Series MVP Pts)"
+    },
+    {
+      "id": "series-triseries-1",
+      "name": "International T20 Tri-Series Cup 2026",
+      "seriesType": "triseries",
+      "format": "Tri-Series (3 Teams)",
+      "totalMatches": 7,
+      "teamA": "India",
+      "teamB": "Australia",
+      "teamC": "England",
+      "matchIds": [
+        "m-sample-1"
+      ],
+      "status": "ongoing"
     }
   ],
   "activeMatchId": "match-1786900197947",
   "activeScorer": {
-    "deviceId": "dev-4n0cseb",
+    "deviceId": "dev-v6wkiir",
     "deviceName": "Laptop / PC",
-    "userName": "kkk",
-    "timestamp": 1786906286943,
-    "lastActive": 1786906286943
+    "userName": "jhjh",
+    "timestamp": 1786954711028,
+    "lastActive": 1786954711028
   },
-  "syncTimestamp": 1786904015300,
+  "syncTimestamp": 1786954114265,
   "seriesBreakTimer": null
 }

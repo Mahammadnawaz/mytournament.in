@@ -24,13 +24,17 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
 
   const attachedSeries = seriesList.find(s => s.id === selectedSeriesId) || (initialSeriesId ? seriesList.find(s => s.id === initialSeriesId) : seriesList[0]);
 
-  const seriesTeams = (attachedSeries 
-    ? [attachedSeries.teamA, attachedSeries.teamB, attachedSeries.teamC].filter(Boolean) as string[]
-    : []).concat(
-        Array.from(new Set(seriesList.flatMap(s => [s.teamA, s.teamB, s.teamC].filter(Boolean) as string[])))
-      );
+  const seriesTeams = Array.from(new Set(
+    (attachedSeries 
+      ? [attachedSeries.teamA, attachedSeries.teamB, attachedSeries.teamC].filter(Boolean) as string[]
+      : []
+    ).concat(
+      seriesList.flatMap(s => [s.teamA, s.teamB, s.teamC].filter(Boolean) as string[])
+    )
+  )).filter(Boolean);
 
-  const availableTeamOptions = Array.from(new Set(seriesTeams.length > 0 ? seriesTeams : ['Royal Titans', 'Super Strikers', 'Thunderbolts', 'Rising Stars', 'Deccan Chargers', 'Kolkata Knights', 'Mumbai Champions', 'Chennai Kings']));
+  const availableTeamOptions = seriesTeams;
+  const [useCustomTeamInputs, setUseCustomTeamInputs] = useState<boolean>(availableTeamOptions.length === 0);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -40,8 +44,8 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
   const [venue, setVenue] = useState('Lords Cricket Ground');
   const [totalOvers, setTotalOvers] = useState<number | string>(5);
 
-  const [teamAName, setTeamAName] = useState(initialTeamA || (availableTeamOptions[0] || 'Royal Titans'));
-  const [teamBName, setTeamBName] = useState(initialTeamB || (availableTeamOptions[1] || 'Super Strikers'));
+  const [teamAName, setTeamAName] = useState(initialTeamA || (availableTeamOptions[0] || ''));
+  const [teamBName, setTeamBName] = useState(initialTeamB || (availableTeamOptions[1] || ''));
 
   const handleSelectTeamA = (newTeamA: string) => {
     setTeamAName(newTeamA);
@@ -280,45 +284,80 @@ export const MatchSetupModal: React.FC<MatchSetupModalProps> = ({
               </div>
             </div>
 
-            {/* Teams Selection */}
+            {/* Teams Selection Header & Mode Toggle */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Playing Teams</span>
+              {availableTeamOptions.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setUseCustomTeamInputs(!useCustomTeamInputs)}
+                  className="text-[11px] font-extrabold text-amber-400 hover:text-amber-300 underline"
+                >
+                  {useCustomTeamInputs ? 'Select from Added Teams 🔽' : '+ Add New Custom Team ✏️'}
+                </button>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-emerald-400 mb-1 uppercase">Playing Team A *</label>
-                <select
-                  value={teamAName}
-                  onChange={(e) => handleSelectTeamA(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-extrabold text-sm outline-none cursor-pointer"
-                >
-                  {availableTeamOptions.map(t => (
-                    <option 
-                      key={`ta-${t}`} 
-                      value={t} 
-                      disabled={t === teamBName}
-                      className={t === teamBName ? 'text-slate-600 bg-slate-900' : 'text-emerald-400 font-bold'}
-                    >
-                      {t} {t === teamBName ? '🚫 (Selected in Team B)' : ''}
-                    </option>
-                  ))}
-                </select>
+                {!useCustomTeamInputs && availableTeamOptions.length > 0 ? (
+                  <select
+                    value={teamAName}
+                    onChange={(e) => handleSelectTeamA(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-extrabold text-sm outline-none cursor-pointer"
+                  >
+                    {availableTeamOptions.map(t => (
+                      <option 
+                        key={`ta-${t}`} 
+                        value={t} 
+                        disabled={t === teamBName}
+                        className={t === teamBName ? 'text-slate-600 bg-slate-900' : 'text-emerald-400 font-bold'}
+                      >
+                        {t} {t === teamBName ? '🚫 (Selected in Team B)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. India"
+                    value={teamAName}
+                    onChange={(e) => setTeamAName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-bold text-sm outline-none"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-blue-400 mb-1 uppercase">Playing Team B *</label>
-                <select
-                  value={teamBName}
-                  onChange={(e) => handleSelectTeamB(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-extrabold text-sm outline-none cursor-pointer"
-                >
-                  {availableTeamOptions.map(t => (
-                    <option 
-                      key={`tb-${t}`} 
-                      value={t} 
-                      disabled={t === teamAName}
-                      className={t === teamAName ? 'text-slate-600 bg-slate-900' : 'text-blue-400 font-bold'}
-                    >
-                      {t} {t === teamAName ? '🚫 (Selected in Team A)' : ''}
-                    </option>
-                  ))}
-                </select>
+                {!useCustomTeamInputs && availableTeamOptions.length > 0 ? (
+                  <select
+                    value={teamBName}
+                    onChange={(e) => handleSelectTeamB(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-extrabold text-sm outline-none cursor-pointer"
+                  >
+                    {availableTeamOptions.map(t => (
+                      <option 
+                        key={`tb-${t}`} 
+                        value={t} 
+                        disabled={t === teamAName}
+                        className={t === teamAName ? 'text-slate-600 bg-slate-900' : 'text-blue-400 font-bold'}
+                      >
+                        {t} {t === teamAName ? '🚫 (Selected in Team A)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Australia"
+                    value={teamBName}
+                    onChange={(e) => setTeamBName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-bold text-sm outline-none"
+                  />
+                )}
               </div>
             </div>
 
